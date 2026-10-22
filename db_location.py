@@ -27,7 +27,8 @@ OLD_DATA_DIR = os.path.join(os.path.expanduser("~"), "JobProfitabilityManager")
 # shared-host install, this is exactly the one ~/TEAMworks360 folder it
 # always was - nothing about the default install changes because this
 # override exists.
-DATA_DIR = os.environ.get("TEAMWORKS360_DATA_DIR") or os.path.join(os.path.expanduser("~"), "TEAMworks360")
+# DATA_DIR = os.environ.get("TEAMWORKS360_DATA_DIR") or os.path.join(os.path.expanduser("~"), "TEAMworks360")
+DATA_DIR = "/tmp"
 DB_PATH = os.path.join(DATA_DIR, "jpm.db")
 SECRET_KEY_PATH = os.path.join(DATA_DIR, ".secret_key")
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
