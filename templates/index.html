@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if is_test_copy %}TEST COPY — TEAMworks360{% else %}TEAMworks360{% endif %}</title>
+<link rel="stylesheet" href="/static/css/style.css?v={{ static_version }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body{% if is_test_copy %} class="is-test-copy"{% endif %}>
+
+{% if is_test_copy %}
+<!-- Shown on every screen, before and after login, so nobody using the
+     shared test copy (see start_test_shared_host.bat/.command and the
+     README's "Test copy (sandbox)" section) can mistake it for the real,
+     live system - this instance is running against its own separate data
+     folder (TEAMWORKS360_DATA_DIR), but it's still a full copy of real
+     business data, so the distinction matters. -->
+<div id="test-copy-banner">⚠ TEST COPY — not the live system. Nothing entered here affects production data.</div>
+{% endif %}
+
+<div id="boot-splash">
+  <img src="/static/img/teamworks360-mark.svg?v={{ static_version }}" alt="" class="boot-mark">
+  <div class="boot-word">TEAMworks<span>360</span></div>
+  <div class="boot-dots"><span></span><span></span><span></span></div>
+  <div class="ownership-label">Owned by {{ app_owner }} &middot; Licence: {{ app_licence }}</div>
+</div>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h1>{% if is_test_copy %}TEAMworks360 (TEST COPY){% else %}TEAMworks360{% endif %}</h1>
+    <p class="sub">Sign in to track jobs, costs, revenue and margin in real time.</p>
+    <form id="login-form">
+      <label>Username</label>
+      <input type="text" id="login-username" autocomplete="username" required>
+      <label>Password</label>
+      <input type="password" id="login-password" autocomplete="current-password" required>
+      <button type="submit">Sign In</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+    <div class="ownership-label">Owned by {{ app_owner }} &middot; Licence: {{ app_licence }}</div>
+    {% if is_test_copy %}
+    <div class="demo-users">
+      <b>Demo accounts</b> (username / password)<br>
+      admin / admin123 — Administrator<br>
+      pmanager / pm123 — Project Manager<br>
+      procurement / proc123 — Procurement<br>
+      finance / fin123 — Finance<br>
+      exec / exec123 — Executive
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div id="force-password-screen">
+  <div class="login-card">
+    <h1>Set a New Password</h1>
+    <p class="sub">For security, set your own password before continuing - the one you signed in with was a temporary one.</p>
+    <form id="force-password-form">
+      <label>Current (temporary) Password</label>
+      <input type="password" id="fp-current" autocomplete="current-password" required>
+      <label>New Password</label>
+      <input type="password" id="fp-new" autocomplete="new-password" required minlength="8">
+      <label>Confirm New Password</label>
+      <input type="password" id="fp-confirm" autocomplete="new-password" required minlength="8">
+      <button type="submit">Set Password &amp; Continue</button>
+      <div class="login-error" id="fp-error"></div>
+    </form>
+  </div>
+</div>
+
+<div id="force-2fa-setup-screen">
+  <div class="login-card wide" id="tfa-setup-card"></div>
+</div>
+
+<div id="force-2fa-verify-screen">
+  <div class="login-card">
+    <h1>Two-Factor Authentication</h1>
+    <p class="sub" id="tfa-verify-sub">Enter the 6-digit code from your authenticator app.</p>
+    <form id="tfa-verify-form">
+      <label id="tfa-verify-label">Authentication Code</label>
+      <input type="text" id="tfa-verify-code" inputmode="numeric" autocomplete="one-time-code" required>
+      <button type="submit">Verify</button>
+      <div class="login-error" id="tfa-verify-error"></div>
+    </form>
+    <div class="tfa-alt-action"><a href="#" id="tfa-toggle-backup">Use a backup code instead</a></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="brand">
+      <img src="/static/img/teamworks360-mark.svg?v={{ static_version }}" alt="" class="brand-mark">
+      <div class="brand-text">TEAMworks<span>360</span></div>
+      {% if is_test_copy %}<div class="brand-test-pill">TEST COPY</div>{% endif %}
+    </div>
+    <div id="nav-items"></div>
+    <div class="sidebar-footer">
+      <div id="user-name">—</div>
+      <span class="role-badge" id="user-role">—</span>
+      <button id="change-password-btn">Change password</button>
+      <button id="logout-btn">Log out</button>
+      <div id="app-version" class="app-version"></div>
+    </div>
+  </div>
+  <div id="main">
+    <div id="topbar">
+      <h2 id="view-title">Dashboard</h2>
+      <div id="topbar-right"></div>
+    </div>
+    <div id="view-root"></div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<!-- Full-screen signature capture overlay (Despatch Notes) - deliberately
+     separate from #modal-root: it's a dedicated, no-sidebar mobile screen
+     for the person signing, not a centered dialog over the rest of the
+     app. See openDespatchSignOverlay() in app.js. -->
+<div id="sign-overlay-root"></div>
+
+<script src="/static/js/app.js?v={{ static_version }}"></script>
+</body>
+</html>

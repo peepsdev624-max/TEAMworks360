@@ -1,0 +1,3213 @@
+PO,Supplier (as in register),Works order,Status,Value
+PO-001,SMW Autoblok Telbrook Ltd.,(no job),Completed,255.6
+PO-002,SP Cleaning,(no job),Completed,450.0
+PO-003,SP Cleaning,(no job),Completed,450.0
+PO-004,SP Cleaning,(no job),Completed,225.0
+PO-005,SP Cleaning,(no job),Completed,450.0
+PO-006,SMW Autoblok Telbrook Ltd.,(no job),Completed,385.0
+PO-007,SP Cleaning,(no job),Completed,225.0
+PO-008,SMW Autoblok Telbrook Ltd.,(no job),Completed,26.3
+PO-009,Orb Design & Print,(no job),Completed,268.8
+PO-010,SP Cleaning,(no job),Completed,225.0
+PO-011,SMW Autoblok Telbrook Ltd.,(no job),Completed,385.0
+PO-012,Expert Tooling & Automation,(no job),Completed,4844.0
+PO-013,SP Cleaning,(no job),Completed,225.0
+PO-014,SP Cleaning,(no job),Completed,225.0
+PO-015,SP Cleaning,(no job),Completed,225.0
+PO-016,Towne,(no job),Completed,75.0
+PO-017,Marcote,(no job),Completed,460.0
+PO-018,Marcote,(no job),Completed,153.78
+PO-019,SP Cleaning,(no job),Completed,225.0
+PO-020,Excalibur Fabrications,(no job),Completed,1045.0
+PO-021,SP Cleaning,(no job),Completed,225.0
+PO-022,SP Cleaning,(no job),Completed,450.0
+PO-023,SP Cleaning,(no job),Completed,225.0
+PO-024,SP Cleaning,(no job),Completed,450.0
+PO-025,SP Cleaning,(no job),Completed,450.0
+PO-026,Roemheld,(no job),Completed,2764.27
+PO-027,Marcote,(no job),Completed,129.78
+PO-028,Direct Same Day,(no job),Completed,140.0
+PO-029,Cromwell Tools,(no job),Completed,155.0
+PO-030,SP Cleaning,(no job),Completed,225.0
+PO-031,Roemheld,(no job),Completed,294.17
+PO-032,Direct Same Day,(no job),Completed,100.0
+PO-033,Towne,(no job),Completed,25.0
+PO-034,Excalibur Fabrications,(no job),Completed,1168.0
+PO-035,Cromwell Tools,(no job),Completed,0.0
+PO-036,Marcote,(no job),Completed,80.0
+PO-037,SMW Autoblok Telbrook Ltd.,(no job),Completed,0.0
+PO-038,Direct Same Day,(no job),Completed,195.0
+PO-039,Direct Same Day,(no job),Completed,195.0
+PO-040,Direct Same Day,(no job),Completed,195.0
+PO-041,SMW Autoblok Telbrook Ltd.,(no job),Completed,300.0
+PO-042,Hydraquip,(no job),Completed,3510.0
+PO-043,QCT,(no job),Completed,800.0
+PO-044,Ecobat Technologies,(no job),Completed,955.0
+PO-045,Direct Same Day,(no job),Completed,390.0
+PO-046,SMW Autoblok Telbrook Ltd.,(no job),Completed,600.0
+PO-047,CNC Rotary,(no job),Completed,3307.0
+PO-048,SP Cleaning,(no job),Completed,225.0
+PO-049,SP Cleaning,(no job),Completed,330.0
+PO-050,SP Cleaning,(no job),Completed,330.0
+PO-051,SP Cleaning,(no job),Completed,330.0
+PO-052,Farnell,(no job),Completed,868.7
+PO-053,Fife Engineering,(no job),Completed,390.0
+PO-054,Fife Engineering,(no job),Completed,615.0
+PO-055,SMW Autoblok Telbrook Ltd.,(no job),Completed,8719.0
+PO-056,Expert Tooling & Automation,(no job),Completed,9641.0
+PO-057,Roemheld,(no job),Completed,235.22
+PO-058,SP Cleaning,(no job),Completed,225.0
+PO-059,QCT,(no job),Completed,600.0
+PO-060,Ecobat Technologies,(no job),Completed,955.0
+PO-061,Direct Same Day,(no job),Completed,390.0
+PO-062,Basic Business Systems,(no job),Completed,450.0
+PO-063,SP Cleaning,(no job),Completed,225.0
+PO-064,SP Cleaning,(no job),Completed,225.0
+PO-065,Orb Design & Print,(no job),Completed,289.0
+PO-066,Kail Engineering,(no job),Completed,1980.0
+PO-067,Workwear Express,(no job),Completed,260.21
+PO-068,Kail Engineering,(no job),Completed,501.5
+PO-069,SP Cleaning,(no job),Completed,225.0
+PO-070,Hydraquip,(no job),Completed,780.0
+PO-071,SP Cleaning,(no job),Completed,225.0
+PO-072,Basic Business Systems,(no job),Completed,160.0
+PO-073,SP Cleaning,(no job),Completed,225.0
+PO-074,HTL Group,(no job),Completed,752.25
+PO-075,SP Cleaning,(no job),Completed,225.0
+PO-076,SP Cleaning,(no job),Completed,450.0
+PO-077,DR Hydraulics,(no job),Completed,776.96
+PO-078,SP Cleaning,(no job),Completed,450.0
+PO-079,SP Cleaning,(no job),Completed,225.0
+PO-080,HTL Group,(no job),Completed,623.5
+PO-081,Cromwell Tools,(no job),Completed,34.58
+PO-082,County Batteries,(no job),Completed,479.7
+PO-083,SP Cleaning,(no job),Completed,225.0
+PO-084,Penshaw Engineering,(no job),Completed,296.5
+PO-085,Direct Same Day,(no job),Completed,195.0
+PO-086,SP Cleaning,(no job),Completed,225.0
+PO-087,Hydraquip,(no job),Completed,390.0
+PO-088,DR Hydraulics,(no job),Completed,135.0
+PO-089,Roemheld,(no job),Completed,1674.2
+PO-090,Roemheld,(no job),Completed,42.2
+PO-091,SP Cleaning,(no job),Completed,225.0
+PO-092,SP Cleaning,(no job),Completed,225.0
+PO-093,Roemheld,(no job),Completed,3110.08
+PO-094,Roemheld,(no job),Completed,584.08
+PO-095,DR Hydraulics,(no job),Completed,558.0
+PO-096,SP Cleaning,(no job),Completed,450.0
+PO-097,SP Cleaning,(no job),Completed,225.0
+PO-098,Roemheld,(no job),Completed,191.29
+PO-099,SP Cleaning,(no job),Completed,675.0
+PO-100,SP Cleaning,(no job),Completed,450.0
+PO-101,Direct Same Day,(no job),Completed,350.0
+PO-102,SP Cleaning,(no job),Completed,450.0
+PO-103,SP Cleaning,(no job),Completed,225.0
+PO-104,Roemheld,(no job),Completed,283.26
+PO-105,SP Cleaning,(no job),Completed,225.0
+PO-106,SP Cleaning,(no job),Completed,450.0
+PO-107,DR Hydraulics,(no job),Completed,309.0
+PO-108,Roemheld,(no job),Completed,407.68
+PO-109,DAD Machining,(no job),Completed,187.5
+PO-110,DAD Machining,(no job),Completed,1000.0
+PO-111,Penshaw Engineering,(no job),Completed,1252.0
+PO-112,Roemheld,(no job),Completed,587.32
+PO-113,SP Cleaning,(no job),Completed,450.0
+PO-114,SP Cleaning,(no job),Completed,225.0
+PO-115,Roemheld,(no job),Completed,694.28
+PO-116,Roemheld,(no job),Completed,327.32
+PO-117,SP Cleaning,(no job),Completed,450.0
+PO-118,SP Cleaning,(no job),Completed,450.0
+PO-119,FA Expert,(no job),Completed,60.0
+PO-120,Quality Tooling (North East) Ltd,(no job),Completed,190.28
+PO-121,SP Cleaning,(no job),Completed,225.0
+PO-122,SP Cleaning,(no job),Completed,450.0
+PO-123,Roemheld,(no job),Completed,1065.58
+PO-124,FA Expert,(no job),Completed,60.0
+PO-125,SP Cleaning,(no job),Completed,225.0
+PO-126,SP Cleaning,(no job),Completed,450.0
+PO-127,SR Engineering,(no job),Completed,470.2
+PO-128,DR Hydraulics,(no job),Completed,250.0
+PO-129,County Batteries,(no job),Completed,468.84
+PO-130,FA Expert,(no job),Completed,60.0
+PO-131,Kail Engineering,(no job),Completed,2420.0
+PO-132,DAD Machining,(no job),Completed,497.5
+PO-133,Cal4k Lifts,(no job),Completed,89.0
+PO-134,Roemheld,(no job),Completed,542.08
+PO-135,Roemheld,(no job),Completed,2646.24
+PO-136,SP Cleaning,(no job),Completed,450.0
+PO-137,SP Cleaning,(no job),Completed,225.0
+PO-138,SP Cleaning,(no job),Completed,450.0
+PO-139,Penshaw Engineering,(no job),Completed,161.5
+PO-140,Penshaw Engineering,(no job),Completed,180.0
+PO-141,SP Cleaning,(no job),Completed,450.0
+PO-142,Roemheld,(no job),Completed,68.3
+PO-143,Fife Engineering,(no job),Completed,75.0
+PO-144,DAD Machining,(no job),Completed,248.4
+PO-145,SP Cleaning,(no job),Completed,450.0
+PO-146,HTL Group,(no job),Completed,86.0
+PO-147,SP Cleaning,(no job),Completed,225.0
+PO-148,Roemheld,(no job),Completed,199.36
+PO-149,SP Cleaning,(no job),Completed,450.0
+PO-150,Roemheld,(no job),Completed,421.18
+PO-151,Workwear Express,(no job),Completed,149.35
+PO-152,FA Expert,(no job),Completed,60.0
+PO-153,DAD Machining,(no job),Completed,104.0
+PO-154,SP Cleaning,(no job),Completed,450.0
+PO-155,SP Cleaning,(no job),Completed,225.0
+PO-156,SP Cleaning,(no job),Completed,450.0
+PO-157,Thame Work Holding,(no job),Completed,507.0
+PO-158,SP Cleaning,(no job),Completed,225.0
+PO-159,Claron Hydraulic Seals Ltd,(no job),Completed,56.76
+PO-160,SP Cleaning,(no job),Completed,225.0
+PO-161,SP Cleaning,(no job),Completed,450.0
+PO-162,Roemheld,(no job),Completed,102.21
+PO-163,Roemheld,(no job),Completed,9640.07
+PO-164,SP Cleaning,(no job),Completed,225.0
+PO-165,SP Cleaning,(no job),Completed,450.0
+PO-166,Penshaw Engineering,(no job),Completed,152.0
+PO-167,Penshaw Engineering,(no job),Completed,775.0
+PO-168,CNC Rotary,(no job),Completed,874.5
+PO-169,Arkwell Fasteners,(no job),Completed,34.63
+PO-170,SP Cleaning,(no job),Completed,225.0
+PO-171,SP Cleaning,(no job),Completed,450.0
+PO-172,Dixon Engineering Supplies,(no job),Completed,200.0
+PO-173,DR Hydraulics,(no job),Completed,571.5
+PO-174,DAD Machining,(no job),Completed,497.5
+PO-175,County Batteries,(no job),Completed,199.99
+PO-176,Fife Engineering,(no job),Completed,75.0
+PO-177,Hayley Group,(no job),Completed,22.37
+PO-178,SP Cleaning,(no job),Completed,450.0
+PO-179,CNC Rotary,(no job),Completed,7736.0
+PO-180,QCT,(no job),Completed,800.0
+PO-181,Dixon Engineering Supplies,(no job),Completed,255.0
+PO-182,SP Cleaning,(no job),Completed,450.0
+PO-183,Roemheld,(no job),Completed,1749.08
+PO-184,SP Cleaning,(no job),Completed,450.0
+PO-185,DAD Machining,(no job),Completed,161.0
+PO-186,Cromwell Tools,(no job),Completed,83.22
+PO-187,FA Expert,(no job),Completed,60.0
+PO-188,SP Cleaning,(no job),Completed,450.0
+PO-189,Penshaw Engineering,(no job),Completed,512.0
+PO-190,DR Hydraulics,(no job),Completed,456.96
+PO-191,SP Cleaning,(no job),Completed,450.0
+PO-192,Penshaw Engineering,(no job),Completed,350.0
+PO-193,Fife Engineering,(no job),Completed,290.0
+PO-194,Roemheld,(no job),Completed,514.0
+PO-195,Roemheld,(no job),Completed,310.61
+PO-196,SP Cleaning,(no job),Completed,450.0
+PO-197,Penshaw Engineering,(no job),Completed,304.0
+PO-198,DR Hydraulics,(no job),Completed,769.5
+PO-199,SP Cleaning,(no job),Completed,450.0
+PO-200,Ecobat Technologies,(no job),Completed,1935.0
+PO-201,Roemheld,(no job),Completed,328.72
+PO-202,SMW Autoblok Telbrook Ltd.,(no job),Completed,1840.0
+PO-203,SP Cleaning,(no job),Completed,450.0
+PO-204,Direct Same Day,(no job),Completed,240.0
+PO-205,Direct Same Day,(no job),Completed,350.0
+PO-206,Roemheld,(no job),Completed,6844.71
+PO-207,SP Cleaning,(no job),Completed,450.0
+PO-208,SP Cleaning,(no job),Completed,225.0
+PO-209,SP Cleaning,(no job),Completed,450.0
+PO-210,Penshaw Engineering,(no job),Completed,1000.0
+PO-211,DR Hydraulics,(no job),Completed,256.5
+PO-212,Direct Same Day,(no job),Completed,325.0
+PO-213,Trent Instruments Ltd,(no job),Completed,214.0
+PO-214,SP Cleaning,(no job),Completed,450.0
+PO-215,SP Cleaning,(no job),Completed,225.0
+PO-216,Expert Tooling & Automation,(no job),Completed,17023.88
+PO-217,SMW Autoblok Telbrook Ltd.,(no job),Completed,65.0
+PO-218,Fife Engineering,(no job),Completed,1837.0
+PO-219,SP Cleaning,(no job),Completed,225.0
+PO-220,SP Cleaning,(no job),Completed,450.0
+PO-221,Fife Engineering,(no job),Completed,80.0
+PO-222,Roemheld,(no job),Completed,350.08
+PO-223,Roemheld,(no job),Completed,406.09
+PO-224,Towne,(no job),Completed,2240.0
+PO-225,SP Cleaning,(no job),Completed,225.0
+PO-226,SP Cleaning,(no job),Completed,450.0
+PO-227,Fife Engineering,(no job),Completed,535.0
+PO-228,Roemheld,(no job),Completed,307.26
+PO-229,QCT,(no job),Completed,600.0
+PO-230,Roemheld,(no job),Completed,468.26
+PO-231,SP Cleaning,(no job),Completed,450.0
+PO-232,SM Gauge Company,(no job),Completed,874.5
+PO-233,DR Hydraulics,(no job),Completed,1176.0
+PO-234,Cal4k Lifts,(no job),Completed,75.0
+PO-235,Dixon Engineering Supplies,(no job),Completed,1175.0
+PO-236,SP Cleaning,(no job),Completed,450.0
+PO-237,SP Cleaning,(no job),Completed,450.0
+PO-238,Cromwell Tools,(no job),Completed,299.92
+PO-239,Roemheld,(no job),Completed,1990.46
+PO-240,SMW Autoblok Telbrook Ltd.,(no job),Completed,120.0
+PO-241,FA Expert,(no job),Completed,175.0
+PO-242,SP Cleaning,(no job),Completed,450.0
+PO-243,Penshaw Engineering,(no job),Completed,348.0
+PO-244,Direct Same Day,(no job),Completed,245.0
+PO-245,FA Expert,(no job),Completed,100.0
+PO-246,Sensata,(no job),Completed,4082.45
+PO-247,FA Expert,(no job),Completed,60.0
+PO-248,Roemheld,(no job),Completed,547.53
+PO-249,SP Cleaning,(no job),Completed,450.0
+PO-250,Direct Same Day,(no job),Completed,230.0
+PO-251,Penshaw Engineering,(no job),Completed,380.0
+PO-252,Sensata,(no job),Completed,6827.6
+PO-253,NEP Nottingham,(no job),Completed,44.96
+PO-254,SP Cleaning,(no job),Completed,450.0
+PO-255,Wearside Pneumatics,(no job),Completed,439.83
+PO-256,Cal4k Lifts,(no job),Completed,439.83
+PO-257,Penshaw Engineering,(no job),Completed,195.0
+PO-258,Penshaw Engineering,(no job),Completed,679.0
+PO-259,Kite Packaging,(no job),Completed,46.61
+PO-260,SP Cleaning,(no job),Completed,450.0
+PO-261,SMW Autoblok Telbrook Ltd.,(no job),Completed,740.0
+PO-262,DAD Machining,(no job),Completed,497.5
+PO-263,Direct Same Day,(no job),Completed,230.0
+PO-264,SP Cleaning,(no job),Completed,450.0
+PO-265,Direct Same Day,(no job),Completed,235.0
+PO-266,Red Rose Springs,(no job),Completed,50.0
+PO-267,DR Hydraulics,(no job),Completed,294.0
+PO-268,SP Cleaning,(no job),Completed,450.0
+PO-269,Penshaw Engineering,(no job),Completed,48.0
+PO-270,FPE Seals,(no job),Completed,233.28
+PO-271,DR Hydraulics,(no job),Completed,321.0
+PO-272,SP Cleaning,(no job),Completed,450.0
+PO-273,FA Expert,(no job),Completed,139.0
+PO-274,Penshaw Engineering,(no job),Completed,568.0
+PO-275,NTG,(no job),Completed,78.0
+PO-276,Penshaw Engineering,(no job),Completed,2340.0
+PO-277,SP Cleaning,(no job),Completed,450.0
+PO-278,DR Hydraulics,(no job),Completed,144.0
+PO-279,Fife Engineering,(no job),Completed,655.0
+PO-280,SMW Autoblok Telbrook Ltd.,(no job),Completed,22000.0
+PO-281,SP Cleaning,(no job),Completed,450.0
+PO-282,Roemheld,(no job),Completed,2217.8
+PO-283,Direct Same Day,(no job),Completed,235.0
+PO-284,FA Expert,(no job),Completed,60.0
+PO-285,FPE Seals,(no job),Completed,48.26
+PO-286,SP Cleaning,(no job),Completed,450.0
+PO-287,Direct Same Day,(no job),Completed,245.0
+PO-288,Penshaw Engineering,(no job),Completed,148.5
+PO-289,DR Hydraulics,(no job),Completed,892.0
+PO-290,NTG,(no job),Completed,78.0
+PO-291,SP Cleaning,(no job),Completed,500.0
+PO-292,Direct Same Day,(no job),Completed,245.0
+PO-293,Marcote,(no job),Completed,259.3
+PO-294,Fife Engineering,(no job),Completed,678.0
+PO-295,DR Hydraulics,(no job),Completed,64.0
+PO-296,SP Cleaning,(no job),Completed,250.0
+PO-297,DR Hydraulics,(no job),Completed,436.0
+PO-298,SP Cleaning,(no job),Completed,500.0
+PO-299,SM Gauge Company,(no job),Completed,1689.6
+PO-300,Penshaw Engineering,(no job),Completed,300.0
+PO-301,FA Expert,(no job),Completed,60.0
+PO-302,SP Cleaning,(no job),Completed,500.0
+PO-303,Penshaw Engineering,(no job),Completed,182.0
+PO-304,SMW Autoblok Telbrook Ltd.,(no job),Completed,750.0
+PO-305,DR Hydraulics,(no job),Completed,777.0
+PO-306,Penshaw Engineering,(no job),Completed,180.0
+PO-307,SP Cleaning,(no job),Completed,500.0
+PO-308,DAD Machining,(no job),Completed,1040.0
+PO-309,Roemheld,(no job),Completed,1067.0
+PO-310,Roemheld,(no job),Completed,800.18
+PO-311,Fife Engineering,(no job),Completed,2302.5
+PO-312,SP Cleaning,(no job),Completed,500.0
+PO-313,Penshaw Engineering,(no job),Completed,682.0
+PO-314,Penshaw Engineering,(no job),Completed,1000.0
+PO-315,Penshaw Engineering,(no job),Completed,675.0
+PO-316,Marcote,(no job),Completed,309.9
+PO-317,SP Cleaning,(no job),Completed,500.0
+PO-318,FPE Seals,(no job),Completed,485.5
+PO-319,Roemheld,(no job),Completed,294.46
+PO-320,Roemheld,(no job),Completed,2696.66
+PO-321,DR Hydraulics,(no job),Completed,535.0
+PO-322,SP Cleaning,(no job),Completed,500.0
+PO-323,SP Cleaning,(no job),Completed,250.0
+PO-324,Penshaw Engineering,(no job),Completed,530.0
+PO-325,SP Cleaning,(no job),Completed,500.0
+PO-326,Direct Same Day,(no job),Completed,250.7
+PO-327,DR Hydraulics,(no job),Completed,578.0
+PO-328,Hydraquip,(no job),Completed,120.77
+PO-329,Direct Same Day,(no job),Completed,468.7
+PO-330,Roemheld,(no job),Completed,305.4
+PO-331,SP Cleaning,(no job),Completed,750.0
+PO-332,HP Consulting,(no job),Completed,731.0
+PO-333,Direct Same Day,(no job),Completed,250.7
+PO-334,SMW Autoblok Telbrook Ltd.,(no job),Completed,2665.0
+PO-335,NTG,(no job),Completed,98.0
+PO-336,Penshaw Engineering,(no job),Completed,960.0
+PO-337,SP Cleaning,(no job),Completed,750.0
+PO-338,Towne,(no job),Completed,0.0
+PO-339,DR Hydraulics,(no job),Completed,939.0
+PO-340,NTG,(no job),Completed,0.0
+PO-341,Direct Same Day,(no job),Completed,250.7
+PO-342,EM Precision,(no job),Completed,1080.0
+PO-343,SP Cleaning,(no job),Completed,1000.0
+PO-344,Fife Engineering,(no job),Completed,520.0
+PO-345,Direct Same Day,(no job),Completed,250.7
+PO-346,Penshaw Engineering,(no job),Completed,712.0
+PO-347,Towne,(no job),Completed,150.0
+PO-348,SP Cleaning,(no job),Completed,750.0
+PO-349,Direct Same Day,(no job),Completed,250.7
+PO-350,Fife Engineering,(no job),Completed,100.0
+PO-351,FA Expert,(no job),Completed,60.0
+PO-352,Roemheld,(no job),Completed,435.6
+PO-353,FA Expert,(no job),Completed,139.0
+PO-354,Marcote,(no job),Completed,310.01
+PO-355,Fife Engineering,(no job),Completed,110.0
+PO-356,Roemheld,(no job),Completed,2217.8
+PO-357,SP Cleaning,(no job),Completed,500.0
+PO-358,Direct Same Day,(no job),Completed,250.7
+PO-359,Direct Same Day,(no job),Completed,528.65
+PO-360,SM Gauge Company,(no job),Completed,852.8
+PO-361,DAD Machining,(no job),Completed,638.5
+PO-362,SP Cleaning,(no job),Completed,250.0
+PO-363,EM Precision,(no job),Completed,672.3
+PO-364,EM Precision,(no job),Completed,300.0
+PO-365,Towne,(no job),Completed,112.5
+PO-366,SP Cleaning,(no job),Completed,500.0
+PO-367,Fife Engineering,(no job),Completed,725.0
+PO-368,CEJN UK,(no job),Completed,438.95
+PO-369,SP Cleaning,(no job),Completed,500.0
+PO-370,SP Cleaning,(no job),Completed,500.0
+PO-371,Penshaw Engineering,(no job),Completed,255.0
+PO-372,Penshaw Engineering,(no job),Completed,380.0
+PO-373,EM Precision,(no job),Completed,165.0
+PO-374,Hydraquip,(no job),Completed,860.0
+PO-375,SP Cleaning,(no job),Completed,250.0
+PO-376,Bruderer UK Ltd,(no job),Completed,210.6
+PO-377,Towne,(no job),Completed,0.0
+PO-378,Fife Engineering,(no job),Completed,1846.5
+PO-379,SP Cleaning,(no job),Completed,500.0
+PO-380,CEJN UK,(no job),Completed,36.93
+PO-381,Sensata,(no job),Completed,2449.47
+PO-382,Sensata,(no job),Completed,4057.56
+PO-383,SP Cleaning,(no job),Completed,250.0
+PO-384,EM Precision,(no job),Completed,530.0
+PO-385,Direct Same Day,(no job),Completed,273.2
+PO-386,Towne,(no job),Completed,0.0
+PO-387,Marcote,(no job),Completed,0.0
+PO-388,SP Cleaning,(no job),Completed,500.0
+PO-389,Direct Same Day,(no job),Completed,273.7
+PO-390,Hydraquip,(no job),Completed,690.0
+PO-391,Direct Same Day,(no job),Completed,505.75
+PO-392,Enerpac UK,(no job),Completed,0.0
+PO-393,FA Expert,(no job),Completed,60.0
+PO-394,Towne,(no job),Completed,199.1
+PO-395,SP Cleaning,(no job),Completed,500.0
+PO-396,Direct Same Day,(no job),Completed,505.75
+PO-397,SP Cleaning,(no job),Completed,250.0
+PO-398,CEJN UK,(no job),Completed,438.95
+PO-399,Towne,(no job),Completed,150.0
+PO-400,Hydraquip,(no job),Completed,1250.0
+PO-401,Fife Engineering,(no job),Completed,268.2
+PO-402,CEJN UK,(no job),Completed,863.55
+PO-403,SP Cleaning,(no job),Completed,500.0
+PO-404,SP Cleaning,(no job),Completed,500.0
+PO-405,SP Cleaning,(no job),Completed,500.0
+PO-406,Direct Same Day,(no job),Completed,269.1
+PO-407,EM Precision,(no job),Completed,306.0
+PO-408,Fife Engineering,(no job),Completed,0.0
+PO-409,CNTL Ltd,(no job),Completed,2000.0
+PO-410,QCT,(no job),Completed,850.0
+PO-411,EM Precision,(no job),Completed,396.0
+PO-412,Direct Same Day,(no job),Completed,269.1
+PO-413,SP Cleaning,(no job),Completed,500.0
+PO-414,Roemheld,(no job),Completed,473.9
+PO-415,Fife Engineering,(no job),Completed,210.0
+PO-416,EM Precision,(no job),Completed,259.8
+PO-417,Roemheld,(no job),Completed,4604.04
+PO-418,Bodycote,(no job),Completed,2896.0
+PO-419,SP Cleaning,(no job),Completed,500.0
+PO-420,EM Precision,(no job),Completed,1976.24
+PO-421,SP Cleaning,(no job),Completed,500.0
+PO-422,Fife Engineering,(no job),Completed,1456.0
+PO-423,SP Cleaning,(no job),Completed,250.0
+PO-424,SP Cleaning,(no job),Completed,500.0
+PO-425,Direct Same Day,(no job),Completed,493.0
+PO-426,EM Precision,(no job),Completed,1427.0
+PO-427,Kail Engineering,(no job),Completed,486.0
+PO-428,Penshaw Engineering,(no job),Completed,712.0
+PO-429,EM Precision,(no job),Completed,258.0
+PO-430,SP Cleaning,(no job),Completed,500.0
+PO-431,Direct Same Day,(no job),Completed,562.62
+PO-432,Penshaw Engineering,(no job),Completed,55.0
+PO-433,Hydraquip,(no job),Completed,75.0
+PO-434,Penshaw Engineering,(no job),Completed,267.0
+PO-435,SP Cleaning,(no job),Completed,500.0
+PO-436,EM Precision,(no job),Completed,75.0
+PO-437,EM Precision,(no job),Completed,625.0
+PO-438,CNTL Ltd,(no job),Completed,245.0
+PO-439,Fife Engineering,(no job),Completed,295.0
+PO-440,Roemheld,(no job),Completed,72.65
+PO-441,SP Cleaning,(no job),Completed,500.0
+PO-442,SP Cleaning,(no job),Completed,250.0
+PO-443,Hydraquip,(no job),Completed,303.0
+PO-444,EM Precision,(no job),Completed,157.0
+PO-445,SP Cleaning,(no job),Completed,500.0
+PO-446,Fife Engineering,(no job),Completed,0.0
+PO-447,Hayley Group,(no job),Completed,62.32
+PO-448,EM Precision,(no job),Completed,1472.62
+PO-449,SP Cleaning,(no job),Completed,750.0
+PO-450,Fife Engineering,(no job),Completed,803.0
+PO-451,Cromwell Tools,(no job),Completed,225.0
+PO-452,SP Cleaning,(no job),Completed,750.0
+PO-453,Fife Engineering,(no job),Completed,385.0
+PO-454,EM Precision,(no job),Completed,2950.02
+PO-455,Marcote,(no job),Completed,291.87
+PO-456,EM Precision,(no job),Completed,1713.43
+PO-457,SP Cleaning,(no job),Completed,750.0
+PO-458,EM Precision,(no job),Completed,674.6
+PO-459,SP Cleaning,(no job),Completed,250.0
+PO-460,SP Cleaning,(no job),Completed,750.0
+PO-461,QCT,(no job),Completed,600.0
+PO-462,Roemheld,(no job),Completed,1852.12
+PO-463,EM Precision,(no job),Completed,771.93
+PO-464,Direct Same Day,(no job),Completed,269.1
+PO-465,SP Cleaning,(no job),Completed,750.0
+PO-466,Penshaw Engineering,(no job),Completed,558.0
+PO-467,St. John Ambulance,(no job),Completed,446.25
+PO-468,SP Cleaning,(no job),Completed,750.0
+PO-469,Towne,(no job),Completed,40.0
+PO-470,Roemheld,(no job),Completed,3583.88
+PO-471,Industrial Interface systems,(no job),Completed,787.5
+PO-472,Penshaw Engineering,(no job),Completed,720.0
+PO-473,EM Precision,(no job),Completed,175.0
+PO-474,Roemheld,(no job),Completed,691.12
+PO-475,EM Precision,(no job),Completed,312.8
+PO-476,SP Cleaning,(no job),Completed,500.0
+PO-477,Fife Engineering,(no job),Completed,145.0
+PO-478,CNTL Ltd,(no job),Completed,425.0
+PO-479,SP Cleaning,(no job),Completed,500.0
+PO-480,Cromwell Tools,(no job),Completed,148.7
+PO-481,EM Precision,(no job),Completed,1469.9
+PO-482,Wearside Pneumatics,(no job),Completed,477.27
+PO-483,Thame Work Holding,(no job),Completed,207.35
+PO-484,Direct Same Day,(no job),Completed,69.0
+PO-485,Hydraquip,(no job),Completed,400.0
+PO-486,EM Precision,(no job),Completed,110.0
+PO-487,EM Precision,(no job),Completed,195.12
+PO-488,Cal4K Lifts,(no job),Completed,189.0
+PO-489,SP Cleaning,(no job),Completed,500.0
+PO-490,Fife Engineering,(no job),Completed,165.0
+PO-491,SP Cleaning,(no job),Completed,500.0
+PO-492,FPE Seals,(no job),Completed,393.82
+PO-493,EM Precision,(no job),Completed,50.0
+PO-494,Hydraquip,(no job),Completed,0.0
+PO-495,EM Precision,(no job),Completed,150.0
+PO-496,EM Precision,(no job),Completed,291.5
+PO-497,EM Precision,(no job),Completed,943.0
+PO-498,Hydraquip,(no job),Completed,450.0
+PO-499,Direct Same Day,(no job),Completed,264.5
+PO-500,SP Cleaning,(no job),Completed,750.0
+PO-501,Cromwell Tools,(no job),Completed,85.95
+PO-502,Roemheld,(no job),Completed,771.1
+PO-503,Status Metrology,(no job),Completed,52995.0
+PO-504,QMF Northern,(no job),Completed,1650.0
+PO-505,YPG,(no job),Completed,328.5
+PO-506,Eastern Hose,(no job),Completed,968.78
+PO-507,EM Precision,(no job),Completed,260.0
+PO-508,SP Cleaning,(no job),Completed,750.0
+PO-509,Hydraquip,(no job),Completed,695.0
+PO-510,EM Precision,(no job),Completed,2254.2
+PO-511,Fife Engineering,(no job),Completed,145.0
+PO-512,EM Precision,(no job),Completed,717.2
+PO-513,QMF Northern,(no job),Completed,1365.0
+PO-514,EM Precision,(no job),Completed,270.0
+PO-515,Brown & Holmes,(no job),Completed,572.6
+PO-516,SP Cleaning,(no job),Completed,500.0
+PO-517,St. John Ambulance,(no job),Completed,525.0
+PO-518,Hydraquip,(no job),Completed,100.0
+PO-519,SP Cleaning,(no job),Completed,500.0
+PO-520,NEP Nottingham,(no job),Completed,112.3
+PO-521,SP Cleaning,(no job),Completed,750.0
+PO-522,Direct Same Day,(no job),Completed,324.9
+PO-523,Roemheld,(no job),Completed,0.0
+PO-524,EM Precision,(no job),Completed,0.0
+PO-525,Harvey Electrical Services,(no job),Completed,770.0
+PO-526,FA Expert,(no job),Completed,3975.0
+PO-527,FA Expert,(no job),Completed,150.0
+PO-528,SP Cleaning,(no job),Completed,750.0
+PO-529,Brown & Holmes,(no job),Completed,1906.79
+PO-530,EM Precision,(no job),Completed,395.2
+PO-531,Cal4K Lifts,(no job),Completed,50.0
+PO-532,Direct Same Day,(no job),Completed,310.5
+PO-533,Cromwell Tools,(no job),Completed,542.0
+PO-534,RUD,(no job),Completed,640.6
+PO-535,Direct Same Day,(no job),Completed,259.9
+PO-536,SP Cleaning,(no job),Completed,250.0
+PO-537,Cromwell Tools,(no job),Completed,0.0
+PO-538,Costcutters UK,(no job),Completed,613.99
+PO-539,SP Cleaning,(no job),Completed,750.0
+PO-540,Fife Engineering,(no job),Completed,1450.0
+PO-541,Towne,(no job),Completed,80.0
+PO-542,Orb Design & Print,(no job),Completed,196.0
+PO-543,Orb Design & Print,(no job),Completed,87.0
+PO-544,SP Cleaning,(no job),Completed,750.0
+PO-545,EM Precision,(no job),Completed,110.0
+PO-546,Hydraquip,(no job),Completed,100.0
+PO-547,EM Precision,(no job),Completed,540.0
+PO-548,EM Precision,(no job),Completed,350.0
+PO-549,Roemheld,(no job),Completed,0.0
+PO-550,YPG,(no job),Completed,159.0
+PO-551,SP Cleaning,(no job),Completed,750.0
+PO-552,EM Precision,(no job),Completed,405.6
+PO-553,EM Precision,(no job),Completed,411.2
+PO-554,Basic Business Systems,(no job),Completed,1234.0
+PO-555,SP Cleaning,(no job),Completed,500.0
+PO-556,Cromwell Tools,(no job),Completed,0.0
+PO-557,Airwise,(no job),Completed,0.0
+PO-558,Lifting Equipment Store,(no job),Completed,369.27
+PO-559,Fork Lift Attachments,(no job),Completed,0.0
+PO-560,EM Precision,(no job),Completed,298.4
+PO-561,EM Precision,(no job),Completed,875.26
+PO-562,Fife Engineering,(no job),Completed,2526.0
+PO-563,Marcote,(no job),Completed,313.57
+PO-564,SP Cleaning,(no job),Completed,750.0
+PO-565,UPS,(no job),Completed,0.0
+PO-566,Harvey Electrical Services,(no job),Completed,925.0
+PO-567,Roemheld,(no job),Completed,1655.21
+PO-568,SP Cleaning,(no job),Completed,750.0
+PO-569,EM Precision,(no job),Completed,937.0
+PO-570,EM Precision,(no job),Completed,386.4
+PO-571,FPE Seals,(no job),Completed,92.9
+PO-572,EM Precision,(no job),Completed,655.2
+PO-573,Dixon Engineering Supplies,(no job),Completed,111.0
+PO-574,SP Cleaning,(no job),Completed,750.0
+PO-575,Marcote,(no job),Completed,1740.8
+PO-576,Cromwell Tools,(no job),Completed,145.29
+PO-577,EM Precision,(no job),Completed,355.6
+PO-578,Amazon,(no job),Completed,218.81
+PO-579,Dixon Engineering Supplies,(no job),Completed,540.0
+PO-580,Cromwell Tools,(no job),Completed,274.33
+PO-581,Fife Engineering,(no job),Completed,0.0
+PO-582,SP Cleaning,(no job),Completed,750.0
+PO-583,Roemheld,(no job),Completed,844.1
+PO-584,Orb Design & Print,(no job),Completed,196.0
+PO-585,Avantor,(no job),Completed,844.0
+PO-586,SMW Autoblok Telbrook Ltd.,(no job),Completed,480.0
+PO-587,SP Cleaning,(no job),Completed,750.0
+PO-588,Cromwell Tools,(no job),Completed,206.56
+PO-589,Towne,(no job),Completed,40.0
+PO-590,Roemheld,(no job),Completed,107.57
+PO-591,QMF Northern,(no job),Completed,450.0
+PO-592,SP Cleaning,(no job),Completed,750.0
+PO-593,Roemheld,(no job),Completed,316.59
+PO-594,Arkwell Fasteners,(no job),Completed,39.41
+PO-595,RUD,(no job),Completed,1210.05
+PO-596,EM Precision,(no job),Completed,246.48
+PO-597,Acorn Industrial Services,(no job),Completed,269.4
+PO-598,EM Precision,(no job),Completed,300.0
+PO-599,EM Precision,(no job),Completed,210.0
+PO-600,EM Precision,(no job),Completed,220.0
+PO-601,Airwise,(no job),Completed,72.0
+PO-602,EM Precision,(no job),Completed,1579.2
+PO-603,SP Cleaning,(no job),Completed,750.0
+PO-604,Marcote,(no job),Completed,297.0
+PO-605,EM Precision,(no job),Completed,252.0
+PO-606,EM Precision,(no job),Completed,522.0
+PO-607,EM Precision,(no job),Completed,2683.5
+PO-608,Arkwell Fasteners,(no job),Completed,7.46
+PO-609,EM Precision,(no job),Completed,742.5
+PO-610,EM Precision,(no job),Completed,1450.0
+PO-611,EM Precision,(no job),Completed,770.0
+PO-612,Cromwell Tools,(no job),Completed,20.0
+PO-613,SP Cleaning,(no job),Completed,250.0
+PO-614,Albert Schrem,(no job),Completed,0.0
+PO-615,SP Cleaning,(no job),Completed,250.0
+PO-616,CMD PAT Testing,(no job),Completed,76.0
+PO-617,DDL PAT Testing,(no job),Completed,90.0
+PO-618,SP Cleaning,(no job),Completed,500.0
+PO-619,WDS Components,(no job),Completed,63.0
+PO-620,AMB Training,(no job),Completed,275.0
+PO-621,Direct Same Day,(no job),Completed,533.5
+PO-622,SMW Autoblok Telbrook Ltd.,(no job),Completed,200.0
+PO-623,SP Cleaning,(no job),Completed,250.0
+PO-624,AMB Training,(no job),Completed,275.0
+PO-625,Hydraquip,(no job),Completed,0.0
+PO-626,SP Cleaning,(no job),Completed,250.0
+PO-627,FPE Seals,(no job),Completed,168.0
+PO-628,Marcote,(no job),Completed,124.0
+PO-629,Autosmart,(no job),Completed,27.0
+PO-630,SP Cleaning,(no job),Completed,500.0
+PO-631,CEF,(no job),Completed,48.9
+PO-632,Direct Same Day,(no job),Completed,253.0
+PO-633,SMW Autoblok Telbrook Ltd.,(no job),Completed,725.0
+PO-634,Screwfix,(no job),Completed,34.16
+PO-635,FPE Seals,(no job),Completed,0.0
+PO-636,Hydraquip,(no job),Completed,0.0
+PO-637,EM Precision,(no job),Completed,50.0
+PO-638,Arkwell Fasteners,(no job),Completed,36.0
+PO-639,CEF,(no job),Completed,84.0
+PO-640,Fife Engineering,(no job),Completed,725.0
+PO-641,Airwise,(no job),Completed,0.0
+PO-642,SP Cleaning,(no job),Completed,250.0
+PO-643,RS Spares,(no job),Completed,56.37
+PO-644,Rock Steady Group,(no job),Completed,3350.0
+PO-645,EM Precision,(no job),Completed,100.0
+PO-646,FA Expert,(no job),Completed,60.0
+PO-647,Marcote,(no job),Completed,0.0
+PO-648,SP Cleaning,(no job),Completed,500.0
+PO-649,Hydraquip,(no job),Completed,695.0
+PO-650,Autosmart,(no job),Completed,165.18
+PO-651,Cal4K Lifts,(no job),Completed,400.0
+PO-652,Fife Engineering,(no job),Completed,725.0
+PO-653,Towne,(no job),Completed,310.0
+PO-654,Roemheld,(no job),Completed,2940.37
+PO-655,FPE Seals,(no job),Completed,95.75
+PO-656,EM Precision,(no job),Completed,515.2
+PO-657,SP Cleaning,(no job),Completed,250.0
+PO-658,SP Cleaning,(no job),Completed,250.0
+PO-659,East Midlands Hydraulics Ltd,(no job),Completed,42.8
+PO-660,Direct Same Day,(no job),Completed,516.66
+PO-661,Dixon Engineering Supplies,(no job),Completed,63.0
+PO-662,SP Cleaning,(no job),Completed,500.0
+PO-663,Fife Engineering,(no job),Completed,115.0
+PO-664,Dixon Engineering Supplies,(no job),Completed,324.0
+PO-665,Roemheld,(no job),Completed,0.0
+PO-666,Direct Same Day,(no job),Completed,250.7
+PO-667,SP Cleaning,(no job),Completed,500.0
+PO-668,Rock Steady Group,(no job),Completed,10360.0
+PO-669,Acorn Industrial Services,(no job),Completed,528.3
+PO-670,RS Spares,(no job),Completed,198.82
+PO-671,Direct Same Day,(no job),Completed,245.25
+PO-672,QCT,(no job),Completed,850.0
+PO-673,FPE Seals,(no job),Completed,24.75
+PO-674,UPS,(no job),Completed,0.0
+PO-675,Direct Same Day,(no job),Completed,301.0
+PO-676,Hydraquip,(no job),Completed,695.0
+PO-677,Cromwell Tools,(no job),Completed,0.0
+PO-678,J V Fabrications,(no job),Completed,630.0
+PO-679,SP Cleaning,(no job),Completed,250.0
+PO-680,Direct Same Day,(no job),Completed,539.55
+PO-681,Hydraquip,(no job),Completed,492.0
+PO-682,Roemheld,(no job),Completed,2130.88
+PO-683,FA Expert,(no job),Completed,139.0
+PO-684,EM Precision,(no job),Completed,577.26
+PO-685,SP Cleaning,(no job),Completed,250.0
+PO-686,Dixon Engineering Supplies,(no job),Completed,50.0
+PO-687,EM Precision,(no job),Completed,21.46
+PO-688,Airwise,(no job),Completed,40.32
+PO-689,EM Precision,(no job),Completed,540.0
+PO-690,EM Precision,(no job),Completed,50.0
+PO-691,WDS Components,(no job),Completed,79.91
+PO-692,Yaplex,(no job),Completed,1262.5
+PO-693,Direct Same Day,(no job),Completed,632.5
+PO-694,SP Cleaning,(no job),Completed,500.0
+PO-695,Cromwell Tools,(no job),Completed,36.2
+PO-696,EM Precision,(no job),Completed,1248.0
+PO-697,König,(no job),Completed,0.0
+PO-698,Dixon Engineering Supplies,(no job),Completed,75.0
+PO-699,Springmasters,(no job),Completed,626.12
+PO-700,Direct Same Day,(no job),Completed,244.0
+PO-701,Willstec,(no job),Completed,1440.0
+PO-702,Hydraquip,(no job),Completed,1025.0
+PO-703,Roemheld,(no job),Completed,546.0
+PO-704,Dixon Engineering Supplies,(no job),Completed,50.0
+PO-705,SP Cleaning,(no job),Completed,500.0
+PO-706,Cromwell Tools,(no job),Completed,121.24
+PO-707,Airwise,(no job),Completed,283.5
+PO-708,EM Precision,(no job),Completed,450.0
+PO-709,Fife Engineering,(no job),Completed,180.0
+PO-710,Autosmart,(no job),Completed,13.5
+PO-711,Airwise,(no job),Completed,50.92
+PO-712,Hydraquip,(no job),Completed,450.0
+PO-713,J V Fabrications,(no job),Completed,132.5
+PO-714,Willstec,(no job),Completed,3250.0
+PO-715,Direct Same Day,(no job),Completed,253.0
+PO-716,Direct Same Day,(no job),Completed,0.0
+PO-717,Willstec,(no job),Completed,2266.0
+PO-718,SP Cleaning,(no job),Completed,500.0
+PO-719,East Midlands Hydraulics Ltd,(no job),Completed,214.75
+PO-720,East Midlands Hydraulics Ltd,(no job),Completed,240.0
+PO-721,East Midlands Hydraulics Ltd,(no job),Completed,18.5
+PO-722,Hydraquip,(no job),Completed,290.0
+PO-723,SP Cleaning,(no job),Completed,500.0
+PO-724,Dixon Engineering Supplies,(no job),Completed,50.0
+PO-725,Direct Same Day,(no job),Completed,247.5
+PO-726,Nefco,(no job),Completed,39.9
+PO-727,Fife Engineering,(no job),Completed,3700.0
+PO-728,Willstec,(no job),Completed,720.0
+PO-729,Wixroyd,(no job),Completed,0.0
+PO-730,Willstec,(no job),Completed,480.0
+PO-731,Nefco,(no job),Completed,275.55
+PO-732,Cromwell Tools,(no job),Completed,30.46
+PO-733,Nefco,(no job),Completed,60.0
+PO-734,Direct Same Day,(no job),Completed,382.95
+PO-735,Fife Engineering,(no job),Completed,3900.0
+PO-736,Acorn Industrial Services,(no job),Completed,1046.1
+PO-737,RS Spares,(no job),Completed,97.79
+PO-738,Cromwell Tools,(no job),Completed,17.82
+PO-739,EM Precision,(no job),Completed,1055.0
+PO-740,Roemheld,(no job),Completed,908.15
+PO-741,Dixon Engineering Supplies,(no job),Completed,125.0
+PO-742,Dixon Engineering Supplies,(no job),Completed,50.0
+PO-743,Automation Solutions,(no job),Completed,511.8
+PO-744,Autosmart,(no job),Completed,27.0
+PO-745,Rock Steady Group,(no job),Completed,5180.0
+PO-746,Cromwell Tools,(no job),Completed,121.24
+PO-747,EM Precision,(no job),Completed,653.04
+PO-748,EM Precision,(no job),Completed,160.0
+PO-749,Fife Engineering,(no job),Completed,405.0
+PO-750,SP Cleaning,(no job),Completed,500.0
+PO-751,FPE Seals,(no job),Completed,478.5
+PO-752,Roemheld,(no job),Completed,2345.28
+PO-753,Towne,(no job),Completed,270.0
+PO-754,Harvey Electrical Services,(no job),Completed,285.0
+PO-755,SP Cleaning,(no job),Completed,500.0
+PO-756,IDS Ltd,(no job),Completed,763.0
+PO-757,EU Automation,(no job),Completed,418.0
+PO-758,Roemheld,(no job),Completed,315.27
+PO-759,RS Spares,(no job),Completed,984.5
+PO-760,K Lee,(no job),Completed,1000.0
+PO-761,L W Cam,(no job),Completed,1000.0
+PO-762,Airwise,(no job),Completed,402.96
+PO-763,Direct Same Day,(no job),Completed,382.95
+PO-764,SP Cleaning,(no job),Completed,250.0
+PO-765,SP Cleaning,(no job),Completed,500.0
+PO-766,Hoffman Group,(no job),Completed,1676.16
+PO-767,P & P Safety Ltd,(no job),Completed,0.0
+PO-768,SMW Autoblok Telbrook Ltd.,(no job),Completed,0.0
+PO-769,Coil Springs Direct,(no job),Completed,43.65
+PO-770,East Midlands Hydraulics Ltd,(no job),Completed,110.0
+PO-771,EM Precision,(no job),Completed,990.2
+PO-772,EM Precision,(no job),Completed,1057.2
+PO-773,Direct Same Day,(no job),Completed,310.56
+PO-774,Acorn Industrial Services,(no job),Completed,69.0
+PO-775,Dixon Engineering Supplies,(no job),Completed,73.0
+PO-776,Direct Same Day,(no job),Completed,330.4
+PO-777,SP Cleaning,(no job),Completed,500.0
+PO-778,Cell Pack Solutions,(no job),Completed,2055.92
+PO-779,Cromwell Tools,(no job),Completed,0.0
+PO-780,Dixon Engineering Supplies,(no job),Completed,389.0
+PO-781,EM Precision,(no job),Completed,253.54
+PO-782,Autosmart,(no job),Completed,50.0
+PO-783,Cromwell Tools,(no job),Completed,81.31
+PO-784,EM Precision,(no job),Completed,186.0
+PO-785,Cromwell Tools,(no job),Completed,208.5
+PO-786,Cromwell Tools,(no job),Completed,208.5
+PO-787,Arkwell Fasteners,(no job),Completed,35.75
+PO-788,Willstec,(no job),Completed,0.0
+PO-789,FPE Seals,(no job),Completed,54.24
+PO-790,EM Precision,(no job),Completed,186.0
+PO-791,EM Precision,(no job),Completed,316.0
+PO-792,FA Expert,(no job),Completed,146.0
+PO-793,Texim Europe,(no job),Completed,0.0
+PO-794,LEEA,(no job),Completed,790.0
+PO-795,Cromwell Tools,(no job),Completed,100.88
+PO-796,Direct Same Day,(no job),Completed,0.0
+PO-797,LEEA,(no job),Completed,790.0
+PO-798,SP Cleaning,(no job),Completed,250.0
+PO-799,SP Cleaning,(no job),Completed,500.0
+PO-800,Cromwell Tools,(no job),Completed,135.8
+PO-801,Direct Same Day,(no job),Completed,255.3
+PO-802,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-803,RUD,(no job),Completed,403.65
+PO-804,Midland Metrology,(no job),Completed,1000.0
+PO-805,SP Cleaning,(no job),Completed,250.0
+PO-806,SP Cleaning,(no job),Completed,250.0
+PO-807,WDS Components,(no job),Completed,66.62
+PO-808,Tente Castors Ltd,(no job),Completed,26.87
+PO-809,EM Precision,(no job),Completed,0.0
+PO-810,QCT,(no job),Completed,600.0
+PO-811,"Fasteners, Fixings & Tools",(no job),Completed,8.3
+PO-812,Trescal,(no job),Completed,186.0
+PO-813,Willstec,(no job),Completed,120.0
+PO-814,EM Precision,(no job),Completed,176.0
+PO-815,Fife Engineering,(no job),Completed,90.0
+PO-816,SP Cleaning,(no job),Completed,250.0
+PO-817,SP Cleaning,(no job),Completed,500.0
+PO-818,Direct Same Day,(no job),Completed,493.95
+PO-819,PASS,(no job),Completed,95.0
+PO-820,Direct Same Day,(no job),Completed,255.3
+PO-821,SP Cleaning,(no job),Completed,250.0
+PO-822,SP Cleaning,(no job),Completed,500.0
+PO-823,Claron Hydraulic Seals Ltd,(no job),Completed,668.95
+PO-824,Roemheld,(no job),Completed,3986.71
+PO-825,EM Precision,(no job),Completed,569.6
+PO-826,Basic Business Systems,(no job),Completed,1599.0
+PO-827,Basic Business Systems,(no job),Completed,1550.0
+PO-828,Fife Engineering,(no job),Completed,1750.0
+PO-829,Dixon Engineering Supplies,(no job),Completed,169.0
+PO-830,YPG,(no job),Completed,382.7
+PO-831,St. John Ambulance,(no job),Completed,0.0
+PO-832,Wearside Pneumatics,(no job),Completed,486.13
+PO-833,Cal4K Lifts,(no job),Completed,180.0
+PO-834,RUD,(no job),Completed,0.0
+PO-835,Amazon,(no job),Completed,0.0
+PO-836,SP Cleaning,(no job),Completed,500.0
+PO-837,EM Precision,(no job),Completed,628.0
+PO-838,EM Precision,(no job),Completed,186.0
+PO-839,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-840,Autosmart,(no job),Completed,61.1
+PO-841,Cromwell Tools,(no job),Completed,0.0
+PO-842,Basic Business Systems,(no job),Completed,450.0
+PO-843,Basic Business Systems,(no job),Completed,450.0
+PO-844,Direct Same Day,(no job),Completed,242.0
+PO-845,Cromwell Tools,(no job),Completed,42.48
+PO-846,RUD,(no job),Completed,0.0
+PO-847,SP Cleaning,(no job),Completed,250.0
+PO-848,SP Cleaning,(no job),Completed,500.0
+PO-849,WDS Components,(no job),Completed,0.0
+PO-850,Roemheld,(no job),Completed,664.64
+PO-851,Dixon Engineering Supplies,(no job),Completed,50.0
+PO-852,St. John Ambulance,(no job),Completed,0.0
+PO-853,EM Precision,(no job),Completed,0.0
+PO-854,Accu,(no job),Completed,0.0
+PO-855,SP Cleaning,(no job),Completed,250.0
+PO-856,SP Cleaning,(no job),Completed,500.0
+PO-857,Trent Instruments Ltd,(no job),Completed,52.0
+PO-858,Fife Engineering,(no job),Completed,570.0
+PO-859,Fife Engineering,(no job),Completed,202.5
+PO-860,Direct Same Day,(no job),Completed,242.0
+PO-861,Dixon Engineering Supplies,(no job),Completed,121.0
+PO-862,SP Cleaning,(no job),Completed,250.0
+PO-863,SP Cleaning,(no job),Completed,500.0
+PO-864,BeMunchie Online,(no job),Completed,600.0
+PO-865,BeMunchie Online,(no job),Completed,600.0
+PO-866,CNTL Ltd,(no job),Completed,792.51
+PO-867,Willstec,(no job),Completed,1135.0
+PO-868,Willstec,(no job),Completed,0.0
+PO-869,Marcote,(no job),Completed,293.4
+PO-870,SP Cleaning,(no job),Completed,250.0
+PO-871,SP Cleaning,(no job),Completed,750.0
+PO-872,Autosmart,(no job),Completed,25.0
+PO-873,EM Precision,(no job),Completed,379.89
+PO-874,Independent Personnel,(no job),Completed,580.0
+PO-875,WDS Components,(no job),Completed,0.0
+PO-876,EM Precision,(no job),Completed,277.8
+PO-877,EM Precision,(no job),Completed,715.0
+PO-878,Towne,(no job),Completed,190.0
+PO-879,Reed Specialist Recruitment Ltd,(no job),Completed,480.0
+PO-880,SMW Autoblok Telbrook Ltd.,(no job),Completed,611.2
+PO-881,SP Cleaning,(no job),Completed,250.0
+PO-882,Screwfix,(no job),Completed,39.99
+PO-883,EVS - EU,(no job),Completed,57.63
+PO-884,Aim Tools Ltd,(no job),Completed,280.99
+PO-885,Direct Same Day,(no job),Completed,250.7
+PO-886,UK Office Direct,(no job),Completed,0.0
+PO-887,EM Precision,(no job),Completed,60.0
+PO-888,FPE Seals,(no job),Completed,225.75
+PO-889,EM Precision,(no job),Completed,1305.77
+PO-890,FPE Seals,(no job),Completed,383.0
+PO-891,EM Precision,(no job),Completed,252.8
+PO-892,WDS Components,(no job),Completed,119.67
+PO-893,EM Precision,(no job),Completed,0.0
+PO-894,EM Precision,(no job),Completed,300.0
+PO-895,SP Cleaning,(no job),Completed,500.0
+PO-896,Coventry Grinders,(no job),Completed,122.6
+PO-897,Fife Engineering,(no job),Completed,5275.0
+PO-898,Direct Same Day,(no job),Completed,648.55
+PO-899,Baker Engineering,(no job),Completed,610.0
+PO-900,Baker Engineering,(no job),Completed,270.0
+PO-901,Willstec,(no job),Completed,240.0
+PO-902,SP Cleaning,(no job),Completed,250.0
+PO-903,SP Cleaning,(no job),Completed,250.0
+PO-904,Cromwell Tools,(no job),Completed,40.82
+PO-905,Cutwel Tools Ltd,(no job),Completed,55.59
+PO-906,Baker Engineering,(no job),Completed,408.67
+PO-907,Baker Engineering,(no job),Completed,110.0
+PO-908,SMW Autoblok Telbrook Ltd.,(no job),Completed,170.3
+PO-909,FPE Seals,(no job),Completed,86.74
+PO-910,EM Precision,(no job),Completed,50.0
+PO-911,GT Lifting,(no job),Completed,86.26
+PO-912,Yorkshire Precision Gauges,(no job),Completed,580.45
+PO-913,SMW Autoblok Telbrook Ltd.,(no job),Completed,6000.0
+PO-914,Good HandUK,(no job),Completed,20.38
+PO-915,Baker Engineering,(no job),Completed,230.4
+PO-916,SP Cleaning,(no job),Completed,250.0
+PO-917,SP Cleaning,(no job),Completed,500.0
+PO-918,Autosmart,(no job),Completed,109.16
+PO-919,Baker Engineering,(no job),Completed,300.0
+PO-920,Roemheld,(no job),Completed,594.08
+PO-921,Advanced Adhesives,(no job),Completed,23.87
+PO-922,Roemheld,(no job),Completed,840.8
+PO-923,Direct Same Day,(no job),Completed,280.5
+PO-924,Direct Same Day,(no job),Completed,239.8
+PO-925,Direct Same Day,(no job),Completed,280.5
+PO-926,Cromwell Tools,(no job),Completed,13.68
+PO-927,Cromwell Tools,(no job),Completed,34.4
+PO-928,Trent Instruments Ltd,(no job),Completed,36.7
+PO-929,SMW Autoblok Telbrook Ltd.,(no job),Completed,1095.0
+PO-930,RUD,(no job),Completed,403.65
+PO-931,RUD,(no job),Completed,63.97
+PO-932,Baker Engineering,(no job),Completed,210.0
+PO-933,Status Metrology,(no job),Completed,2290.0
+PO-934,Towne,(no job),Completed,245.4
+PO-935,Marcote,(no job),Completed,0.0
+PO-936,Fife Engineering,(no job),Completed,1683.6
+PO-937,EM Precision,(no job),Completed,425.6
+PO-938,Status Metrology,(no job),Completed,678.12
+PO-939,Direct Same Day,(no job),Completed,275.0
+PO-940,SP Cleaning,(no job),Completed,250.0
+PO-941,Advanced Design Services,(no job),Completed,1114.0
+PO-942,Charles Day Steels,(no job),Completed,135.0
+PO-943,Elesa,(no job),Completed,6.91
+PO-944,Willstec,(no job),Completed,435.0
+PO-945,QCT,(no job),Completed,1350.0
+PO-946,Shaw & Goodwin,(no job),Completed,128.0
+PO-947,EM Precision,(no job),Completed,124.8
+PO-948,Derwent Valley Tooling,(no job),Completed,1080.0
+PO-949,Elite Materials Handling Ltd,(no job),Completed,319.95
+PO-950,Fife Engineering,(no job),Completed,2000.0
+PO-951,Avantor,(no job),Completed,4540.43
+PO-952,BBL Batteries,(no job),Completed,205.3
+PO-953,Automation Solutions,(no job),Completed,563.2
+PO-954,EM Precision,(no job),Completed,1082.16
+PO-955,EM Precision,(no job),Completed,680.16
+PO-956,Airwise,(no job),Completed,0.0
+PO-957,TK Engineering,(no job),Completed,1034.0
+PO-958,RUD,(no job),Completed,90.52
+PO-959,Independent Personnel,(no job),Completed,72.5
+PO-960,Carrtech,(no job),Completed,1782.0
+PO-961,Carrtech,(no job),Completed,370.0
+PO-962,Carrtech,(no job),Completed,1184.0
+PO-963,Spondon Blasting Services,(no job),Completed,984.0
+PO-964,Euerby Engineering,(no job),Completed,400.0
+PO-965,Solus Testing Ltd,(no job),Completed,159.0
+PO-966,WDS Components,(no job),Completed,218.54
+PO-967,SP Cleaning,(no job),Completed,250.0
+PO-968,EM Precision,(no job),Completed,966.44
+PO-969,RG Engineering (Coventry) Ltd,(no job),Completed,480.0
+PO-970,Direct Same Day,(no job),Completed,248.0
+PO-971,Direct Same Day,(no job),Completed,687.5
+PO-972,RUD,(no job),Completed,287.83
+PO-973,Baker Engineering,(no job),Completed,990.0
+PO-974,Marcote,(no job),Completed,0.0
+PO-975,JDM Doors,(no job),Completed,175.0
+PO-976,Marcote,(no job),Completed,185.64
+PO-977,RG Engineering (Coventry) Ltd,(no job),Completed,794.0
+PO-978,Carrtech,(no job),Completed,976.0
+PO-979,WDS Components,(no job),Completed,282.01
+PO-980,Baker Engineering,(no job),Completed,685.0
+PO-981,SP Cleaning,(no job),Completed,500.0
+PO-982,EM Precision,(no job),Completed,1068.06
+PO-983,Fife Engineering,(no job),Completed,95.0
+PO-984,PASS,(no job),Completed,186.0
+PO-985,EM Precision,(no job),Completed,215.52
+PO-986,Roemheld,(no job),Completed,398.98
+PO-987,EM Precision,(no job),Completed,668.96
+PO-988,Quill International,(no job),Completed,5117.0
+PO-989,P & P Safety Ltd,(no job),Completed,71.0
+PO-990,Baker Engineering,(no job),Completed,0.0
+PO-991,Dixon Engineering Supplies,(no job),Completed,79.0
+PO-992,Reed Specialist Recruitment Ltd,(no job),Completed,64.0
+PO-993,Fife Engineering,(no job),Completed,3020.0
+PO-994,EM Precision,(no job),Completed,118.64
+PO-995,Cromwell Tools,(no job),Completed,8.37
+PO-996,SP Cleaning,(no job),Completed,500.0
+PO-997,SP Cleaning,(no job),Completed,250.0
+PO-998,EM Precision,(no job),Completed,768.5
+PO-999,Carrtech,(no job),Completed,650.0
+PO-1000,Dixon Engineering Supplies,(no job),Completed,217.0
+PO-1001,RG Engineering (Coventry) Ltd,(no job),Completed,1500.0
+PO-1002,Marcote,(no job),Completed,0.0
+PO-1003,GT Lifting,(no job),Completed,738.24
+PO-1004,Advanced Design Services,(no job),Completed,1600.95
+PO-1005,Baker Engineering,(no job),Completed,207.5
+PO-1006,Cromwell Tools,(no job),Completed,20.45
+PO-1007,Carrtech,(no job),Completed,2520.42
+PO-1008,Carrtech,(no job),Completed,738.4
+PO-1009,EM Precision,(no job),Completed,155.5
+PO-1010,J V Fabrications,(no job),Completed,49.0
+PO-1011,FPE Seals,(no job),Completed,37.6
+PO-1012,Spondon Blasting Services,(no job),Completed,510.0
+PO-1013,Bay Plastics,(no job),Completed,133.82
+PO-1014,Autosmart,(no job),Completed,13.67
+PO-1015,SP Cleaning,(no job),Completed,250.0
+PO-1016,Baker Engineering,(no job),Completed,0.0
+PO-1017,EM Precision,(no job),Completed,600.0
+PO-1018,TK Engineering,(no job),Completed,360.0
+PO-1019,SMW Autoblok Telbrook Ltd.,(no job),Completed,54.75
+PO-1020,EM Precision,(no job),Completed,382.8
+PO-1021,EM Precision,(no job),Completed,50.0
+PO-1022,Carrtech,(no job),Completed,629.44
+PO-1023,Ross Handling,(no job),Completed,118.88
+PO-1024,EM Precision,(no job),Completed,696.96
+PO-1025,Willstec,(no job),Completed,85.0
+PO-1026,Willstec,(no job),Completed,1673.0
+PO-1027,Baker Engineering,(no job),Completed,270.0
+PO-1028,Aditi Safety Training,(no job),Completed,495.0
+PO-1029,F H Brundle,(no job),Completed,399.6
+PO-1030,Spondon Blasting Services,(no job),Completed,800.0
+PO-1031,EM Precision,(no job),Completed,453.16
+PO-1032,Baker Engineering,(no job),Completed,660.0
+PO-1033,Baker Engineering,(no job),Completed,300.0
+PO-1034,Baker Engineering,(no job),Completed,220.0
+PO-1035,SP Cleaning,(no job),Completed,250.0
+PO-1036,FPE Seals,(no job),Completed,2.15
+PO-1037,EM Precision,(no job),Completed,447.36
+PO-1038,Autosmart,(no job),Completed,57.86
+PO-1039,Cromwell Tools,(no job),Completed,28.1
+PO-1040,Alcumus Safe contractor,(no job),Completed,1019.0
+PO-1041,EM Precision,(no job),Completed,604.35
+PO-1042,EM Precision,(no job),Completed,447.2
+PO-1043,Carrtech,(no job),Completed,1850.0
+PO-1044,EM Precision,(no job),Completed,1127.2
+PO-1045,Crusader Fire,(no job),Completed,42.0
+PO-1046,Veteran Courier Precision,(no job),Completed,190.0
+PO-1047,SMW Autoblok Telbrook Ltd.,(no job),Completed,360.0
+PO-1048,Carrtech,(no job),Completed,443.04
+PO-1049,Carrtech,(no job),Completed,1136.0
+PO-1050,Baker Engineering,(no job),Completed,1616.82
+PO-1051,Carrtech,(no job),Completed,2181.46
+PO-1052,FPE Seals,(no job),Completed,8.75
+PO-1053,Fife Engineering,(no job),Completed,290.0
+PO-1054,Baker Engineering,(no job),Completed,1555.0
+PO-1055,RG Engineering (Coventry) Ltd,(no job),Completed,1245.85
+PO-1056,PASS,(no job),Completed,186.0
+PO-1057,Direct Same Day,(no job),Completed,538.35
+PO-1058,Baker Engineering,(no job),Completed,756.07
+PO-1059,Willstec,(no job),Completed,340.0
+PO-1060,Dixon Engineering Supplies,(no job),Completed,121.0
+PO-1061,FPE Seals,(no job),Completed,34.32
+PO-1062,Fife Engineering,(no job),Completed,435.0
+PO-1063,Carrtech,(no job),Completed,2934.8
+PO-1064,RG Engineering (Coventry) Ltd,(no job),Completed,280.0
+PO-1065,Arkwell Fasteners,(no job),Completed,18.49
+PO-1066,Kwikfixings and Tools,(no job),Completed,1157.6
+PO-1067,Spondon Blasting Services,(no job),Completed,4400.0
+PO-1068,SLS Precision Engineering,(no job),Completed,664.0
+PO-1069,Carrtech,(no job),Completed,1240.0
+PO-1070,FPE Seals,(no job),Completed,52.8
+PO-1071,Kwikfixings and Tools,(no job),Completed,1673.6
+PO-1072,Baker Engineering,(no job),Completed,207.5
+PO-1073,Dixon Engineering Supplies,(no job),Completed,79.0
+PO-1074,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-1075,FA Expert,(no job),Completed,75.0
+PO-1076,Direct Same Day,(no job),Completed,488.4
+PO-1077,Oxley Engineering,(no job),Completed,95.0
+PO-1078,MP engineering,(no job),Completed,188.4
+PO-1079,MP engineering,(no job),Completed,488.8
+PO-1080,J V Fabrications,(no job),Completed,1935.0
+PO-1081,RG Engineering (Coventry) Ltd,(no job),Completed,300.0
+PO-1082,Carrtech,(no job),Completed,738.4
+PO-1083,Check with Dan,(no job),Completed,6.64
+PO-1084,Spondon Blasting Services,(no job),Completed,4800.0
+PO-1085,Spondon Blasting Services,(no job),Completed,331.0
+PO-1086,EM Precision,(no job),Completed,1008.7
+PO-1087,EM Precision,(no job),Completed,737.0
+PO-1088,J V Fabrications,(no job),Completed,480.0
+PO-1089,EM Precision,(no job),Completed,706.8
+PO-1090,MP engineering,(no job),Completed,540.0
+PO-1091,Pollard Engineering,(no job),Completed,217.0
+PO-1092,Roemheld,(no job),Completed,2363.88
+PO-1093,Direct Same Day,(no job),Completed,471.75
+PO-1094,Baker Engineering,(no job),Completed,517.0
+PO-1095,EM Precision,(no job),Completed,692.54
+PO-1096,East Midlands Hydraulics Ltd,(no job),Completed,105.32
+PO-1097,WDS Components,(no job),Completed,392.38
+PO-1098,SP Cleaning,(no job),Completed,250.0
+PO-1099,Veteran Courier Precision,(no job),Completed,232.0
+PO-1100,MP engineering,(no job),Completed,1207.3
+PO-1101,Spondon Blasting Services,(no job),Completed,4800.0
+PO-1102,BBL Batteries,(no job),Completed,205.36
+PO-1103,Baker Engineering,(no job),Completed,330.0
+PO-1104,Kwikfixings and Tools,(no job),Completed,64.13
+PO-1105,Baker Engineering,(no job),Completed,600.0
+PO-1106,WDS Components,(no job),Completed,103.87
+PO-1107,Cromwell Tools,(no job),Completed,40.14
+PO-1108,Cromwell Tools,(no job),Completed,0.0
+PO-1109,R & R Shotblasting,(no job),Completed,100.0
+PO-1110,Roemheld,(no job),Completed,274.92
+PO-1111,Kwikfixings and Tools,(no job),Completed,91.29
+PO-1112,EM Precision,(no job),Completed,667.04
+PO-1113,DDL PAT Testing,(no job),Completed,120.0
+PO-1114,Cromwell Tools,(no job),Completed,99.88
+PO-1115,Veteran Courier Precision,(no job),Completed,232.0
+PO-1116,Baker Engineering,(no job),Completed,3012.0
+PO-1117,CMD Pat Testing,(no job),Completed,87.5
+PO-1118,Fire Control UK,(no job),Completed,40.0
+PO-1119,Willstec,(no job),Completed,130.0
+PO-1120,Baker Engineering,(no job),Completed,2740.1
+PO-1121,Fife Engineering,(no job),Completed,890.0
+PO-1122,Spondon Blasting Services,(no job),Completed,4081.0
+PO-1123,Baker Engineering,(no job),Completed,3440.0
+PO-1124,EM Precision,(no job),Completed,625.8
+PO-1125,Pollard Engineering,(no job),Completed,0.0
+PO-1126,Hydraquip,(no job),Completed,232.29
+PO-1127,Kwikfixings and Tools,(no job),Completed,1673.6
+PO-1128,Towne,(no job),Completed,18.0
+PO-1129,Autosmart,(no job),Completed,44.22
+PO-1130,Wire Mesh Fabs,(no job),Completed,3745.0
+PO-1131,Baker Engineering,(no job),Completed,330.0
+PO-1132,Flowtech,(no job),Completed,91.88
+PO-1133,SLS Precision Engineering,(no job),Completed,1200.0
+PO-1134,R & R Shotblasting,(no job),Completed,1720.0
+PO-1135,EM Precision,(no job),Completed,823.36
+PO-1136,MP engineering,(no job),Completed,254.19
+PO-1137,Willstec,(no job),Completed,75.0
+PO-1138,Derby Gaskets,(no job),Completed,57.35
+PO-1139,SLS Precision Engineering,(no job),Completed,220.0
+PO-1140,Carrtech,(no job),Completed,886.08
+PO-1141,Cromwell Tools,(no job),Completed,24.05
+PO-1142,Spondon Blasting Services,(no job),Completed,5600.0
+PO-1143,Paul Bradford Distribution LTD,(no job),Completed,485.0
+PO-1144,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1145,Quill International,(no job),Completed,836.0
+PO-1146,Baker Engineering,(no job),Completed,2566.6
+PO-1147,K Engineering,(no job),Completed,5.0
+PO-1148,WDS Components,(no job),Completed,32.98
+PO-1149,WDS Components,(no job),Completed,26.28
+PO-1150,Carrtech,(no job),Completed,944.0
+PO-1151,Pollard Engineering,(no job),Completed,11655.0
+PO-1152,Pollard Engineering,(no job),Completed,9065.0
+PO-1153,SLS Precision Engineering,(no job),Completed,332.0
+PO-1154,RG Engineering (Coventry) Ltd,(no job),Completed,342.5
+PO-1155,Airwise,(no job),Completed,17.0
+PO-1156,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1157,Oxley Engineering,(no job),Completed,200.0
+PO-1158,Oxley Engineering,(no job),Completed,220.0
+PO-1159,Oxley Engineering,(no job),Completed,120.0
+PO-1160,MP Engineering,(no job),Completed,119.65
+PO-1161,Pollard Engineering,(no job),Completed,98.0
+PO-1162,WDS Components,(no job),Completed,318.4
+PO-1163,MP engineering,(no job),Completed,134.1
+PO-1164,Industrial Interface systems,(no job),Completed,2949.47
+PO-1165,J V Fabrications,(no job),Completed,2660.0
+PO-1166,Dixon Engineering Supplies,(no job),Completed,73.0
+PO-1167,Baker Engineering,(no job),Completed,330.0
+PO-1168,Spondon Blasting Services,(no job),Completed,2300.0
+PO-1169,Fife Engineering,(no job),Completed,740.0
+PO-1170,EM Precision,(no job),Completed,1118.93
+PO-1171,Fife Engineering,(no job),Completed,290.0
+PO-1172,S P Cleaning,(no job),Completed,250.0
+PO-1173,SLS Precision Engineering,(no job),Completed,668.0
+PO-1174,SLS Precision Engineering,(no job),Completed,249.0
+PO-1175,SLS Precision Engineering,(no job),Completed,250.0
+PO-1176,SLS Precision Engineering,(no job),Completed,356.0
+PO-1177,SLS Precision Engineering,(no job),Completed,1350.0
+PO-1178,Kwikfixings and Tools,(no job),Completed,645.28
+PO-1179,FPE seals,(no job),Completed,107.22
+PO-1180,Carrtech,(no job),Completed,3578.0
+PO-1181,Carrtech,(no job),Completed,370.0
+PO-1182,Derby Gaskets,(no job),Completed,57.35
+PO-1183,J V Fabrications,(no job),Completed,1410.0
+PO-1184,Stamps Direct,(no job),Completed,23.1
+PO-1185,MP engineering,(no job),Completed,4740.0
+PO-1186,Spondon Blasting Services,(no job),Completed,160.0
+PO-1187,Pollard Engineering,(no job),Completed,50.0
+PO-1188,SP Cleaning,(no job),Completed,500.0
+PO-1189,Tiger Lifting,(no job),Completed,781.0
+PO-1190,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-1191,Baker Engineering,(no job),Completed,330.0
+PO-1192,Team,(no job),Completed,0.0
+PO-1193,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-1194,Paul Bradford Distribution LTD,(no job),Completed,65.0
+PO-1195,Paul Bradford Distribution LTD,(no job),Completed,65.0
+PO-1196,Willstec,(no job),Completed,130.0
+PO-1197,Carrtech,(no job),Completed,1404.0
+PO-1198,SMW Autoblok Telbrook Ltd.,(no job),Completed,725.0
+PO-1199,PASS,(no job),Completed,186.0
+PO-1200,SP Cleaning,(no job),Completed,500.0
+PO-1201,SP Cleaning,(no job),Completed,250.0
+PO-1202,Cromwell Tools,(no job),Completed,42.06
+PO-1203,EM Precision,(no job),Completed,250.0
+PO-1204,Pollard Engineering,(no job),Completed,165.0
+PO-1205,Pollard Engineering,(no job),Completed,320.0
+PO-1206,Pollard Engineering,(no job),Completed,80.0
+PO-1207,Oxley Engineering,(no job),Completed,510.0
+PO-1208,Autosmart,(no job),Completed,114.71
+PO-1209,QCT,(no job),Completed,900.0
+PO-1210,MP Engineering,(no job),Completed,394.95
+PO-1211,Pollard Engineering,(no job),Completed,2200.0
+PO-1212,Arkwell Fasteners,(no job),Completed,20.99
+PO-1213,RG Engineering (Coventry) Ltd,(no job),Completed,1000.0
+PO-1214,Veteran Courier Precision,(no job),Completed,0.0
+PO-1215,QCT,(no job),Completed,2735.0
+PO-1216,QCT,(no job),Completed,2735.0
+PO-1217,WDS Components,(no job),Completed,11.22
+PO-1218,SP Cleaning,(no job),Completed,500.0
+PO-1219,Carrtech,(no job),Completed,670.0
+PO-1220,Industrial Interface systems,(no job),Completed,457.3
+PO-1221,Oxley Engineering,(no job),Completed,200.0
+PO-1222,K Engineering,(no job),Completed,10.0
+PO-1223,WDS Components,(no job),Completed,314.1
+PO-1224,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-1225,WDS Components,(no job),Completed,306.63
+PO-1226,RG Engineering (Coventry) Ltd,(no job),Completed,304.0
+PO-1227,Carrtech,(no job),Completed,436.0
+PO-1228,Oxley Engineering,(no job),Completed,50.0
+PO-1229,Red Strawberry Solutions,(no job),Completed,73.45
+PO-1230,SP Cleaning,(no job),Completed,500.0
+PO-1231,SP Cleaning,(no job),Completed,250.0
+PO-1232,RG Engineering (Coventry) Ltd,(no job),Completed,200.0
+PO-1233,Nottingham Used Racking,(no job),Completed,310.0
+PO-1234,Pollard Engineering,(no job),Completed,245.0
+PO-1235,SLS Precision Engineering,(no job),Completed,0.0
+PO-1236,EM Precision,(no job),Completed,1433.42
+PO-1237,WDS Components,(no job),Completed,79.5
+PO-1238,WDS Components,(no job),Completed,306.63
+PO-1239,RUD,(no job),Completed,319.05
+PO-1240,SP Cleaning,(no job),Completed,250.0
+PO-1241,Orb Design & Print,(no job),Completed,23.0
+PO-1242,SLS Precision Engineering,(no job),Completed,376.0
+PO-1243,Pollard Engineering,(no job),Completed,80.0
+PO-1244,MP Engineering,(no job),Completed,0.0
+PO-1245,Orb Design & Print,(no job),Completed,0.0
+PO-1246,Dixon Engineering Supplies,(no job),Completed,0.0
+PO-1247,Carrtech,(no job),Completed,17592.0
+PO-1248,Orb Design & Print,(no job),Completed,0.0
+PO-1249,Orb Design & Print,(no job),Completed,48.0
+PO-1250,Paul Bradford Distribution LTD,(no job),Completed,277.5
+PO-1251,SP Cleaning,(no job),Completed,500.0
+PO-1252,SP Cleaning,(no job),Completed,250.0
+PO-1253,Pollard Engineering,(no job),Completed,2042.5
+PO-1254,Baker Engineering,(no job),Completed,1108.84
+PO-1255,Advanced Design Services,(no job),Completed,42.0
+PO-1256,Carrtech,(no job),Completed,1850.0
+PO-1257,MP Engineering,(no job),Completed,394.95
+PO-1258,RG Engineering (Coventry) Ltd,(no job),Completed,475.0
+PO-1259,MP Engineering,(no job),Completed,1498.98
+PO-1260,Baker Engineering,(no job),Completed,608.75
+PO-1261,RG Engineering (Coventry) Ltd,(no job),Completed,4092.75
+PO-1262,DPGE Rebuilds Ltd,(no job),Completed,1554.75
+PO-1263,Arkwell Fasteners,(no job),Completed,30.64
+PO-1264,Rock Steady Group,(no job),Completed,384.8
+PO-1265,G & D Eng Solutions,(no job),Completed,210.0
+PO-1266,JKP Engineering,(no job),Completed,10844.0
+PO-1267,Fife Engineering,(no job),Completed,180.0
+PO-1268,S P Cleaning,(no job),Completed,500.0
+PO-1269,Carrtech,(no job),Completed,748.0
+PO-1270,Zouch,(no job),Completed,324.0
+PO-1271,MP Engineering,(no job),Completed,1523.79
+PO-1272,Pollard Engineering,(no job),Completed,160.0
+PO-1273,DPGE Rebuilds Ltd,(no job),Completed,1464.75
+PO-1274,TI-TEK [UK] Limited,(no job),Completed,120.0
+PO-1275,QCT,(no job),Completed,810.0
+PO-1276,Oxley Engineering,(no job),Completed,100.0
+PO-1277,Quill International,(no job),Completed,1200.0
+PO-1278,RG Engineering (Coventry) Ltd,(no job),Completed,600.0
+PO-1279,Dixon Engineering Supplies,(no job),Completed,505.0
+PO-1280,Basic Business Systems,(no job),Completed,2550.0
+PO-1281,FPE seals,(no job),Completed,685.56
+PO-1282,Carrtech,(no job),Completed,944.0
+PO-1283,Goldbury,(no job),Completed,425.0
+PO-1284,SP Cleaning,(no job),Completed,250.0
+PO-1285,SP Cleaning,(no job),Completed,250.0
+PO-1286,BBL Batteries,(no job),Completed,205.36
+PO-1287,Willstec,(no job),Completed,632.0
+PO-1288,RG Engineering (Coventry) Ltd,(no job),Completed,300.0
+PO-1289,Carrtech,(no job),Completed,1310.0
+PO-1290,SMW,(no job),Completed,100.0
+PO-1291,Pollard Engineering,(no job),Completed,90.0
+PO-1292,Towne,(no job),Completed,0.0
+PO-1293,Hydraquip,(no job),Completed,313.68
+PO-1294,S P Cleaning,(no job),Completed,500.0
+PO-1295,Bell Heating & Engineering,(no job),Completed,595.0
+PO-1296,LEEA,(no job),Completed,1041.67
+PO-1297,Dixon Engineering Supplies,(no job),Completed,300.0
+PO-1298,SP Cleaning,(no job),Completed,500.0
+PO-1299,Carrtech,(no job),Completed,370.0
+PO-1300,Tech-Ni-Plant,(no job),Completed,2350.0
+PO-1301,Willstec,(no job),Completed,515.0
+PO-1302,Spondon Blasting Services,(no job),Completed,200.0
+PO-1303,Paul Bradford Distribution LTD,(no job),Completed,65.0
+PO-1304,Cromwell Tools,(no job),Completed,34.44
+PO-1305,SP Cleaning,(no job),Completed,500.0
+PO-1306,Pollard Engineering,(no job),Completed,6930.25
+PO-1307,Pollard Engineering,(no job),Completed,251.0
+PO-1308,Salt & Sadler,(no job),Completed,6250.0
+PO-1309,Pollard Engineering,(no job),Completed,180.0
+PO-1310,Adams Engineering,(no job),Completed,672.0
+PO-1311,RUD,(no job),Completed,535.51
+PO-1312,Elesa,(no job),Completed,0.0
+PO-1313,RUD,(no job),Completed,135.4
+PO-1314,East Midlands Hydraulics Ltd,(no job),Completed,36.2
+PO-1315,EM Precision,(no job),Completed,2052.68
+PO-1316,G & D Eng Solutions,(no job),Completed,210.0
+PO-1317,Fife Engineering,(no job),Completed,90.0
+PO-1318,SMW Autoblok Telbrook Ltd.,(no job),Completed,720.0
+PO-1319,MP Engineering,(no job),Completed,3882.78
+PO-1320,MP Engineering,(no job),Completed,2054.17
+PO-1321,MP Engineering,(no job),Completed,4212.15
+PO-1322,MP Engineering,(no job),Completed,3730.15
+PO-1323,RSM Aviation Ltd,(no job),Completed,280.0
+PO-1324,S P Cleaning,(no job),Completed,250.0
+PO-1325,S P Cleaning,(no job),Completed,500.0
+PO-1326,WDS Components,(no job),Completed,43.52
+PO-1327,DPGE Rebuilds Ltd,(no job),Completed,1464.75
+PO-1328,DPGE Rebuilds Ltd,(no job),Completed,1554.75
+PO-1329,Carrtech,(no job),Completed,1344.0
+PO-1330,Dixon Engineering Supplies,(no job),Completed,121.0
+PO-1331,RS Components,(no job),Completed,30.14
+PO-1332,Autosmart,(no job),Completed,36.5
+PO-1333,Pollard Engineering,(no job),Completed,120.0
+PO-1334,RG Engineering (Coventry) Ltd,(no job),Completed,1245.85
+PO-1335,Derwent Valley Tooling,(no job),Completed,1118.0
+PO-1336,Pollard Engineering,(no job),Completed,125.0
+PO-1337,WDS Components,(no job),Completed,165.5
+PO-1338,Ross Handling,(no job),Completed,0.0
+PO-1339,Alloy Stock,(no job),Completed,1191.59
+PO-1340,G & D Eng Solutions,(no job),Completed,570.0
+PO-1341,Swift Engineering,(no job),Completed,448.0
+PO-1342,Pollard Engineering,(no job),Completed,60.0
+PO-1343,Fife Engineering,(no job),Completed,90.0
+PO-1344,Fife Engineering,(no job),Completed,142.5
+PO-1345,Basic Business Systems,(no job),Completed,0.0
+PO-1346,SMW Autoblok Telbrook Ltd.,(no job),Completed,800.0
+PO-1347,DPGE Rebuilds Ltd,(no job),Completed,1722.82
+PO-1348,Tech-Ni-Plant,(no job),Completed,3799.0
+PO-1349,K Engineering,(no job),Completed,54.8
+PO-1350,Sheet Plastics,(no job),Completed,124.52
+PO-1351,K Engineering,(no job),Completed,6.0
+PO-1352,Veteran Courier Precision,(no job),Completed,270.0
+PO-1353,Workwear Express,(no job),Completed,35.0
+PO-1354,Dixon Engineering Supplies,(no job),Completed,265.0
+PO-1355,Veteran Courier Precision,(no job),Completed,225.0
+PO-1356,Veteran Courier Precision,(no job),Completed,450.0
+PO-1357,Adams Engineering,(no job),Completed,1297.0
+PO-1358,EM Precision,(no job),Completed,1118.93
+PO-1359,Fife Engineering,(no job),Completed,745.0
+PO-1360,Advanced Adhesives,(no job),Completed,62.37
+PO-1361,Oxley Engineering,(no job),Completed,135.0
+PO-1362,Fife Engineering,(no job),Completed,1300.0
+PO-1363,Quill International,(no job),Completed,475.0
+PO-1365,SP Cleaning,(no job),Completed,250.0
+PO-1366,SP Cleaning,(no job),Completed,500.0
+PO-1367,MP Engineering,(no job),Completed,1386.38
+PO-1368,Paul Bradford Distribution LTD,(no job),Completed,197.0
+PO-1369,Marcote,(no job),Completed,0.0
+PO-1370,Cromwell Tools,(no job),Completed,26.73
+PO-1371,Mansfield Anodisers,(no job),Completed,0.0
+PO-1372,Oxley Engineering,(no job),Completed,0.0
+PO-1373,Fife Engineering,(no job),Completed,90.0
+PO-1374,Fife Engineering,(no job),Completed,115.0
+PO-1375,Fife Engineering,(no job),Completed,265.0
+PO-1376,Machine Mart,(no job),Completed,202.4
+PO-1377,Cromwell Tools,(no job),Completed,61.27
+PO-1378,Roemheld,(no job),Completed,3660.46
+PO-1379,Swift Engineering,(no job),Completed,160.0
+PO-1380,FH Brundle,(no job),Completed,165.0
+PO-1381,WDS Components,(no job),Completed,33.3
+PO-1382,Carrtech,(no job),Completed,1980.0
+PO-1383,Carrtech,(no job),Completed,488.0
+PO-1384,S P Cleaning,(no job),Completed,250.0
+PO-1385,SP Cleaning,(no job),Completed,250.0
+PO-1386,Zouch,(no job),Completed,1287.5
+PO-1387,MP Engineering,(no job),Completed,8901.81
+PO-1388,EM Precision,(no job),Completed,2361.8
+PO-1389,Paul Bradford Distribution LTD,(no job),Completed,200.0
+PO-1390,N W Cam,(no job),Completed,500.0
+PO-1391,K Lee CAD/CAM,(no job),Completed,500.0
+PO-1392,Swift Engineering,(no job),Completed,1700.0
+PO-1393,Euerby Engineering,(no job),Completed,1080.0
+PO-1394,Euerby Engineering,(no job),Completed,1200.0
+PO-1395,Flexo Springs,(no job),Completed,35.0
+PO-1396,Tech-Ni-Plant,(no job),Completed,8138.0
+PO-1397,WDS Components,(no job),Completed,370.6
+PO-1398,Autosmart,(no job),Completed,85.37
+PO-1399,PASS,(no job),Completed,155.0
+PO-1400,G & D Eng Solutions,(no job),Completed,90.0
+PO-1401,Quill International,(no job),Completed,960.0
+PO-1402,Zouch,(no job),Completed,2673.44
+PO-1403,MP Engineering,(no job),Completed,2087.97
+PO-1404,SP Cleaning,(no job),Completed,500.0
+PO-1405,EM Precision,(no job),Completed,447.2
+PO-1406,Pollard Engineering,(no job),Completed,110.0
+PO-1407,SMW Autoblok Telbrook Ltd.,(no job),Completed,840.0
+PO-1408,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1409,GT Lifting,(no job),Completed,68.32
+PO-1410,Towne Lifting,(no job),Completed,228.0
+PO-1411,G & D Eng Solutions,(no job),Completed,900.0
+PO-1412,TEAM,(no job),Completed,453.0
+PO-1413,TEAM,(no job),Completed,1769.6
+PO-1414,Igus,(no job),Completed,38.0
+PO-1415,SMW Autoblok Telbrook Ltd.,(no job),Completed,6996.0
+PO-1416,G & D Eng Solutions,(no job),Completed,780.0
+PO-1417,Derby Gaskets,(no job),Completed,97.0
+PO-1418,Swift Engineering,(no job),Completed,1612.0
+PO-1419,Basic Business Systems,(no job),Completed,282.0
+PO-1420,SP Cleaning,(no job),Completed,500.0
+PO-1421,Paul Bradford Distribution LTD,(no job),Completed,255.0
+PO-1422,Carrtech,(no job),Completed,1473.04
+PO-1423,Carrtech,(no job),Completed,754.0
+PO-1424,Quill International,(no job),Completed,540.0
+PO-1425,Carrtech,(no job),Completed,650.0
+PO-1426,Marcote,(no job),Completed,0.0
+PO-1427,RG Engineering (Coventry) Ltd,(no job),Completed,50.0
+PO-1428,IXTHUS,(no job),Completed,1875.0
+PO-1429,Derwent Valley Tooling,(no job),Completed,4800.0
+PO-1430,Veteran Courier Precision,(no job),Completed,225.0
+PO-1431,WDS Components,(no job),Completed,17.04
+PO-1432,NEP,(no job),Completed,15.3
+PO-1433,East Midlands Hydraulics Ltd,(no job),Completed,30.0
+PO-1434,Pollard Engineering,(no job),Completed,32.0
+PO-1435,NEP,(no job),Completed,0.0
+PO-1436,Cooksongold,(no job),Issued,30.08
+PO-1437,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1438,Marcote,(no job),Completed,0.0
+PO-1439,SMW Autoblok Telbrook Ltd.,(no job),Completed,300.0
+PO-1440,Oxley engineering,(no job),Completed,964.35
+PO-1441,RG Engineering (Coventry) Ltd,(no job),Completed,45.0
+PO-1442,Roemheld,(no job),Completed,817.65
+PO-1443,Pollard Engineering,(no job),Completed,255.0
+PO-1444,East Midlands Hydraulics Ltd,(no job),Issued,34.5
+PO-1445,East Midlands Hydraulics Ltd,(no job),Issued,107.2
+PO-1446,Pollard Engineering,(no job),Completed,2300.0
+PO-1447,Dixon Engineering Supplies,(no job),Completed,121.0
+PO-1448,Veteran Courier Precision,(no job),Completed,270.0
+PO-1449,Marcote,(no job),Completed,0.0
+PO-1450,Baker Engineering,(no job),Completed,200.0
+PO-1451,Status Metrology,(no job),Completed,2383.0
+PO-1452,Oxley engineering,(no job),Completed,175.0
+PO-1453,Adams Engineering,(no job),Completed,727.0
+PO-1454,Plastic Fabrications Ltd,(no job),Completed,165.0
+PO-1455,QCT,(no job),Completed,600.0
+PO-1456,MP Engineering,(no job),Issued,1106.68
+PO-1457,Willstec,(no job),Completed,1755.0
+PO-1458,WDS Components,(no job),Issued,32.34
+PO-1459,Veteran Courier Precision,(no job),Completed,135.0
+PO-1460,Tech-Ni-Plant,(no job),Completed,7758.0
+PO-1461,Towne Lifting,(no job),Completed,228.0
+PO-1462,Zouch,(no job),Completed,561.4
+PO-1463,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1464,Quill International,(no job),Completed,400.0
+PO-1465,Tech-Ni-Plant,(no job),Completed,1340.0
+PO-1466,RG Engineering (Coventry) Ltd,(no job),Completed,45.0
+PO-1467,SP Cleaning,(no job),Completed,500.0
+PO-1468,SP Cleaning,(no job),Completed,250.0
+PO-1469,MP Engineering,(no job),Completed,1809.8
+PO-1470,Baker Engineering,(no job),Completed,561.15
+PO-1471,Pollard Engineering,(no job),Completed,75.0
+PO-1472,Carrtech,(no job),Completed,532.0
+PO-1473,G & D Eng Solutions,(no job),Completed,1712.0
+PO-1474,Baker Engineering,(no job),Completed,350.0
+PO-1475,Marcote,(no job),Completed,375.0
+PO-1476,Towne lifting,(no job),Completed,405.0
+PO-1477,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1478,WDS Components,(no job),Issued,112.91
+PO-1479,WDS Components,(no job),Issued,28.92
+PO-1480,Pollard Engineering,(no job),Completed,75.0
+PO-1481,WDS Components,(no job),Completed,318.65
+PO-1482,RG Engineering (Coventry) Ltd,(no job),Completed,200.0
+PO-1483,Burton Ind Engraving,(no job),Completed,280.0
+PO-1484,Quill International,(no job),Completed,1150.0
+PO-1485,MIES,(no job),Completed,616.0
+PO-1486,Spondon Blasting Services,(no job),Completed,2752.68
+PO-1487,Tech-Ni-Plant,(no job),Completed,1050.0
+PO-1488,Paul Bradford Distribution LTD,(no job),Completed,450.0
+PO-1489,Springmasters,(no job),Issued,25.0
+PO-1490,East Midlands Hydraulics Ltd,(no job),Completed,300.0
+PO-1491,SP Cleaning,(no job),Completed,500.0
+PO-1492,Cromwell Tools,(no job),Completed,107.84
+PO-1493,G & D Eng Solutions,(no job),Completed,411.68
+PO-1494,PASS,(no job),Completed,195.0
+PO-1495,Cromwell Tools,(no job),Completed,204.62
+PO-1496,Cromwell Tools,(no job),Completed,8.52
+PO-1497,Barnes Lifting,(no job),Completed,69.75
+PO-1498,WDS Components,(no job),Completed,203.41
+PO-1499,EM Precision,(no job),Completed,912.0
+PO-1500,Pollard Engineering,(no job),Completed,175.0
+PO-1501,Quill International,(no job),Completed,600.0
+PO-1502,Advanced Design Services,(no job),Completed,423.92
+PO-1503,GT Lifting,(no job),Completed,87.78
+PO-1504,Ross Handling,(no job),Issued,0.0
+PO-1505,Willstec,(no job),Completed,474.0
+PO-1506,Carrtech,(no job),Completed,1978.0
+PO-1507,WDS Components,(no job),Completed,134.45
+PO-1508,Cromaston Ltd,(no job),Completed,580.0
+PO-1509,JKP Engineering,(no job),Completed,17135.0
+PO-1510,Oxley Engineering,(no job),Completed,850.0
+PO-1511,WDS Components,(no job),Completed,371.6
+PO-1512,WDS Components,(no job),Issued,290.64
+PO-1513,WDS Components,(no job),Issued,55.27
+PO-1514,Airwise,(no job),Issued,211.59
+PO-1515,Paul Bradford Distribution LTD,(no job),Completed,120.0
+PO-1516,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1517,SLS Precision Engineering,(no job),Completed,334.8
+PO-1518,TEAM,(no job),Completed,320.0
+PO-1519,RG Engineering (Coventry) Ltd,(no job),Completed,495.0
+PO-1520,G & D Eng Solutions,(no job),Completed,210.0
+PO-1521,Burton Ind Engraving,(no job),Completed,210.0
+PO-1522,Tech-Ni-Plant,(no job),Completed,1128.0
+PO-1523,PS Marsden,(no job),Completed,600.0
+PO-1524,K engineering,(no job),Issued,0.0
+PO-1525,Quill International,(no job),Completed,2712.0
+PO-1526,Carrtech,(no job),Completed,443.04
+PO-1527,Airwise,(no job),Issued,36.67
+PO-1528,Cromwell Tools,(no job),Completed,40.14
+PO-1529,WDS Components,(no job),Completed,171.3
+PO-1530,Cromwell Tools,(no job),Completed,0.0
+PO-1531,GT Lifting,(no job),Completed,303.14
+PO-1532,Orb Design & Print,(no job),Completed,15.0
+PO-1533,Arkwell Fasteners,(no job),Issued,41.73
+PO-1534,S P Cleaning,(no job),Issued,500.0
+PO-1535,DPGE Rebuilds Ltd,(no job),Completed,1604.81
+PO-1536,DPGE Rebuilds Ltd,(no job),Completed,1604.81
+PO-1537,Carrtech,(no job),Completed,1152.0
+PO-1538,G & D Eng Solutions,(no job),Completed,330.0
+PO-1539,Baker Engineering,(no job),Completed,260.0
+PO-1540,JKP Engineering,(no job),Completed,23660.0
+PO-1541,JKP Engineering,(no job),Completed,29600.0
+PO-1542,JKP Engineering,(no job),Completed,27400.0
+PO-1543,Fife Engineering,(no job),Completed,280.0
+PO-1544,Oxley/WDS/Wixroyd,(no job),Completed,880.0
+PO-1545,MF Transport,(no job),Completed,220.0
+PO-1546,EM precision,(no job),Issued,191.4
+PO-1547,Kwikfixings and Tools,(no job),Completed,348.0
+PO-1548,Baker Engineering,(no job),Completed,175.0
+PO-1549,Derwent Valley Tooling,(no job),Completed,348.0
+PO-1550,Pollard Engineering,(no job),Completed,120.0
+PO-1551,Fife Engineering,(no job),Completed,265.0
+PO-1552,Autosmart,(no job),Issued,107.32
+PO-1553,Atlas Copco Compressors,(no job),Completed,573.81
+PO-1554,Amazon,(no job),Completed,23.79
+PO-1555,Oxley Engineering,(no job),Completed,0.0
+PO-1556,East Midlands Hydraulics Ltd,(no job),Issued,47.5
+PO-1557,WDS Components,(no job),Completed,39.51
+PO-1558,Pollard Engineering,(no job),Completed,0.0
+PO-1559,S P Cleaning,(no job),Issued,500.0
+PO-1560,SP Cleaning,(no job),Completed,250.0
+PO-1561,Fife Engineering,(no job),Completed,1625.0
+PO-1562,Fife Engineering,(no job),Completed,2265.0
+PO-1563,Oxley Engineering,(no job),Completed,80.0
+PO-1564,MP Engineering,(no job),Completed,1196.7
+PO-1565,Marcote,(no job),Completed,303.39
+PO-1566,EM Precision,(no job),Completed,551.2
+PO-1567,EM Precision,(no job),Completed,319.8
+PO-1568,G & D Eng Solutions,(no job),Completed,180.0
+PO-1569,Cromwell Tools,(no job),Completed,27.49
+PO-1570,Oxley Engineering,(no job),Completed,80.0
+PO-1571,Cromwell Tools,(no job),Completed,30.82
+PO-1572,J Scott Design,(no job),Completed,2870.0
+PO-1573,MP Engineering,(no job),Completed,1454.26
+PO-1574,Paul Bradford Distribution LTD,(no job),Completed,450.0
+PO-1575,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1576,Oxley Engineering,(no job),Completed,250.0
+PO-1577,Oxley Engineering,(no job),Completed,200.0
+PO-1578,WDS Components,(no job),Completed,53.38
+PO-1579,Roemheld,(no job),Completed,2363.78
+PO-1580,Pollard Engineering,(no job),Completed,1090.0
+PO-1581,Adams Engineering,(no job),Completed,884.96
+PO-1582,RG Engineering (Coventry) Ltd,(no job),Completed,980.0
+PO-1583,EM Precision,(no job),Completed,1728.0
+PO-1584,Kwikfixings and Tools,(no job),Completed,442.0
+PO-1585,Baker Engineering,(no job),Issued,454.0
+PO-1586,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1587,Dixon Engineering Supplies,(no job),Completed,480.0
+PO-1588,WDS Components,(no job),Completed,76.19
+PO-1589,Cromwell Tools,(no job),Completed,469.48
+PO-1590,RG Engineering (Coventry) Ltd,(no job),Completed,4480.0
+PO-1591,MP Engineering,(no job),Completed,500.62
+PO-1592,Burton Ind Engraving,(no job),Completed,120.0
+PO-1593,Paul Bradford Distribution LTD,(no job),Completed,120.0
+PO-1594,BBL Batteries,(no job),Issued,205.36
+PO-1595,EM Precision,(no job),Issued,216.21
+PO-1596,Stamps Direct,(no job),Completed,41.85
+PO-1597,G & D Eng Solutions,(no job),Completed,222.0
+PO-1598,PASS,(no job),Completed,175.94
+PO-1599,FA Expert,(no job),Completed,75.0
+PO-1600,Roemheld,(no job),Completed,961.51
+PO-1601,Fife Engineering,(no job),Completed,270.0
+PO-1602,Fife Engineering,(no job),Completed,1150.0
+PO-1603,RG Engineering,(no job),Completed,150.0
+PO-1604,Zouch,(no job),Completed,1980.4
+PO-1605,Paul Bradford Distribution LTD,(no job),Completed,265.0
+PO-1606,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1607,Paul Bradford Distribution LTD,(no job),Completed,120.0
+PO-1608,WDS Components,(no job),Completed,59.15
+PO-1609,Amazon,(no job),Issued,31.47
+PO-1610,Oxley engineering,(no job),Completed,384.0
+PO-1611,Cell Pack Solutions,(no job),Issued,318.7
+PO-1612,Spondon Blasting Services,(no job),Completed,1600.0
+PO-1613,MP Engineering,(no job),Completed,3445.4
+PO-1614,G & D Eng Solutions,(no job),Completed,840.0
+PO-1615,Fife Engineering,(no job),Completed,1855.0
+PO-1616,ACCU,(no job),Completed,18.9
+PO-1617,Orb Design & Print,(no job),Completed,35.0
+PO-1618,Piab Ltd,(no job),Completed,2498.41
+PO-1619,Cromwell Tools,(no job),Completed,16.95
+PO-1620,IXTHUS,(no job),Completed,1875.0
+PO-1621,WDS Components,(no job),Completed,24.05
+PO-1622,Larkshill,(no job),Completed,1675.0
+PO-1623,SP Cleaning,(no job),Completed,250.0
+PO-1624,NEP,(no job),Completed,25.51
+PO-1625,K Engineering,(no job),Issued,0.0
+PO-1626,East Midlands Hydraulics Ltd,(no job),Completed,0.0
+PO-1627,R G Engineering,(no job),Completed,2850.0
+PO-1628,Pollard Engineering,(no job),Completed,100.0
+PO-1629,Carrtech,(no job),Completed,384.0
+PO-1630,Quill International,(no job),Completed,685.0
+PO-1631,Veteran Courier Precision,(no job),Completed,225.0
+PO-1632,Oxley Engineering,(no job),Completed,85.0
+PO-1633,RUD,(no job),Completed,208.0
+PO-1634,OTS,(no job),Issued,795.0
+PO-1635,SMW Autoblok Telbrook Ltd.,(no job),Completed,396.0
+PO-1636,Status Metrology,(no job),Issued,5223.65
+PO-1637,NEP,(no job),Completed,22.25
+PO-1638,NEP,(no job),Completed,62.25
+PO-1639,NEP,(no job),Completed,87.5
+PO-1640,Burton Ind Engraving,(no job),Completed,80.0
+PO-1641,Pollard Engineering,(no job),Completed,150.0
+PO-1642,UK Lifting store,(no job),Issued,45.5
+PO-1643,Willstec,(no job),Completed,195.0
+PO-1644,Cutwel,(no job),Completed,0.0
+PO-1645,Carrtech,(no job),Completed,1344.0
+PO-1646,Kwikfixings and Tools,(no job),Completed,45.0
+PO-1647,Fife Engineering,(no job),Completed,295.0
+PO-1648,Cromwell Tools,(no job),Issued,34.47
+PO-1649,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1650,Fife Engineering,(no job),Completed,295.0
+PO-1651,Fife Engineering,(no job),Completed,900.0
+PO-1652,Willstec,(no job),Completed,218.0
+PO-1653,Kwikfixings and Tools,(no job),Completed,126.36
+PO-1654,Kwikfixings and Tools,(no job),Completed,39.2
+PO-1655,Tente,(no job),Completed,169.0
+PO-1656,SLS Precision Engineering,(no job),Issued,380.0
+PO-1657,Larkshill,(no job),Completed,3750.0
+PO-1658,Dixon Engineering Supplies,(no job),Completed,73.0
+PO-1659,Carrtech,(no job),Completed,1980.0
+PO-1660,Carrtech,(no job),Completed,1980.0
+PO-1661,Carrtech,(no job),Completed,3424.0
+PO-1662,Carrtech,(no job),Completed,444.0
+PO-1663,RUD,(no job),Completed,162.52
+PO-1664,Baker Engineering,(no job),Completed,770.84
+PO-1665,Fife Engineering,(no job),Completed,3080.0
+PO-1666,Fife Engineering,(no job),Completed,1540.0
+PO-1667,Advanced Design Services,(no job),Completed,1079.8
+PO-1668,GT Lifting,(no job),Completed,131.51
+PO-1669,Ross Handling,(no job),Completed,0.0
+PO-1670,Orb Design & Print,(no job),Completed,31.0
+PO-1671,MP Engineering,(no job),Completed,1787.66
+PO-1672,MP Engineering,(no job),Completed,2593.83
+PO-1673,Quill International,(no job),Completed,880.0
+PO-1674,Arkwell Fasteners,(no job),Issued,0.0
+PO-1675,Goldbury,(no job),Completed,170.0
+PO-1676,Goldbury,(no job),Issued,340.0
+PO-1677,Rhondama,(no job),Issued,0.0
+PO-1678,Oxley engineering,(no job),Completed,745.0
+PO-1679,Roemheld,(no job),Issued,5937.41
+PO-1680,Baker Engineering,(no job),Completed,3840.0
+PO-1681,Derby Gaskets,(no job),Completed,57.42
+PO-1682,Advanced Design Services,(no job),Completed,158.95
+PO-1683,Parkside Steel,TM-5973,Completed,461.9
+PO-1684,Fife Engineering,(no job),Completed,90.0
+PO-1685,Kwikfixings and Tools,(no job),Completed,94.6
+PO-1686,Fife Engineering,(no job),Completed,365.0
+PO-1687,GT Lifting,(no job),Completed,50.51
+PO-1688,RUD,(no job),Completed,0.0
+PO-1689,AMF,(no job),Completed,9626.1
+PO-1690,Ron Currie & Sons,(no job),Completed,130.0
+PO-1691,Quill International,(no job),Completed,720.0
+PO-1692,Carrtech,(no job),Completed,19116.62
+PO-1693,Quill International,(no job),Completed,400.0
+PO-1694,Fife Engineering,(no job),Completed,1540.0
+PO-1695,IXTHUS,(no job),Issued,738.0
+PO-1696,Carrtech,(no job),Completed,222.0
+PO-1697,G & D Eng Solutions,(no job),Completed,810.0
+PO-1698,Autosmart,(no job),Completed,0.0
+PO-1699,Orb Design & Print,(no job),Completed,315.0
+PO-1700,Fife Engineering,(no job),Completed,475.0
+PO-1701,RUD,(no job),Completed,80.61
+PO-1702,Oxley Engineering,(no job),Completed,210.0
+PO-1703,Oxley Engineering,(no job),Completed,125.0
+PO-1704,Swift Engineering,(no job),Completed,360.0
+PO-1705,RG Engineering,(no job),Completed,640.0
+PO-1706,WDS Components,(no job),Completed,771.96
+PO-1707,Kwikfixings and Tools,(no job),Completed,348.0
+PO-1708,Barnes Lifting,(no job),Completed,82.75
+PO-1709,Fife Engineering,(no job),Completed,225.0
+PO-1710,Fife Engineering,(no job),Completed,520.0
+PO-1711,Carrtech,(no job),Completed,973.36
+PO-1712,WDS Components,(no job),Completed,266.35
+PO-1713,EM Precision,(no job),Completed,1023.2
+PO-1714,EM Precision,(no job),Issued,259.45
+PO-1715,Paul Bradford Distribution LTD,(no job),Completed,255.0
+PO-1716,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-1717,SMW Autoblok Telbrook Ltd.,(no job),Completed,62.0
+PO-1718,WDS Components,(no job),Issued,2132.1
+PO-1719,Baker Engineering,(no job),Completed,213.75
+PO-1720,G & D Eng Solutions,(no job),Completed,240.0
+PO-1721,Cromwell Tools,(no job),Completed,22.58
+PO-1722,MP Engineering,(no job),Completed,2160.4
+PO-1723,FPE Seals,(no job),Completed,326.25
+PO-1724,Swift Engineering,(no job),Completed,1130.0
+PO-1725,PS Marsden,(no job),Completed,450.0
+PO-1726,Spondon Blasting Services,(no job),Completed,4081.0
+PO-1727,Rock Steady Group,(no job),Completed,840.0
+PO-1728,Flexo spring,(no job),Issued,112.36
+PO-1729,G & D Eng Solutions,(no job),Completed,220.0
+PO-1730,Simply Bearings,(no job),Completed,143.4
+PO-1731,Spring master,(no job),Issued,0.0
+PO-1732,Quill International,(no job),Completed,2560.0
+PO-1733,Paul Bradford Distribution LTD,(no job),Completed,120.0
+PO-1734,EM Precision,(no job),Completed,301.5
+PO-1735,Oxley Engineering,(no job),Completed,360.0
+PO-1736,Fife Engineering,(no job),Completed,3320.0
+PO-1737,Fife Engineering,(no job),Completed,3080.0
+PO-1738,Baker engineering,(no job),Completed,466.67
+PO-1739,Cromwell Tools/Swift,(no job),Completed,553.45
+PO-1740,PMB Pallets,(no job),Completed,73.39
+PO-1741,EM Precision,(no job),Completed,487.2
+PO-1742,Carrtech,(no job),Completed,740.0
+PO-1743,Oxley Engineering,(no job),Completed,160.0
+PO-1744,Swift Engineering,(no job),Completed,180.0
+PO-1745,JKP Engineering,(no job),Issued,2408.0
+PO-1746,OTS,(no job),Issued,1765.0
+PO-1747,Amazon,(no job),Issued,42.0
+PO-1748,Paul Bradford Distribution LTD,(no job),Completed,120.0
+PO-1749,Baker Engineering,(no job),Completed,1406.6
+PO-1750,Kwikfixings and Tools,(no job),Completed,155.88
+PO-1751,Oxley Engineering,(no job),Completed,160.0
+PO-1752,MP Engineering,(no job),Completed,854.32
+PO-1753,EM Precision,(no job),Completed,255.0
+PO-1754,Baker Engineering,(no job),Completed,399.99
+PO-1755,HP Consulting Services Ltd,(no job),Issued,750.0
+PO-1756,RG Engineering,(no job),Completed,600.0
+PO-1757,RG Engineering,(no job),Completed,134.4
+PO-1758,Carrtech,(no job),Completed,4528.0
+PO-1759,Pollard Engineering,(no job),Completed,0.0
+PO-1760,Quill International,(no job),Completed,400.0
+PO-1761,RS,(no job),Completed,88.0
+PO-1762,E-magnets,(no job),Completed,57.69
+PO-1763,Paul Bradford Distribution LTD,(no job),Completed,200.0
+PO-1764,PASS,(no job),Completed,215.0
+PO-1765,Oxley Engineering,(no job),Completed,350.0
+PO-1766,Oxley Engineering,(no job),Completed,300.0
+PO-1767,EM Precision,(no job),Completed,50.0
+PO-1768,EM Precision,(no job),Completed,50.0
+PO-1769,RUD,(no job),Completed,188.66
+PO-1770,Marcote,(no job),Completed,124.0
+PO-1771,CBS Engineering and Heat Treatment,(no job),Completed,72.5
+PO-1772,Cromwell Tools,(no job),Completed,8.59
+PO-1773,JKP Engineering,(no job),Completed,180.0
+PO-1774,G & D Eng Solutions,(no job),Completed,160.0
+PO-1775,Carrtech,(no job),Completed,1980.0
+PO-1776,Paul Bradford Distribution LTD,(no job),Completed,50.0
+PO-1777,MP Engineering,(no job),Completed,5254.0
+PO-1778,Dixon Engineering Supplies,(no job),Completed,511.0
+PO-1779,Baker engineering,(no job),Completed,937.0
+PO-1780,Spondon Blasting Services,(no job),Completed,0.0
+PO-1781,Willstec,(no job),Completed,0.0
+PO-1782,Oxley Engineering,(no job),Completed,160.0
+PO-1783,Dixon Engineering Supplies,(no job),Issued,0.0
+PO-1784,RG Engineering,(no job),Completed,750.0
+PO-1785,Fife Engineering,(no job),Completed,500.0
+PO-1786,WDS Components,(no job),Issued,486.68
+PO-1787,Cromwell Tools,(no job),Completed,26.76
+PO-1788,MP Engineering,(no job),Completed,6301.3
+PO-1789,Basic Business Systems,(no job),Completed,4165.0
+PO-1790,K Engineering,(no job),Completed,271.29
+PO-1791,WDS Components,(no job),Completed,54.11
+PO-1792,Roemheld,(no job),Completed,340.71
+PO-1793,TEAM,(no job),Completed,0.0
+PO-1794,TEAM,(no job),Issued,0.0
+PO-1795,Orb Design & Print,(no job),Completed,45.0
+PO-1796,Carrtech,(no job),Completed,65496.41
+PO-1797,Orb Design & Print,(no job),Completed,0.0
+PO-1798,WDS Components,(no job),Completed,332.4
+PO-1799,Elite Materials Handling Ltd,(no job),Completed,504.85
+PO-1800,Kwikfixings and Tools,(no job),Completed,348.0
+PO-1801,Quill International,(no job),Completed,200.0
+PO-1802,Fife Engineering,(no job),Completed,1040.0
+PO-1803,Pollard Engineering,(no job),Completed,400.0
+PO-1804,Carrtech,(no job),Completed,156.0
+PO-1805,Carrtech,(no job),Completed,8321.0
+PO-1806,JPK Eng,(no job),Issued,625.0
+PO-1807,Baker engineering,(no job),Completed,2609.5
+PO-1808,EM Precision,(no job),Completed,1128.7
+PO-1809,DPGE Rebuilds Ltd,(no job),Completed,1668.6
+PO-1810,DPGE Rebuilds Ltd,(no job),Completed,1661.51
+PO-1811,Roemheld,(no job),Completed,2721.48
+PO-1812,Tente,(no job),Completed,74.0
+PO-1813,CBS Engineering and Heat Treatment,(no job),Completed,106.25
+PO-1814,Specsavers,(no job),Completed,85.0
+PO-1815,Cromwell Tools,(no job),Completed,53.34
+PO-1816,Pollard engineering,(no job),Completed,240.0
+PO-1817,CBS Engineering and Heat Treatment,(no job),Completed,106.25
+PO-1818,Amazon,(no job),Issued,25.0
+PO-1819,Pollard Engineering,(no job),Completed,135.0
+PO-1820,Cromwell Tools,(no job),Issued,28.0
+PO-1821,CBS Engineering and Heat Treatment,(no job),Completed,72.5
+PO-1822,EM Precision,(no job),Completed,982.5
+PO-1823,Advanced Adhesives,(no job),Completed,42.55
+PO-1824,Larkshill,(no job),Completed,3300.0
+PO-1825,Paul Bradford Distribution LTD,(no job),Completed,370.0
+PO-1826,Nationwide Trailer parts,(no job),Completed,1233.07
+PO-1827,Fife Engineering,(no job),Completed,95.0
+PO-1828,Fife Engineering,(no job),Completed,690.0
+PO-1829,Kwikfixings and Tools,(no job),Completed,1176.0
+PO-1830,G & D Eng Solutions,(no job),Completed,108.0
+PO-1831,Quill International,(no job),Completed,1460.0
+PO-1832,BBL Batteries,(no job),Completed,205.36
+PO-1833,Paul Bradford Distribution LTD,(no job),Completed,200.0
+PO-1834,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1835,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-1836,Pro-Bolt,(no job),Completed,0.0
+PO-1837,Spondon Blasting Services,(no job),Completed,4962.0
+PO-1838,MP Engineering,(no job),Completed,820.23
+PO-1839,Catena,(no job),Completed,93.75
+PO-1840,WDS Components,(no job),Completed,43.02
+PO-1841,SMW Autoblok Telbrook Ltd.,(no job),Completed,1605.0
+PO-1842,Adams Engineering,(no job),Completed,288.0
+PO-1843,Pollard Engineering,(no job),Completed,50.0
+PO-1844,RG Engineering,(no job),Completed,375.0
+PO-1845,Cromwell Tools,(no job),Completed,129.98
+PO-1846,Kwikfixings and Tools,(no job),Completed,30.0
+PO-1847,MP Engineering,(no job),Completed,4446.69
+PO-1848,Basic Business Systems,(no job),Completed,595.0
+PO-1849,Orb Design & Print,(no job),Completed,27.99
+PO-1850,PASS,(no job),Completed,155.0
+PO-1851,Pollard engineering,(no job),Issued,0.0
+PO-1852,WDS Components,(no job),Issued,0.0
+PO-1853,CBS Engineering and Heat Treatment,(no job),Completed,204.4
+PO-1854,Spondon Blasting,(no job),Completed,800.0
+PO-1855,Oxley Engineering,(no job),Completed,200.0
+PO-1856,RG Engineering,(no job),Completed,60.0
+PO-1857,SMW Autoblok Telbrook Ltd.,(no job),Issued,4100.0
+PO-1858,Veteran Courier Precision,(no job),Completed,425.0
+PO-1859,K Engineering,(no job),Issued,0.0
+PO-1860,Fife Engineering,(no job),Completed,285.0
+PO-1861,Safety Lifting Gear,(no job),Completed,1041.9
+PO-1862,Cromaston Ltd,(no job),Completed,100.0
+PO-1863,GT Lifting,(no job),Completed,78.9
+PO-1864,GF machining solutions,(no job),Completed,6335.01
+PO-1865,GF machining solutions,(no job),Completed,5286.0
+PO-1866,Quill International,(no job),Completed,180.0
+PO-1867,Quill International,(no job),Issued,200.0
+PO-1868,G & D Eng Solutions,(no job),Completed,388.0
+PO-1869,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1870,G & D Eng Solutions,(no job),Completed,160.0
+PO-1871,Carrtech,(no job),Completed,3588.0
+PO-1872,Carrtech,(no job),Completed,234.0
+PO-1873,Piab Ltd,(no job),Completed,1258.68
+PO-1874,Baker engineering,(no job),Completed,790.0
+PO-1875,Quill International,(no job),Completed,290.0
+PO-1876,Quill International,(no job),Issued,820.0
+PO-1877,Jumo,(no job),Issued,1091.58
+PO-1878,WDS Components,(no job),Issued,24.45
+PO-1879,Burton Ind Engraving,(no job),Completed,234.0
+PO-1880,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-1881,Pollard engineering,(no job),Completed,375.0
+PO-1882,Baker Engineering,(no job),Issued,90.0
+PO-1883,Swift Engineering,(no job),Completed,2300.0
+PO-1884,Baker engineering,(no job),Completed,135.0
+PO-1885,Willstec,(no job),Completed,568.0
+PO-1886,HP Consulting Services Ltd,(no job),Issued,750.0
+PO-1887,WDS Components,(no job),Completed,123.35
+PO-1889,Carrtech,(no job),Completed,9730.0
+PO-1890,WDS Components,(no job),Completed,51.5
+PO-1891,Baker engineering,(no job),Completed,60.0
+PO-1892,Fife Engineering,(no job),Completed,975.0
+PO-1893,Fife Engineering,(no job),Completed,90.0
+PO-1894,Blast Spares Direct,(no job),Completed,50.1
+PO-1895,Fife Engineering,(no job),Completed,690.0
+PO-1896,Fife Engineering,(no job),Completed,260.0
+PO-1897,Kwikfixings and Tools,(no job),Completed,255.08
+PO-1898,Baker engineering,(no job),Issued,290.0
+PO-1899,RUD,(no job),Completed,524.61
+PO-1900,Baker engineering,(no job),Completed,252.0
+PO-1901,Cell Pack Solutions,(no job),Completed,497.4
+PO-1902,WDS Components,(no job),Completed,34.6
+PO-1903,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1904,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1905,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1906,Fife Engineering,(no job),Completed,3320.0
+PO-1907,Fife Engineering,(no job),Completed,3320.0
+PO-1908,Arkwell Fasteners,(no job),Issued,28.71
+PO-1909,CBS Engineering and Heat Treatment,(no job),Issued,106.25
+PO-1910,Airwise,(no job),Issued,21.6
+PO-1911,Pollard Engineering,(no job),Completed,234.6
+PO-1912,Carrtech,(no job),Completed,5802.0
+PO-1913,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-1914,Roemheld,(no job),Completed,31.4
+PO-1915,Office Boffins,(no job),Completed,374.85
+PO-1916,Wixroyd,(no job),Completed,476.54
+PO-1917,Fife Engineering,(no job),Completed,3320.0
+PO-1918,Advanced Adhesives,(no job),Completed,49.87
+PO-1919,MP Engineering,(no job),Completed,5358.28
+PO-1920,Salt and Sadler,(no job),Completed,4470.0
+PO-1921,EM Precision,(no job),Issued,678.0
+PO-1922,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-1923,MP Engineering,(no job),Completed,4233.88
+PO-1924,Advanced Design Services,(no job),Completed,159.0
+PO-1925,Oxley Engineering,(no job),Completed,150.0
+PO-1926,CBS Engineering and Heat Treatment,(no job),Issued,106.25
+PO-1927,FA Expert,(no job),Completed,200.0
+PO-1928,EM Precision,(no job),Completed,1555.2
+PO-1929,ACCU,(no job),Completed,17.1
+PO-1930,Salt & Sadler,(no job),Completed,1250.0
+PO-1931,Oxley Engineering,(no job),Completed,320.0
+PO-1932,RUD,(no job),Completed,802.31
+PO-1933,George Taylor,(no job),Completed,339.39
+PO-1934,Fife Engineering,(no job),Completed,90.0
+PO-1935,G & D Eng Solutions,(no job),Completed,256.0
+PO-1936,Ron Currie & Sons,(no job),Completed,55.0
+PO-1937,Burton Ind Engraving,(no job),Completed,58.0
+PO-1938,RG Engineering,(no job),Completed,2100.0
+PO-1939,RG Engineering,(no job),Completed,240.0
+PO-1940,MP Engineering,(no job),Completed,6678.82
+PO-1941,RS Components,(no job),Completed,145.7
+PO-1942,EM Precision,(no job),Completed,1578.8
+PO-1943,Towne Lifting,(no job),Completed,105.0
+PO-1944,Pollard Engineering,(no job),Completed,402.0
+PO-1945,Marcote,(no job),Completed,0.0
+PO-1946,Cromwell Tools,(no job),Completed,36.85
+PO-1947,Veteran Courier Precision,(no job),Completed,225.0
+PO-1948,SMW Autoblok Telbrook Ltd.,(no job),Completed,1280.0
+PO-1949,Fife Engineering,(no job),Completed,1200.0
+PO-1950,Cromwell Tools,(no job),Issued,204.72
+PO-1951,EM Precision,(no job),Completed,104.34
+PO-1952,WDS Components,(no job),Completed,68.9
+PO-1953,Oxley Engineering,(no job),Completed,650.0
+PO-1954,RG Engineering,(no job),Completed,660.0
+PO-1955,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-1956,Paul Bradford Distribution LTD,(no job),Completed,40.0
+PO-1957,Dixon Engineering Supplies,(no job),Completed,240.0
+PO-1958,Marcote,(no job),Completed,4968.0
+PO-1959,Oxley Engineering,(no job),Completed,280.0
+PO-1960,Pollard Engineering,(no job),Completed,55.0
+PO-1961,Baker engineering,(no job),Completed,282.5
+PO-1962,Pollard Engineering,(no job),Issued,110.0
+PO-1963,Towne Lifting,(no job),Completed,105.0
+PO-1964,Arkwell Fasteners,(no job),Completed,73.09
+PO-1965,Autosmart,(no job),Issued,61.16
+PO-1966,Safety Lifting Gear,(no job),Completed,276.72
+PO-1967,Dixon Engineering Supplies,(no job),Issued,169.0
+PO-1968,EM Precision,(no job),Completed,882.24
+PO-1969,MP Engineering,(no job),Completed,6678.82
+PO-1970,WDS Components,(no job),Issued,61.52
+PO-1971,Arkwell Fasteners,(no job),Issued,34.46
+PO-1972,IXTHUS,(no job),Issued,2468.0
+PO-1973,Willstec,(no job),Completed,300.0
+PO-1974,Oxley Engineering,(no job),Completed,375.0
+PO-1975,Baker Engineering,(no job),Completed,210.0
+PO-1976,Pollard Engineering,(no job),Completed,150.0
+PO-1977,RS Components,(no job),Completed,388.8
+PO-1978,Cromaston Ltd,(no job),Completed,2500.0
+PO-1979,Baker engineering,(no job),Completed,240.0
+PO-1980,Kwikfixings and Tools,(no job),Completed,90.0
+PO-1981,Swift Engineering,(no job),Completed,180.0
+PO-1982,SMW Autoblok Telbrook Ltd.,(no job),Completed,4781.0
+PO-1983,S.M gauges,(no job),Completed,316.0
+PO-1984,WDS Components,(no job),Completed,124.87
+PO-1985,Capaero,(no job),Issued,6350.0
+PO-1986,WLR Precision Engineering,(no job),Completed,60.0
+PO-1987,Wixroyd,(no job),Completed,56.89
+PO-1988,AMF,(no job),Completed,87.3
+PO-1989,Kaiserkraft,(no job),Completed,433.0
+PO-1990,GF machining solutions,(no job),Issued,1941.8
+PO-1991,Marcote,(no job),Completed,0.0
+PO-1992,Oxley Engineering,(no job),Completed,0.0
+PO-1993,Oxley Engineering,(no job),Completed,0.0
+PO-1994,WDS Components,(no job),Completed,69.82
+PO-1995,Willstec,(no job),Issued,748.0
+PO-1996,Fire Control uk,(no job),Completed,40.0
+PO-1997,Amazon,(no job),Completed,68.98
+PO-1998,G & D Eng Solutions,(no job),Completed,320.0
+PO-1999,Airwise,(no job),Completed,2129.56
+PO-2000,QCT,(no job),Completed,2740.0
+PO-2001,Sheltee,(no job),Completed,2288.0
+PO-2002,Orb Design & Print,(no job),Completed,630.0
+PO-2003,Amazon,(no job),Issued,12.48
+PO-2004,Oxley Engineering,(no job),Completed,210.0
+PO-2005,Paul Bradford Distribution LTD,(no job),Completed,277.5
+PO-2006,Model fixings,(no job),Issued,26.0
+PO-2007,Essentra Components,(no job),Completed,52.85
+PO-2008,Willstec,(no job),Completed,185.0
+PO-2009,Pollard Engineering,(no job),Completed,50.0
+PO-2010,Pollard Engineering,(no job),Completed,275.0
+PO-2011,Zoro,(no job),Issued,0.0
+PO-2012,Keyforce Locksmiths,(no job),Completed,140.0
+PO-2013,DPGE Rebuilds Ltd,(no job),Completed,1661.51
+PO-2014,DPGE Rebuilds Ltd,(no job),Completed,1661.51
+PO-2015,Cromaston Ltd,(no job),Completed,2204.0
+PO-2016,Rhondama,(no job),Issued,99.5
+PO-2017,,(no job),Completed,400.0
+PO-2018,East Midlands Hydraulics Ltd,(no job),Issued,50.0
+PO-2019,Quill International,(no job),Completed,142.0
+PO-2020,Dixon Engineering Supplies,(no job),Completed,271.0
+PO-2021,WLR Precision Engineering,(no job),Completed,90.0
+PO-2022,Carrtech,(no job),Completed,3037.44
+PO-2023,Carrtech,(no job),Completed,1980.0
+PO-2024,JKP Engineering,(no job),Completed,0.0
+PO-2025,Basic Business Systems,(no job),Completed,595.0
+PO-2026,RG Engineering,(no job),Completed,742.0
+PO-2027,Airwise,(no job),Issued,80.49
+PO-2028,Baker Engineering,(no job),Completed,0.0
+PO-2029,Burton Ind Engraving,(no job),Issued,58.0
+PO-2030,WDS Components,(no job),Completed,107.64
+PO-2031,RG Engineering,(no job),Completed,62.5
+PO-2032,Arkwell Fasteners,(no job),Issued,17.69
+PO-2033,Baker engineering,(no job),Issued,165.0
+PO-2034,Autosmart,(no job),Issued,23.64
+PO-2035,FH Brundle,(no job),Completed,6.4
+PO-2036,WLR Precision Engineering,(no job),Completed,55.0
+PO-2037,FH Brundle,(no job),Completed,6.4
+PO-2038,Marcote,(no job),Completed,0.0
+PO-2039,Essentra Components,(no job),Completed,46.33
+PO-2040,FH Brundle,(no job),Completed,74.8
+PO-2041,Fusion Fixings,(no job),Completed,54.72
+PO-2042,WDS Components,(no job),Completed,101.51
+PO-2043,Pollard Engineering,(no job),Completed,55.0
+PO-2044,Adams Engineering,(no job),Completed,464.0
+PO-2045,Spring master,(no job),Issued,27.14
+PO-2046,Kraner kirkman,(no job),Issued,1437.5
+PO-2047,Hydroscan,(no job),Issued,29.2
+PO-2048,TEAM,(no job),Completed,0.0
+PO-2049,Quill International,(no job),Completed,157.0
+PO-2050,Kwikfixings and Tools,(no job),Completed,450.0
+PO-2051,Cromwell Tools,(no job),Completed,22.65
+PO-2052,TEAM,(no job),Completed,125.0
+PO-2053,Baker Engineering,(no job),Completed,83.4
+PO-2054,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-2055,Paul Bradford Distribution LTD,(no job),Completed,50.0
+PO-2056,Quill International,(no job),Issued,200.0
+PO-2057,OTS,(no job),Issued,795.0
+PO-2058,MP Engineering Ltd,(no job),Completed,3046.89
+PO-2059,Carrtech,(no job),Completed,3588.0
+PO-2060,Kwikfixings and Tools,(no job),Completed,379.96
+PO-2061,RS,(no job),Issued,29.0
+PO-2062,EM Precision,(no job),Completed,255.0
+PO-2064,Cromwell Tools,(no job),Completed,8.35
+PO-2065,Baker Engineering,(no job),Completed,140.0
+PO-2066,G & D Eng Solutions,(no job),Completed,120.0
+PO-2067,WDS Components,(no job),Completed,145.35
+PO-2068,Baker Engineering,(no job),Completed,120.0
+PO-2069,EM Precision,(no job),Completed,912.0
+PO-2070,Kwikfixings and Tools,(no job),Completed,90.0
+PO-2071,G & D Eng Solutions,(no job),Completed,90.0
+PO-2072,QCT,(no job),Completed,35.0
+PO-2073,Oxley Engineering,(no job),Completed,350.0
+PO-2074,EM Precision,(no job),Issued,1017.44
+PO-2075,,(no job),Issued,125.0
+PO-2076,JKP Engineering,(no job),Issued,280.0
+PO-2077,JKP Engineering,(no job),Issued,217.0
+PO-2078,Pollard Engineering,(no job),Completed,750.0
+PO-2080,Pollard Engineering,(no job),Completed,0.0
+PO-2081,Airwise,(no job),Issued,30.62
+PO-2082,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-2083,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2084,WDS Components,(no job),Issued,28.25
+PO-2085,JKP Engineering,(no job),Completed,2784.0
+PO-2086,EM Precision,(no job),Completed,208.0
+PO-2087,Dixon Engineering Supplies,(no job),Issued,169.0
+PO-2088,Autosmart,(no job),Issued,50.98
+PO-2089,Basic Business Systems,(no job),Completed,595.0
+PO-2090,BTP Ltd,TM-6783,Completed,120.0
+PO-2091,Burton Ind Engraving,(no job),Completed,220.0
+PO-2092,Premier Cabinets Ltd,(no job),Completed,1583.33
+PO-2093,Crusader Fire,(no job),Completed,62.4
+PO-2094,Fife Engineering,TM-6738,Completed,1635.0
+PO-2095,Carrtech,(no job),Completed,234.0
+PO-2096,Paul Bradford Distribution LTD,(no job),Completed,50.0
+PO-2097,Roemheld,(no job),Issued,3508.98
+PO-2098,MMC Hardmetal UK LTD,(no job),Completed,115.5
+PO-2099,Pollard Engineering,(no job),Completed,386.5
+PO-2100,RG Engineering,(no job),Completed,160.0
+PO-2101,Marcote,(no job),Completed,100.0
+PO-2102,JKP Engineering,(no job),Completed,1232.0
+PO-2103,G & D Eng Solutions,(no job),Completed,890.0
+PO-2104,MP Engineering,(no job),Completed,5958.6
+PO-2105,MP Engineering,TM-6960,Completed,6727.94
+PO-2106,Roemheld,(no job),Completed,1212.3
+PO-2107,Cromwell Tools,(no job),Completed,19.43
+PO-2108,Marcote,(no job),Completed,919.8
+PO-2109,SMW Autoblok Telbrook Ltd.,(no job),Completed,1497.44
+PO-2110,Advanced Design Services,(no job),Completed,0.0
+PO-2111,Oxley Engineering,(no job),Completed,896.0
+PO-2112,Pollard Engineering,(no job),Completed,785.0
+PO-2113,Quill International,(no job),Completed,1890.0
+PO-2114,RS Components,(no job),Completed,101.79
+PO-2115,Red Strawberry Solutions,(no job),Completed,119.0
+PO-2116,Polystrop,(no job),Completed,204.08
+PO-2117,MP Engineering,(no job),Completed,7181.39
+PO-2118,Oxley Engineering,(no job),Completed,190.0
+PO-2119,Oxley Engineering,(no job),Completed,40.0
+PO-2120,Oxley Engineering,(no job),Completed,1050.0
+PO-2121,Quill International,(no job),Completed,0.0
+PO-2122,Paul Bradford Distribution LTD,(no job),Completed,240.0
+PO-2123,Fife Engineering,(no job),Completed,150.0
+PO-2124,JKP Engineering,(no job),Completed,2240.0
+PO-2125,Adams Engineering,(no job),Completed,465.5
+PO-2126,Flexo spring,(no job),Issued,10.51
+PO-2127,Derby Gaskets,(no job),Issued,34.6
+PO-2128,REM Systems,(no job),Issued,1041.0
+PO-2129,EM Precision,(no job),Completed,612.0
+PO-2130,Willstec,(no job),Completed,1060.0
+PO-2131,Baker Engineering,(no job),Completed,150.0
+PO-2132,Baker Engineering,(no job),Completed,400.0
+PO-2133,MP Engineering,(no job),Completed,11812.23
+PO-2134,MP Engineering,(no job),Completed,3410.86
+PO-2135,MP Engineering,(no job),Completed,5650.78
+PO-2136,Paul Bradford Distribution LTD,(no job),Completed,450.0
+PO-2137,Oxley Engineering,(no job),Completed,330.0
+PO-2138,Arkwell Fasteners,(no job),Issued,46.36
+PO-2139,SMW Autoblok Telbrook Ltd.,(no job),Completed,1750.0
+PO-2140,Towne,(no job),Completed,105.0
+PO-2141,Cromaston Ltd,(no job),Completed,375.0
+PO-2142,Swift Engineering,(no job),Completed,2144.0
+PO-2143,RUD,(no job),Completed,450.64
+PO-2144,Baker Engineering,(no job),Completed,658.74
+PO-2145,Paul Bradford Distribution LTD,(no job),Completed,280.0
+PO-2146,Carrtech,(no job),Completed,2588.0
+PO-2147,Carrtech,(no job),Completed,1980.0
+PO-2148,WDS Components,(no job),Issued,52.35
+PO-2149,EM Precision,(no job),Completed,1973.0
+PO-2150,BBL Batteries,(no job),Issued,205.36
+PO-2151,Baker Engineering,(no job),Completed,110.0
+PO-2152,Baker Engineering,(no job),Completed,80.0
+PO-2153,Oxley Engineering,(no job),Completed,50.0
+PO-2154,Burton Ind Engraving,(no job),Completed,63.0
+PO-2155,AMS Haley,(no job),Completed,36.5
+PO-2156,Airwise,(no job),Completed,45.43
+PO-2157,Dixon Engineering Supplies,(no job),Issued,517.0
+PO-2158,EM Precision,(no job),Completed,428.0
+PO-2159,Oxley Engineering,(no job),Completed,40.0
+PO-2160,Oxley Engineering,(no job),Completed,150.0
+PO-2161,Carrtech,(no job),Completed,156.0
+PO-2162,WLR Precision Engineering,(no job),Completed,0.0
+PO-2163,Orb Design & Print,(no job),Completed,146.0
+PO-2164,Veteran Courier Precision,(no job),Completed,225.0
+PO-2165,Dacrylate Paints,(no job),Completed,816.7
+PO-2166,PASS,(no job),Issued,155.0
+PO-2167,Spring Master,(no job),Completed,151.24
+PO-2168,NEP,(no job),Completed,3.4
+PO-2169,Carrtech,(no job),Completed,1459.2
+PO-2170,Pollard Engineering,(no job),Completed,40.0
+PO-2171,Pollard Engineering,(no job),Completed,160.0
+PO-2172,Midland Cad Design,(no job),Completed,0.0
+PO-2173,DPGE Rebuilds Ltd,(no job),Completed,1661.51
+PO-2174,DPGE Rebuilds Ltd,(no job),Completed,1576.46
+PO-2175,Willstec,(no job),Issued,630.0
+PO-2176,SMW Autoblok Telbrook Ltd.,(no job),Completed,1600.0
+PO-2177,N W cam,(no job),Issued,1500.0
+PO-2178,JKP Engineering,(no job),Completed,100.0
+PO-2179,CBS Engineering and Heat Treatment,(no job),Completed,125.0
+PO-2180,WDS Components,(no job),Issued,94.55
+PO-2181,CadBach,TM-7100,Completed,600.0
+PO-2182,Dixon Engineering Supplies,(no job),Issued,517.0
+PO-2183,Paul Bradford Distribution LTD,(no job),Completed,485.0
+PO-2184,EM Precision,(no job),Completed,681.68
+PO-2185,EM Precision,(no job),Completed,285.85
+PO-2186,Cromwell Tools,(no job),Completed,17.67
+PO-2188,Advanced Design Services,(no job),Completed,185.0
+PO-2189,RG Engineering Coventry Ltd,(no job),Completed,1600.0
+PO-2190,WDS Components,(no job),Completed,218.64
+PO-2191,MMC Hardmetal UK LTD,(no job),Completed,408.9
+PO-2192,WDS Components,(no job),Issued,270.55
+PO-2193,Roemheld,(no job),Completed,6411.52
+PO-2194,Paul Bradford Distribution LTD,(no job),Completed,0.0
+PO-2195,RS,(no job),Issued,0.0
+PO-2196,flexo spring,(no job),Issued,14.21
+PO-2197,WDS Components,(no job),Completed,172.87
+PO-2198,Quill International,(no job),Completed,1810.0
+PO-2199,WDS Components,(no job),Completed,117.66
+PO-2200,Roemheld,(no job),Completed,2701.42
+PO-2201,Red Strawberry Solutions,(no job),Completed,59.5
+PO-2202,JKP Engineering,(no job),Completed,1100.0
+PO-2203,MP Engineering,TM-7196,Completed,4931.6
+PO-2204,MP Engineering,TM-7197,Completed,4931.6
+PO-2205,Roemheld,(no job),Completed,294.68
+PO-2206,Zouch,(no job),Completed,3529.1
+PO-2207,Zouch,(no job),Completed,3529.1
+PO-2208,WDS Components,(no job),Completed,32.05
+PO-2209,North Eastern Power Coatings,(no job),Completed,220.0
+PO-2210,JV Fabs,(no job),Issued,470.0
+PO-2211,Basic Business Systems,(no job),Completed,165.0
+PO-2212,Autocad,(no job),Issued,0.0
+PO-2213,Roemheld,(no job),Issued,1894.05
+PO-2214,Willstec,(no job),Completed,1392.0
+PO-2215,Zouch,(no job),Completed,3472.5
+PO-2216,Zouch,(no job),Completed,3472.5
+PO-2217,Adams Engineering,(no job),Completed,827.08
+PO-2218,RG Engineering,(no job),Completed,160.0
+PO-2219,Baker Engineering,(no job),Completed,425.0
+PO-2220,Oxley Engineering,(no job),Completed,712.0
+PO-2221,Midland Cad Design,(no job),Completed,0.0
+PO-2222,Roemheld,(no job),Completed,6354.2
+PO-2223,Midland Cad Design,TM-7026,Completed,0.0
+PO-2224,JKP Engineering,(no job),Completed,800.0
+PO-2225,Filter Finder,(no job),Completed,77.48
+PO-2226,RG Engineering,(no job),Completed,556.5
+PO-2227,Basic Business Systems,(no job),Completed,1280.0
+PO-2228,Airwise,(no job),Issued,70.73
+PO-2229,Roemheld,(no job),Completed,554.95
+PO-2230,Quill International,(no job),Completed,2346.0
+PO-2231,Quill International,(no job),Issued,400.0
+PO-2232,East Midlands Hydraulics Ltd,(no job),Issued,13.72
+PO-2233,Dixon Engineering Supplies,(no job),Completed,150.0
+PO-2234,Oxley Engineering,(no job),Completed,180.0
+PO-2235,Swift Engineering,(no job),Completed,120.0
+PO-2236,Cousins UK,(no job),Completed,969.03
+PO-2237,SLS Precision Engineering,(no job),Completed,1108.0
+PO-2238,EM precision,(no job),Issued,1049.2
+PO-2239,JKP Engineering,(no job),Completed,1380.0
+PO-2240,Pollard Engineering,TM-7100,Completed,367.0
+PO-2241,SMW Autoblok Telbrook Ltd.,(no job),Issued,1680.0
+PO-2242,EM Precision,(no job),Completed,668.9
+PO-2243,Paul Bradford Distribution LTD,(no job),Completed,277.5
+PO-2244,G & D Eng Solutions,(no job),Completed,144.0
+PO-2245,OPAS (Southern) Ltd,(no job),Completed,78.57
+PO-2246,Pollard Engineering,(no job),Completed,0.0
+PO-2247,Carrtech,(no job),Completed,2676.0
+PO-2248,Autosmart,(no job),Issued,49.34
+PO-2249,Quill International,TM-6783,Completed,520.0
+PO-2250,Carrtech,(no job),Completed,2816.58
+PO-2251,Pollard Engineering,(no job),Issued,250.0
+PO-2252,Carrtech,(no job),Completed,2371.2
+PO-2253,Acorn Industrial Services,(no job),Completed,389.82
+PO-2254,NEP,(no job),Completed,10.2
+PO-2255,GT Lifting,(no job),Completed,83.74
+PO-2256,Rollador Shutters Ltd,(no job),Completed,50.0
+PO-2257,Carrtech,(no job),Completed,1980.0
+PO-2258,Carrtech,(no job),Completed,262.08
+PO-2259,Willstec,(no job),Completed,199.0
+PO-2260,Marcote,(no job),Issued,764.8
+PO-2261,Oxley Engineering,(no job),Completed,1200.0
+PO-2262,Oxley Engineering,TM-7026,Completed,0.0
+PO-2263,Quill International,(no job),Completed,905.0
+PO-2264,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2265,Dixon Engineering Supplies,(no job),Issued,0.0
+PO-2266,Veteran Courier Precision,(no job),Completed,225.0
+PO-2267,Dacrylate Paints,(no job),Completed,816.7
+PO-2268,Wiretech International UK,(no job),Issued,153.75
+PO-2269,Oxley Engineering,(no job),Completed,360.0
+PO-2270,North Eastern Powder Coatings,(no job),Completed,100.0
+PO-2271,Pollard Engineering,(no job),Completed,319.0
+PO-2272,JKP Engineering,(no job),Completed,1170.0
+PO-2273,Paul Bradford Distribution LTD,(no job),Completed,485.0
+PO-2274,JG Industrial Fastenings,(no job),Completed,25.5
+PO-2275,JG Industrial Fastenings,(no job),Completed,46.0
+PO-2276,Quill International,(no job),Completed,112.8
+PO-2277,Pollard Engineering,(no job),Completed,175.0
+PO-2278,Acorn Industrial Services,(no job),Completed,99.6
+PO-2279,Cromwell Tools,(no job),Issued,43.05
+PO-2280,JKP Engineering,(no job),Completed,70.0
+PO-2281,Oxley Engineering,(no job),Completed,350.0
+PO-2282,RG Engineering,(no job),Completed,750.0
+PO-2283,Baker Engineering,(no job),Completed,665.67
+PO-2284,Baker Engineering,(no job),Completed,990.0
+PO-2285,Kaiserkraft,(no job),Completed,1186.8
+PO-2286,Quill International,(no job),Issued,235.8
+PO-2287,Autosmart,(no job),Completed,39.01
+PO-2288,Screwfix,(no job),Issued,98.06
+PO-2289,Orbital Fasteners,(no job),Completed,31.63
+PO-2290,Cromaston Ltd,(no job),Issued,8400.0
+PO-2291,Baker Engineering,(no job),Issued,599.67
+PO-2292,MP Engineering,(no job),Completed,910.95
+PO-2293,Dixon Engineering Supplies,(no job),Completed,180.0
+PO-2295,SMW Autoblok Telbrook Ltd.,(no job),Completed,481.6
+PO-2296,Quill International,(no job),Completed,0.0
+PO-2297,Baker Engineering,TM-7350,Completed,4965.8
+PO-2298,Oxley Engineering,(no job),Completed,0.0
+PO-2299,Baker Engineering,(no job),Issued,360.0
+PO-2300,JKP Engineering,(no job),Completed,1800.0
+PO-2301,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2302,Paul Bradford Distribution LTD,(no job),Completed,485.0
+PO-2303,Quill International,(no job),Completed,322.0
+PO-2304,Zoro,(no job),Issued,86.32
+PO-2305,Carrtech,(no job),Completed,304.0
+PO-2306,Marcote,(no job),Completed,275.8
+PO-2307,East Midlands Hydraulics Ltd,(no job),Issued,50.0
+PO-2308,Dacrylate Paints,(no job),Issued,137.88
+PO-2309,MP Engineering,(no job),Completed,334.96
+PO-2310,Dixon Engineering Supplies,(no job),Issued,0.0
+PO-2311,Quill International,(no job),Issued,592.0
+PO-2312,Airwise,(no job),Issued,5.76
+PO-2313,Quill International,TM-6783,Issued,520.0
+PO-2314,Zouch,(no job),Completed,3472.5
+PO-2315,Cromaston Ltd,TM-7640,Completed,3530.0
+PO-2316,Cell Pack Solutions,(no job),Completed,497.4
+PO-2317,DPGE,TM-7461,Completed,1661.51
+PO-2318,DPGE,TM-7462,Completed,1895.4
+PO-2319,Oxley Engineering,(no job),Completed,216.0
+PO-2320,Quill International,(no job),Issued,896.0
+PO-2321,MP Engineering,TM-7372,Completed,166.3
+PO-2322,FPE Seals,TM-6738,Completed,677.25
+PO-2323,WDS Components,(no job),Completed,39.93
+PO-2324,Roemheld,(no job),Completed,5450.02
+PO-2325,Quill International,(no job),Completed,2166.0
+PO-2326,WDS Components,(no job),Completed,35.56
+PO-2327,Access Training Ltd,(no job),Completed,195.0
+PO-2328,JKP Engineering,(no job),Completed,1460.0
+PO-2329,JKP Engineering,(no job),Completed,300.0
+PO-2330,Towne Lifting,TM-7481,Completed,105.0
+PO-2331,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2332,Cutwel Tools Ltd,(no job),Completed,125.54
+PO-2333,PASS,(no job),Completed,135.6
+PO-2334,Willstec,(no job),Completed,658.0
+PO-2335,AML Instruments,(no job),Completed,137.94
+PO-2336,RUD,(no job),Completed,481.68
+PO-2338,Roemheld,(no job),Completed,1481.07
+PO-2339,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2340,Paul Bradford Distribution LTD,(no job),Completed,450.0
+PO-2341,Solus Testing Ltd,TM-7100,Completed,0.0
+PO-2342,WDS Components,(no job),Issued,23.87
+PO-2343,K Engineering,(no job),Issued,0.0
+PO-2344,Baker Engineering,(no job),Completed,3400.0
+PO-2345,J V Fabrications,(no job),Issued,940.0
+PO-2346,Quarry Van Rental,(no job),Completed,75.0
+PO-2347,Baker Engineering,(no job),Issued,499.76
+PO-2348,Baker Engineering,(no job),Completed,60.0
+PO-2349,Carrtech,(no job),Completed,156.0
+PO-2350,Kwikfixings and Tools,(no job),Completed,323.96
+PO-2351,NEP,(no job),Completed,7.64
+PO-2352,Carrtech,(no job),Completed,912.0
+PO-2353,J V Fabrications,(no job),Issued,545.0
+PO-2354,Oxley Engineering,(no job),Completed,256.0
+PO-2355,Marcote,(no job),Issued,537.64
+PO-2356,Marcote,(no job),Issued,5245.68
+PO-2357,Marcote,(no job),Completed,0.0
+PO-2358,Paul Bradford Distribution LTD,(no job),Completed,197.0
+PO-2360,K Engineering,(no job),Issued,0.0
+PO-2361,Baker Engineering,(no job),Completed,805.0
+PO-2362,Willstec,(no job),Completed,1494.0
+PO-2363,Workplatform Lted,(no job),Completed,0.0
+PO-2364,Stonebridge Testing,(no job),Completed,55.0
+PO-2365,Baker Engineering,(no job),Completed,190.0
+PO-2366,Baker Engineering,(no job),Issued,392.49
+PO-2367,Dixon Engineering Supplies,TM-7508,Issued,169.0
+PO-2368,spring master,(no job),Completed,78.04
+PO-2369,Zouch,(no job),Completed,2378.5
+PO-2370,RG Engineering,(no job),Completed,55.0
+PO-2371,HPCL,TM-7291,Completed,1990.0
+PO-2372,Paul Bradford Distribution LTD,TM-7412,Completed,637.5
+PO-2373,Cromwell Tools,(no job),Issued,14.51
+PO-2374,Quill International,(no job),Completed,2680.0
+PO-2375,SMW Autoblok Telbrook Ltd.,TM-7574,Completed,18427.0
+PO-2376,RG Engineering,(no job),Completed,386.0
+PO-2377,AMF,TM-7572,Completed,1146.0
+PO-2378,SMW Autoblok Telbrook Ltd.,(no job),Completed,1800.0
+PO-2379,Quill International,TM-7587,Completed,688.0
+PO-2380,WDS Components,(no job),Completed,0.0
+PO-2381,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-2382,RUD,TM-7026,Completed,58.35
+PO-2383,Kwikfixings and Tools,TM-7231,Completed,39.2
+PO-2385,Derby Gaskets,TM-7231,Completed,48.15
+PO-2386,Quill International,(no job),Issued,235.8
+PO-2387,Orb Design & Print,TM-7100,Completed,13.0
+PO-2388,MP Engineering,TM-7590,Completed,2043.4
+PO-2389,Safety Lifting Gear,(no job),Completed,113.61
+PO-2390,Safety Lifting Gear,(no job),Completed,61.21
+PO-2391,CNTL Ltd,(no job),Completed,700.0
+PO-2392,FPE Seals,TM-6738,Completed,2.77
+PO-2393,Carrtech,(no job),Completed,624.0
+PO-2394,Paul Bradford Distribution LTD,TM-7508,Completed,500.0
+PO-2395,Quill International,TM-6783,Completed,3900.0
+PO-2396,Signet,(no job),Completed,283.29
+PO-2397,Lee Spring,(no job),Completed,0.0
+PO-2398,Baker Engineering,(no job),Completed,515.0
+PO-2399,Baker Engineering,(no job),Completed,60.0
+PO-2400,Oxley Engineering,(no job),Completed,252.0
+PO-2401,Veteran Courier Precision,TM-7566,Completed,225.0
+PO-2402,Midlands,(no job),Completed,10.08
+PO-2403,Quill International,TM-7417,Completed,7380.0
+PO-2404,Quill International,TM-7498,Completed,14870.0
+PO-2405,Carrtech,(no job),Completed,1416.0
+PO-2406,JKP Engineering,(no job),Issued,500.0
+PO-2407,Focus Inspection,(no job),Completed,325.0
+PO-2408,,(no job),Issued,0.0
+PO-2409,Dixon Engineering Supplies,TM-7639,Issued,169.0
+PO-2410,Autosmart,(no job),Issued,66.92
+PO-2411,WDS,(no job),Issued,255.68
+PO-2412,Stonebridge Testing,(no job),Issued,0.0
+PO-2413,Paul Bradford Distribution LTD,(no job),Completed,50.0
+PO-2414,Stonebridge Testing,TM-7504,Completed,140.0
+PO-2415,Fife Engineering,TM-7618,Completed,531.0
+PO-2416,AMF,TM-7496,Issued,7524.0
+PO-2417,SMW Autoblok Telbrook Ltd.,(no job),Completed,603.0
+PO-2418,Pollard Engineering,TM-7100,Completed,367.0
+PO-2419,Camlab,TM-7495,Completed,226.21
+PO-2420,Paul Bradford Distribution LTD,TM-7566,Completed,280.0
+PO-2421,Paul Bradford Distribution LTD,TM-7693,Completed,500.0
+PO-2422,Willstec,(no job),Completed,564.0
+PO-2423,Airwise,(no job),Issued,123.88
+PO-2424,JKP Engineering,TM-7727,Completed,1944.0
+PO-2425,Quill International,(no job),Issued,400.0
+PO-2426,Quill International,TM-7724,Issued,235.8
+PO-2428,Cromwell Tools,TM-7693,Issued,112.13
+PO-2430,Quill International,TM-7729,Issued,37498.0
+PO-2431,Stonebridge Testing,TM-7707,Completed,0.0
+PO-2432,Mark Clinch Varatio Gearboxes Ltd.,(no job),Issued,2954.48
+PO-2433,Baker Engineering,(no job),Completed,843.6
+PO-2434,Filter Finder,(no job),Completed,77.48
+PO-2435,Oxley Engineering,TM-7728,Completed,2900.0
+PO-2436,Carrtech,TM-7762,Completed,279.0
+PO-2437,Cromwell Tools,(no job),Issued,14.94
+PO-2438,Carrtech,TM-7765,Completed,1980.0
+PO-2439,EM Precision,TM-7755,Completed,662.4
+PO-2440,Stonebridge Testing,(no job),Completed,215.0
+PO-2441,wds,TM-7789,Completed,185.5
+PO-2442,SMW Autoblok Telbrook Ltd.,(no job),Issued,20.0
+PO-2443,MP Engineering,TM-7812,Completed,858.6
+PO-2444,Oxley Engineering,TM-7811,Completed,390.0
+PO-2445,Paul Bradford Distribution LTD,TM-7496,Completed,185.0
+PO-2446,Baker Engineering,TM-7772,Completed,210.0
+PO-2447,Fife Engineering,TM-7671,Completed,1135.0
+PO-2448,Cell pack solutions,(no job),Completed,497.4
+PO-2449,Dixon Engineering Supplies,TM-7724,Issued,173.32
+PO-2450,RUD,TM-7816,Completed,152.48
+PO-2452,BBL Batteries,(no job),Issued,205.36
+PO-2453,DPGE,TM-7821,Completed,975.0
+PO-2454,DPGE,TM-7822,Completed,975.0
+PO-2455,Towne Lifting,(no job),Completed,1090.0
+PO-2456,Oxley Engineering,(no job),Completed,50.0
+PO-2457,Tente,(no job),Issued,60.27
+PO-2458,Zouch,TM-7823,Completed,3472.5
+PO-2459,Advanced Adhesives,TM-6738,Completed,49.87
+PO-2460,Orb Design & Print,TM-7231,Completed,0.0
+PO-2461,Pollard Engineering,TM-7249,Completed,1873.0
+PO-2462,DC Rolph,TM-7248,Completed,1053.0
+PO-2463,Autosmart,(no job),Completed,128.19
+PO-2464,Carrtech,TM-7827,Completed,435.0
+PO-2465,MP Engineering,TM-7826,Completed,1318.4
+PO-2466,WDS,TM-7820,Completed,109.84
+PO-2467,Airwise,(no job),Completed,12.0
+PO-2468,Flowfit,(no job),Issued,59.78
+PO-2469,Baker Engineering,(no job),Completed,1620.0
+PO-2470,Paul Bradford Distribution LTD,TM-7681,Completed,200.0
+PO-2471,Paul Bradford Distribution LTD,TM-7724,Completed,325.0
+PO-2472,Cromwell Tools,TM-7844,Completed,27.7
+PO-2473,Safety Lifting,TM-7844,Completed,77.44
+PO-2474,Baker Engineering,(no job),Completed,228.78
+PO-2475,Zouch,TM-7890,Completed,3472.5
+PO-2476,Cromaston Ltd,TM-7828,Completed,8400.0
+PO-2477,Marcote,TM-7828,Completed,5035.8
+PO-2478,Airwise,TM-7412,Completed,35.09
+PO-2479,Safety Lifting Gear,(no job),Completed,33.4
+PO-2480,Dixon Engineering Supplies,TM-7825,Issued,173.32
+PO-2481,Basic Business Systems,(no job),Completed,295.0
+PO-2482,SLS Precision Engineering,TM-7731,Completed,1280.0
+PO-2483,Carrtech,TM-7892,Completed,138.0
+PO-2484,Quill International,TM-7790,Completed,1276.0
+PO-2485,Zouch,TM-7893,Completed,7125.0
+PO-2486,Zouch,TM-7894,Completed,7125.0
+PO-2487,QCT,(no job),Completed,650.0
+PO-2488,WDS,TM-7707,Completed,75.22
+PO-2489,Paul Bradford Distribution LTD,TM-7924,Completed,185.0
+PO-2490,WDS,TM-7898,Completed,32.19
+PO-2491,Swift Engineering,TM-7898,Completed,360.0
+PO-2492,MP Engineering,TM-7900,Completed,2821.7
+PO-2493,Baker Engineering,TM-7829,Completed,97.5
+PO-2494,Certex,TM-7902,Completed,147.47
+PO-2495,Cromwell Tools,TM-7843,Completed,6.19
+PO-2496,Oxley Engineering,TM-7830,Completed,385.0
+PO-2497,Pollard Engineering,TM-7895,Completed,1150.0
+PO-2498,Quill International,TM-7904,Completed,2427.0
+PO-2499,Baker Engineering,TM-7901,Completed,1760.0
+PO-2500,Stonebridge Testing,TM-7905,Completed,1240.28
+PO-2501,RUD,TM-7905,Completed,351.66
+PO-2502,Kwikfixings and Tools,TM-7820,Completed,675.88
+PO-2503,Pollard Engineering,TM-7231,Completed,360.0
+PO-2504,SMW Autoblok Telbrook Ltd.,TM-7923,Completed,4670.0
+PO-2505,Roemheld,TM-7925,Completed,3690.73
+PO-2506,Kwikfixings and Tools,TM-7412,Completed,50.4
+PO-2507,Paul Bradford Distribution LTD,TM-7924,Completed,500.0
+PO-2508,Stonebridge Testing,TM-7929,Completed,195.0
+PO-2509,Elesa,TM-7026,Completed,37.97
+PO-2510,Workwere express,(no job),Issued,87.0
+PO-2511,JKP Engineering,(no job),Completed,2040.0
+PO-2512,JKP Engineering,(no job),Completed,2040.0
+PO-2513,Baker Engineering,TM-7906,Completed,549.99
+PO-2514,MP Engineering,TM-7953,Completed,980.22
+PO-2515,BeMunchie Online,(no job),Issued,125.0
+PO-2516,Oxley Engineering,TM-7933,Completed,50.0
+PO-2517,safety lifting Gear,TM-7100,Completed,207.23
+PO-2518,Tente Castors,(no job),Completed,0.0
+PO-2519,SMW Autoblok Telbrook Ltd.,TM-7955,Completed,720.0
+PO-2520,Baker Engineering,TM-7954,Completed,140.0
+PO-2521,Mies International,TM-7934,Completed,660.0
+PO-2522,Basic Business Systems,(no job),Issued,585.0
+PO-2523,Stonebridge Testing,TM-7963,Completed,324.63
+PO-2524,RUD,TM-7963,Completed,339.04
+PO-2525,SMW Autoblok Telbrook Ltd.,TM-7964,Completed,94.5
+PO-2526,Paul Bradford Distribution LTD,TM-7924,Completed,185.0
+PO-2527,Zouch,(no job),Completed,6014.4
+PO-2528,Pollard Engineering,TM-7938,Completed,250.0
+PO-2529,Swift Engineering,TM-7965,Completed,608.0
+PO-2530,Cromwell Tools,(no job),Issued,23.2
+PO-2531,Carrtech,TM-7969,Completed,234.0
+PO-2532,GF machining solutions,(no job),Completed,91.2
+PO-2533,Fife Engineering,TM-7891,Completed,795.0
+PO-2535,PASS,TM-7887,Issued,155.0
+PO-2536,Paul Bradford Distribution LTD,TM-7412,Completed,0.0
+PO-2537,MP Engineering,TM-8051,Completed,1073.0
+PO-2538,Cell pack,(no job),Completed,497.4
+PO-2539,RS Components,TM-7498,Completed,200.05
+PO-2540,RS Components,(no job),Completed,152.6
+PO-2541,Cromaston Ltd,TM-7843,Completed,75.0
+PO-2542,RS Components,TM-7966,Completed,26.63
+PO-2543,RUD,TM-8054,Completed,1878.0
+PO-2544,Dixon Engineering Supplies,TM-7932,Issued,99.73
+PO-2545,Baker Engineering,TM-7930,Completed,906.24
+PO-2546,Midland Bearings Ltd,TM-8056,Completed,1305.0
+PO-2547,Cromwell Tools,TM-8057,Completed,154.9
+PO-2548,Quill International,TM-7417,Completed,4698.0
+PO-2549,Quill International,TM-7828,Completed,656.0
+PO-2550,Accu,TM-8053,Completed,12.65
+PO-2551,Euerby Engineering,TM-8221,Issued,650.0
+PO-2552,Roemheld,(no job),Completed,2364.78
+PO-2553,Burton Ind Engraving,TM-7498,Completed,80.0
+PO-2554,Arkwell Fasteners,TM-7825,Completed,4.8
+PO-2555,Industrial interface systems,(no job),Issued,3425.28
+PO-2556,Safety Lifting Gear,(no job),Completed,0.0
+PO-2557,Dixon Engineering Supplies,TM-8085,Issued,74.44
+PO-2558,AUTOBAR,(no job),Completed,540.46
+PO-2559,Cromwell Tools,(no job),Completed,61.1
+PO-2560,St Johns Ambulance,(no job),Completed,615.0
+PO-2561,RG Engineering,TM-8096,Completed,917.67
+PO-2562,K Engineering,TM-8097,Completed,8.0
+PO-2563,EM Precision,TM-8098,Completed,962.4
+PO-2564,Stakrak,(no job),Completed,2276.0
+PO-2565,Adams Engineering,TM-8103,Completed,610.0
+PO-2566,Stonebridge Testing,TM-7839,Completed,495.0
+PO-2567,Quill International,TM-8104,Completed,450.0
+PO-2568,Baker Engineering,TM-8112,Completed,437.96
+PO-2569,Quill International,TM-7417,Completed,868.0
+PO-2570,MP Engineering,TM-8113,Completed,448.8
+PO-2571,Oxley Engineering,TM-8114,Issued,192.0
+PO-2572,Oxley Engineering,(no job),Completed,240.0
+PO-2573,Paul Bradford Distribution LTD,TM-8104,Completed,92.5
+PO-2574,Paul Bradford Distribution LTD,TM-8101,Issued,185.0
+PO-2575,Purcell Branding,TM-8115,Completed,2830.0
+PO-2576,Zouch,TM-8116,Completed,1458.0
+PO-2577,Zouch,TM-8117,Completed,7180.0
+PO-2578,Zouch,TM-8118,Completed,7125.0
+PO-2579,Zouch,TM-8119,Completed,8583.0
+PO-2580,Roemheld,TM-7915,Completed,3690.73
+PO-2581,Advanced Adhesives,(no job),Completed,103.59
+PO-2582,Cromaston Ltd,TM-8138,Issued,820.0
+PO-2583,Marcote,TM-8138,Issued,0.0
+PO-2584,East Midlands Hydraulics Ltd,TM-7231,Completed,50.0
+PO-2585,Dixon Engineering Supplies,TM-8144,Issued,222.76
+PO-2586,Regal Engineering,TM-8081,Completed,3850.0
+PO-2587,Paul Bradford Distribution LTD,(no job),Issued,130.0
+PO-2588,DC Rolph,TM-8150,Completed,488.0
+PO-2589,Quill International,TM-8150,Completed,422.0
+PO-2590,MP Engineering,TM-8151,Completed,4956.2
+PO-2591,JKP Engineering,TM-7395,Issued,860.0
+PO-2592,WDS,(no job),Completed,57.86
+PO-2593,St Johns Ambulance,(no job),Completed,410.0
+PO-2594,Pollard Engineering,TM-7498,Completed,320.0
+PO-2595,Advanced Handling,TM-8152,Completed,307.0
+PO-2596,Quill International,TM-8082,Issued,66.0
+PO-2597,Quill International,TM-8095,Issued,400.0
+PO-2598,Quill International,TM-8085,Issued,235.8
+PO-2600,Fife Engineering,TM-8073,Completed,295.0
+PO-2601,EM Precision,TM-8099,Completed,336.8
+PO-2602,Stonebridge Testing,TM-7248,Completed,202.9
+PO-2603,AMB Training,(no job),Issued,885.0
+PO-2605,Zouch,TM-8158,Completed,4880.2
+PO-2606,Cromwell Tools,TM-7249,Completed,2.2
+PO-2607,WDS,TM-8085,Issued,30.0
+PO-2608,Paul Bradford Distribution LTD,(no job),Issued,500.0
+PO-2609,Paul Bradford Distribution LTD,(no job),Issued,50.0
+PO-2610,Paul Bradford Distribution LTD,(no job),Issued,50.0
+PO-2611,Cromaston Ltd,TM-8195,Completed,2688.0
+PO-2612,WDS,TM-8196,Completed,398.96
+PO-2613,SMW Autoblok Telbrook Ltd.,TM-8197,Completed,6980.0
+PO-2614,MP Engineering,TM-8214,Completed,1497.6
+PO-2615,Baker Engineering,TM-8153,Issued,350.0
+PO-2616,Orb Design & Print,(no job),Issued,341.25
+PO-2617,Orb Design & Print,(no job),Issued,479.0
+PO-2618,Orb Design & Print,(no job),Issued,149.0
+PO-2619,Orb Design & Print,(no job),Issued,210.0
+PO-2621,BigDug,(no job),Completed,1076.0
+PO-2622,Modelfixings,TM-8114,Issued,11.9
+PO-2623,Basic Business Systems,(no job),Completed,585.0
+PO-2624,Towne Lifting,TM-7891,Completed,155.0
+PO-2625,Baker Engineering,TM-8218,Completed,321.53
+PO-2626,Baker Engineering,TM-8215,Completed,330.0
+PO-2627,Merritts,(no job),Completed,2100.0
+PO-2628,JKP Engineering,TM-7957,Issued,360.0
+PO-2629,OTS/ Torus,(no job),Issued,4150.0
+PO-2630,Paul Bradford Distribution LTD,(no job),Issued,250.0
+PO-2631,Paul Bradford Distribution LTD,TM-8056,Completed,155.0
+PO-2632,Safety Lifting,TM-8220,Completed,367.04
+PO-2633,Certex,TM-8220,Completed,0.0
+PO-2634,Hydraquip,(no job),Issued,349.52
+PO-2635,Wells Fabs,TM-8225,Completed,7600.0
+PO-2636,SolidSolutions,(no job),Issued,0.0
+PO-2637,Zouch,TM-8226,Completed,4758.8
+PO-2638,Zouch,TM-8227,Completed,4578.8
+PO-2639,Zouch,TM-8228,Completed,5375.0
+PO-2640,Zouch,TM-8229,Completed,6020.0
+PO-2641,Zouch,TM-8230,Completed,6927.3
+PO-2642,Zouch,TM-8231,Completed,6927.3
+PO-2643,Pollard Engineering,TM-7891,Completed,60.0
+PO-2644,Pollard Engineering,TM-7498,Issued,250.0
+PO-2645,Stonebridge Testing,TM-7956,Issued,185.0
+PO-2646,MP Engineering,TM-8237,Completed,792.12
+PO-2647,Carrtech,TM-8238,Completed,1017.0
+PO-2648,Carrtech,TM-8239,Completed,2120.0
+PO-2649,Purcell Branding,TM-8240,Completed,9900.0
+PO-2650,Carrtech,TM-8242,Completed,4919.76
+PO-2651,Fife Engineering,TM-8133,Completed,190.0
+PO-2652,Cromwell Tools,(no job),Issued,24.64
+PO-2653,Quill International,TM-8188,Issued,200.0
+PO-2654,Marcote,(no job),Issued,480.12
+PO-2655,Fife Engineering,TM-8213,Completed,790.0
+PO-2656,JKP Engineering,TM-8193,Issued,180.0
+PO-2657,Stonebridge Testing,TM-8138,Issued,0.0
+PO-2658,Paul Bradford Distribution LTD,TM-7498,Issued,300.0
+PO-2659,EM Precision,(no job),Completed,1270.68
+PO-2660,DPGE,TM-8216,Completed,975.0
+PO-2661,DPGE,TM-8217,Completed,975.0
+PO-2662,Quill International,TM-8268,Issued,157.2
+PO-2663,Quill International,TM-8269,Issued,117.9
+PO-2664,Forklifts and Access Ltd,(no job),Completed,0.0
+PO-2665,FPE Seals,TM-8213,Completed,425.0
+PO-2666,Marcote,TM-8270,Completed,4395.16
+PO-2667,IMR Mechanical,(no job),Issued,0.0
+PO-2668,Aerobase Group USA,TM-7499,Completed,560.2
+PO-2669,Key Door Solutions,(no job),Issued,167.5
+PO-2670,Autobar,(no job),Completed,655.45
+PO-2671,Screwfix,(no job),Completed,80.85
+PO-2672,Purcell Branding,TM-8279,Completed,2718.5
+PO-2673,Zouch,TM-8280,Completed,2128.0
+PO-2674,Zouch,TM-8281,Completed,6927.3
+PO-2675,Zouch,TM-8282,Completed,6927.3
+PO-2676,Purcell Branding,TM-8283,Completed,17030.0
+PO-2677,WDS,TM-8285,Completed,387.04
+PO-2678,JKP Engineering,TM-7970,Completed,3970.0
+PO-2679,ORB Design,(no job),Issued,70.0
+PO-2680,Oxley Engineering,TM-8266,Issued,187.5
+PO-2681,Airwise,(no job),Issued,64.5
+PO-2682,WDS,TM-8291,Completed,55.08
+PO-2683,Baker Engineering,TM-8292,Completed,900.0
+PO-2684,Baker Engineering,TM-8293,Completed,106.67
+PO-2685,WDS,TM-8294,Completed,148.81
+PO-2687,Dixon Engineering Supplies,(no job),Completed,157.5
+PO-2688,Amazon,TM-7707,Completed,29.76
+PO-2689,Fife Engineering,TM-8297,Completed,425.0
+PO-2691,Stonebridge Testing,TM-8302,Completed,320.0
+PO-2692,Zouch,TM-8287,Completed,4549.8
+PO-2693,Zouch,TM-8288,Completed,1457.0
+PO-2694,Zouch,TM-8289,Completed,1426.0
+PO-2695,Zouch,TM-8290,Completed,2881.0
+PO-2696,JG Industrial Fastenings Ltd,TM-8297,Completed,8.16
+PO-2697,RUD LIFTING,TM-8305,Completed,105.55
+PO-2698,DC ROLPH,TM-8305,Completed,180.0
+PO-2699,Baker Engineering,TM-8304,Completed,97.5
+PO-2700,Oxley Engineering,(no job),Issued,0.0
+PO-2701,MP Engineering,TM-8314,Completed,470.8
+PO-2702,RG Engineering,TM-8318,Completed,594.56
+PO-2703,St Johns Ambulance,(no job),Completed,205.0
+PO-2704,WDS,TM-8319,Completed,168.39
+PO-2705,Cromwell Tools,TM-8319,Completed,97.96
+PO-2706,Pollard Engineering,TM-7249,Completed,180.0
+PO-2707,Carrtech,TM-8321,Completed,3948.8
+PO-2708,WDS,TM-8150,Completed,0.0
+PO-2709,JKP Engineering,TM-8339,Completed,210.0
+PO-2710,RUD,TM-8323,Completed,332.56
+PO-2711,Safety Lifting,TM-8323,Completed,123.3
+PO-2712,Pollard Engineering,TM-7589,Completed,180.0
+PO-2713,DC Rolfe,TM-8351,Completed,187.0
+PO-2714,Fife Engineering,TM-8320,Completed,165.0
+PO-2715,Adams Engineering,TM-8267,Completed,807.8
+PO-2716,Pollard Engineering,TM-8354,Completed,1200.0
+PO-2717,Baker Engineering,TM-8322,Completed,265.0
+PO-2718,Baker Engineering,TM-8346,Completed,340.0
+PO-2719,Oxley Engineering,TM-8355,Issued,2900.0
+PO-2720,MP Engineering,TM-8356,Completed,331.2
+PO-2721,MP Engineering,TM-8357,Completed,1678.71
+PO-2722,Accu,TM-7965,Completed,24.71
+PO-2723,Baker Engineering,TM-8341,Issued,705.0
+PO-2724,Dixon Engineering Supplies,(no job),Issued,0.0
+PO-2725,Wells Fabs,TM-8313,Completed,2480.0
+PO-2726,JG Industrial Fastenings Ltd,TM-8320,Completed,6.0
+PO-2727,WDS,TM-7589,Completed,63.77
+PO-2728,Oxley Engineering,(no job),Issued,50.0
+PO-2729,Oxley Engineering,(no job),Issued,200.0
+PO-2730,Oxley Engineering,(no job),Issued,813.5
+PO-2731,Euerby Engineering,TM-8382,Completed,1040.0
+PO-2732,Quill International,TM-8316,Completed,235.8
+PO-2733,Stonebridge Testing,TM-7248,Completed,925.0
+PO-2734,G & D Eng Solutions,TM-8352,Completed,420.0
+PO-2736,Cell Pack Solutions,(no job),Completed,497.4
+PO-2737,Cromwell Tools,(no job),Issued,385.34
+PO-2738,G & D Eng Solutions,TM-8384,Completed,1568.0
+PO-2739,Carrtech,TM-8404,Completed,2120.0
+PO-2740,Carrtech,TM-8405,Completed,4961.4
+PO-2741,Zouch,TM-8379,Completed,3098.0
+PO-2742,Baker Engineering,(no job),Issued,260.0
+PO-2743,RUD,TM-8138,Issued,68.32
+PO-2744,VT Software,(no job),Issued,90.0
+PO-2745,Quill International,TM-8408,Completed,5906.0
+PO-2746,Nuns Street Plating,TM-8267,Completed,120.0
+PO-2747,Pacehigh Ltd,TM-8303,Completed,154.79
+PO-2748,Marcote,TM-8403,Completed,137.9
+PO-2749,JKP Engineering,TM-8423,Completed,8040.0
+PO-2750,Oxley Engineering,TM-8422,Completed,249.0
+PO-2751,Baker Engineering,TM-8286,Completed,642.18
+PO-2752,Paul Bradford Distribution LTD,TM-8423,Issued,50.0
+PO-2753,BBL Batteries,(no job),Issued,205.55
+PO-2754,Euerby Engineering,TM-8424,Issued,33850.0
+PO-2755,Cromwell Tools,(no job),Issued,0.0
+PO-2756,ORB Design,(no job),Issued,154.0
+PO-2757,Cromwell Tools,(no job),Issued,141.89
+PO-2758,Safefire Direct,(no job),Issued,212.99
+PO-2759,SMW Autoblok Telbrook Ltd.,TM-8250,Issued,870.0
+PO-2760,Stonebridge Testing,TM-8150,Completed,140.0
+PO-2761,Stonebridge Testing,TM-8157,Completed,140.0
+PO-2762,Stonebridge Testing,TM-7839,Completed,195.0
+PO-2763,Impact Machine Services,TM-8444,Completed,355.0
+PO-2764,Carrtech,TM-8442,Completed,1877.9
+PO-2765,Roemheld,(no job),Completed,324.68
+PO-2766,Quill International,TM-8388,Completed,400.0
+PO-2767,Arkwell Fasteners,(no job),Issued,22.01
+PO-2768,Stonebridge Testing,TM-8445,Completed,1165.0
+PO-2769,Roemheld,(no job),Issued,1426.67
+PO-2770,Cutwel Tools Ltd,(no job),Issued,356.93
+PO-2771,MIES,TM-7499,Completed,224.0
+PO-2772,G & D Eng Solutions,TM-8443,Completed,360.0
+PO-2773,Burton Ind Engraving,(no job),Completed,453.75
+PO-2774,CNTL Ltd,(no job),Completed,8500.0
+PO-2775,CNTL Ltd,(no job),Completed,2800.0
+PO-2776,Stonebridge Testing,TM-8495,Issued,265.0
+PO-2777,WDS,TM-7249,Completed,56.02
+PO-2778,Oxley Engineering,TM-8497,Issued,50.0
+PO-2779,Oxley Engineering,(no job),Issued,150.0
+PO-2780,Carrtech,TM-8686,Completed,2120.0
+PO-2781,Carrtech,TM-8687,Completed,1038.0
+PO-2782,Baker Engineering,TM-8494,Issued,919.86
+PO-2783,Oxley Engineering,TM-8496,Completed,80.0
+PO-2784,Veteran Courier Precision,TM-7232,Completed,235.0
+PO-2785,WDS,TM-8498,Completed,24.16
+PO-2786,Amazon,(no job),Completed,21.6
+PO-2787,Stonebridge Testing,TM-8305,Completed,140.0
+PO-2788,Paul Bradford Distribution LTD,TM-7498,Completed,200.0
+PO-2789,Cromwell Tools,(no job),Issued,60.62
+PO-2790,Stonebridge Testing,TM-7286,Completed,140.0
+PO-2791,Stonebridge Testing,TM-7284,Completed,140.0
+PO-2792,Stonebridge Testing,TM-7288,Completed,140.0
+PO-2793,Complete Safety Compliance Ltd,(no job),Issued,425.0
+PO-2794,Dixon Engineering Supplies,(no job),Completed,420.52
+PO-2795,RG Engineering,TM-8550,Completed,360.0
+PO-2796,Cromaston Ltd,TM-8349,Completed,1200.0
+PO-2797,Burton Ind Engraving,TM-6783,Issued,80.0
+PO-2799,Baker Engineering,TM-8552,Issued,1378.5
+PO-2800,Pollard Engineering,TM-7249,Completed,240.0
+PO-2801,Airwise,(no job),Completed,31.49
+PO-2802,Airwise,TM-8440,Completed,64.13
+PO-2803,Amazon,TM-7249,Completed,21.42
+PO-2804,Stonebridge Testing,(no job),Completed,185.0
+PO-2805,Spring Master,TM-8339,Issued,382.9
+PO-2806,Cromwell Tools,(no job),Completed,37.05
+PO-2807,Nuns St Platers,TM-7589,Completed,120.0
+PO-2808,Stonebridge Testing,TM-7284,Completed,330.96
+PO-2809,Mint Security Systems Ltd,(no job),Issued,725.0
+PO-2810,Safety Lifting,TM-8553,Completed,41.12
+PO-2811,Cromwell Tools,(no job),Issued,37.79
+PO-2812,Purcell Branding,TM-8532,Completed,2000.0
+PO-2813,Baker Engineering,TM-8584,Completed,4076.82
+PO-2814,Quill International,TM-8533,Completed,235.8
+PO-2816,WDS,TM-8591,Completed,320.4
+PO-2817,FA Expert,TM-8180,Issued,135.0
+PO-2818,Carrtech,TM-8594,Completed,501.0
+PO-2819,Paul Bradford Distribution LTD,TM-8583,Completed,185.0
+PO-2820,Paul Bradford Distribution LTD,TM-8485,Completed,540.0
+PO-2821,Marcote,TM-7589,Completed,126.0
+PO-2822,QCT,(no job),Issued,1950.0
+PO-2823,Fife Engineering,TM-8529,Completed,1695.0
+PO-2824,St Johns Ambulance,(no job),Issued,0.0
+PO-2825,Roemheld,(no job),Completed,1163.65
+PO-2826,RS Components,TM-8598,Completed,29.28
+PO-2827,Paul Bradford Distribution LTD,TM-8485,Completed,540.0
+PO-2828,Stonebridge Testing,TM-8595,Completed,1080.36
+PO-2829,Stonebridge Testing,TM-7707,Completed,425.0
+PO-2830,Baker Engineering,TM-8583,Completed,2444.79
+PO-2831,MP Engineering,TM-8616,Completed,598.5
+PO-2832,Zouch,TM-8587,Completed,617.75
+PO-2833,AR Signs Ltd,(no job),Completed,1355.0
+PO-2834,AR Signs Ltd,(no job),Completed,1295.0
+PO-2835,Cromwell Tools,(no job),Completed,14.54
+PO-2836,Roemheld,(no job),Issued,1714.48
+PO-2837,WDS,TM-8652,Completed,26.85
+PO-2838,Namicam,TM-8350,Completed,0.0
+PO-2839,Spring Master,(no job),Completed,32.83
+PO-2840,Cell Pack Solutions,(no job),Completed,497.4
+PO-2841,Quill International,TM-8654,Completed,698.0
+PO-2842,Elite Materials Handling Ltd,(no job),Completed,600.57
+PO-2843,Carrtech,TM-8655,Completed,550.0
+PO-2844,Amazon,(no job),Completed,28.58
+PO-2845,Basic Business Systems,(no job),Completed,875.0
+PO-2846,Paul Bradford Distribution LTD,TM-8445,Completed,0.0
+PO-2847,WDS,(no job),Completed,112.5
+PO-2848,Zouch,TM-8653,Completed,1393.2
+PO-2849,Baker Engineering,TM-8657,Completed,205.0
+PO-2850,WDS,TM-8660,Completed,50.5
+PO-2851,Baker Engineering,TM-8627,Completed,949.0
+PO-2852,MP Engineering,TM-8661,Completed,672.8
+PO-2853,Halfords,(no job),Completed,125.0
+PO-2854,Office Boffins,(no job),Issued,274.9
+PO-2855,Euerby Engineering,TM-8589,Completed,280.0
+PO-2856,Stonebridge Testing,TM-7283,Completed,432.59
+PO-2857,Stonebridge Testing,TM-8150,Completed,385.96
+PO-2858,Stonebridge testting,TM-8154,Completed,580.0
+PO-2859,MP Engineering,TM-8676,Completed,784.4
+PO-2860,Basic Business Systems,(no job),Completed,533.0
+PO-2861,Protool Ltd,(no job),Completed,156.05
+PO-2862,Advanced Adhesives,TM-8529,Completed,71.46
+PO-2863,Carrtech,TM-8677,Completed,519.0
+PO-2864,Office Boffins,(no job),Issued,89.95
+PO-2865,Baker Engineering,TM-8656,Completed,25.0
+PO-2866,RS,TM-8637,Issued,313.66
+PO-2867,Adams Engineering,TM-8683,Completed,320.0
+PO-2868,MP Engineering,TM-8685,Completed,523.0
+PO-2869,G & D Eng Solutions,TM-8678,Completed,120.0
+PO-2870,Stonebridge,TM-8651,Completed,195.0
+PO-2871,WDS,TM-8644,Completed,26.97
+PO-2872,Marcote,TM-8081,Completed,1883.23
+PO-2873,FPE Seals,(no job),Completed,100.0
+PO-2874,Paul Bradford Distribution LTD,(no job),Completed,540.0
+PO-2875,Paul Bradford Distribution LTD,TM-7970,Completed,185.0
+PO-2876,Purcell Branding,TM-8662,Completed,2000.0
+PO-2877,Basic Business Systems,(no job),Completed,533.0
+PO-2878,Amazon,(no job),Completed,15.15
+PO-2879,Baker Engineering,TM-8684,Completed,240.0
+PO-2880,EM Precision,TM-8670,Completed,311.6
+PO-2881,Basic Business Systems,(no job),Issued,305.0
+PO-2882,Screwfix,TM-8649,Completed,9.82
+PO-2883,MP Engineering,TM-8713,Completed,304.57
+PO-2884,MP Engineering,TM-8714,Completed,745.0
+PO-2885,Paul Bradford Distribution LTD,TM-8150,Completed,150.0
+PO-2886,G & D Eng Solutions,TM-8715,Completed,420.0
+PO-2887,EM Precision,TM-8731,Completed,996.8
+PO-2888,JG Industrial Fastenings Ltd,TM-8719,Completed,10.5
+PO-2889,Baker Engineering,TM-8732,Completed,407.5
+PO-2890,Quill International,TM-8539,Issued,400.0
+PO-2891,Cromaston Ltd,TM-8737,Completed,450.0
+PO-2892,G & D Eng Solutions,TM-8691,Completed,360.0
+PO-2893,PASS,TM-8400,Issued,155.0
+PO-2894,Zouch,TM-8712,Completed,2727.16
+PO-2895,Baker Engineering,TM-8730,Completed,530.0
+PO-2896,Paul Bradford Distribution LTD,TM-8445,Completed,220.0
+PO-2897,Oxley Engineering,TM-8754,Completed,400.0
+PO-2898,Tyneside Standards Ltd,(no job),Completed,104.7
+PO-2899,RG Engineering,TM-8755,Completed,550.0
+PO-2900,Carrtech,TM-8689,Completed,1557.0
+PO-2901,Carrtech,TM-8756,Completed,947.5
+PO-2902,Halfords,(no job),Completed,135.0
+PO-2903,Basic Business Systems,(no job),Completed,350.0
+PO-2904,Spring Master,TM-8420,Completed,211.8
+PO-2905,Euerby Engineering,TM-8777,Completed,1280.0
+PO-2906,Cromwell Tools,(no job),Issued,45.09
+PO-2907,Veteran Courier Precision,TM-8667,Completed,235.0
+PO-2908,WDS,TM-8738,Completed,416.12
+PO-2909,Quill International,TM-8736,Completed,117.9
+PO-2910,RG Engineering,TM-8791,Completed,325.0
+PO-2911A,Pollard Engineering,TM-8783,Completed,567.0
+PO-2912,FPE Seals,TM-8420,Completed,499.08
+PO-2913,TURBO PACS LTD,(no job),Completed,1148.93
+PO-2915,Fife Engineering,TM-8529,Completed,105.0
+PO-2916,CoMech Metrology,(no job),Issued,458.0
+PO-2917,Paul Bradford Distribution LTD,TM-8584,Completed,185.0
+PO-2918,WDS,TM-8849,Completed,183.5
+PO-2919,WDS,TM-8733,Issued,0.0
+PO-2920,ACCU,TM-8733,Issued,0.0
+PO-2921,SMW Autoblok Telbrook Ltd.,TM-8842,Completed,1423.58
+PO-2922,Carrtech,TM-8843,Completed,1948.0
+PO-2923,WDS,(no job),Issued,191.88
+PO-2924,Roemheld,TM-8716,Issued,267.2
+PO-2925,DC Rolfe,TM-8844,Issued,2455.0
+PO-2926,ACCU,TM-8659,Completed,203.8
+PO-2927,FPE Seals,TM-8420,Completed,36.06
+PO-2928,Smiths,TM-8846,Completed,4452.5
+PO-2929,MP Engineering,TM-8848,Completed,1828.5
+PO-2930,Kwikfixings and Tools,TM-8781,Completed,64.0
+PO-2931,Stonebridge testing,(no job),Completed,195.0
+PO-2932,Pollard Engineering,TM-8844,Completed,8255601385.0
+PO-2933,Larkshill,TM-8590,Issued,8560.0
+PO-2934,Basic Business Systems,(no job),Completed,453.0
+PO-2935,Carrtech,TM-8849,Completed,735.0
+PO-2936,SMW Autoblok Telbrook Ltd.,TM-8667,Completed,320.0
+PO-2937,Cell Pack Solutions,(no job),Completed,497.4
+PO-2938,Machguard,TM-8850,Completed,594.9
+PO-2939,Paul Bradford Distribution LTD,TM-8883,Issued,0.0
+PO-2940,UK Metrology and Calibration Ltd,TM-8867,Completed,224.0
+PO-2941,Mint Security,(no job),Issued,2363.27
+PO-2942,Mint Security,(no job),Issued,4978.33
+PO-2943,Paul Bradford Distribution LTD,TM-8355,Completed,185.0
+PO-2944,WDS,TM-8885,Completed,389.4
+PO-2945,Quill International,TM-8886,Completed,450.0
+PO-2946,G & D Eng Solutions,TM-8884,Completed,990.0
+PO-2947,Carrtech,TM-8887,Completed,334.0
+PO-2948,WDS,TM-8844,Issued,33.39
+PO-2949,RS,TM-8844,Issued,48.18
+PO-2950,Cromwell Tools,(no job),Issued,716.83
+PO-2951,Pollard Engineering,TM-8891,Completed,226.0
+PO-2952,Stonebridge Testing,TM-8891,Completed,140.0
+PO-2953,IXTHUS,TM-8881,Issued,499.0
+PO-2954,DC Rolfe,TM-8888,Completed,153.0
+PO-2955,RUD,TM-8895,Completed,427.46
+PO-2957,Dixon Engineering Supplies,TM-8896,Completed,426.52
+PO-2958,EM precision,TM-8866,Issued,747.0
+PO-2959,Roemheld,TM-8928,Issued,1896.04
+PO-2960,Roemheld,TM-8929,Issued,295.68
+PO-2961,Roemheld,TM-8841,Issued,238.42
+PO-2962,JKP Engineering,TM-8930,Issued,12690.0
+PO-2963,Paul Bradford Distribution LTD,(no job),Issued,0.0
+PO-2964,Paul Bradford Distribution LTD,(no job),Issued,0.0
+PO-2965,MP Engineering,TM-8931,Completed,188.1
+PO-2967,Purcell Branding,TM-8893,Completed,390.0
+PO-2968,Adams Engineering,TM-8953,Completed,323.2
+PO-2969,MP Engineering,TM-8972,Completed,794.72
+PO-2970,JKP Engineering,TM-8973,Completed,790.0
+PO-2971,MP Engineering,TM-8974,Completed,237.12
+PO-2972,Red Stawberry Solutions,TM-8975,Completed,59.5
+PO-2973,Quill International,TM-7828,Issued,2937.0
+PO-2974,NEP,(no job),Completed,224.0
+PO-2975,RG Engineering,TM-8977,Completed,245.0
+PO-2976,MP Engineering,TM-8978,Completed,2115.39
+PO-2977,Oxley Engineering,TM-8976,Completed,200.0
+PO-2978,WDS,TM-8979,Completed,39.16
+PO-2979,Quill International,TM-8917,Completed,645.0
+PO-2980,DPGE,TM-8926,Completed,975.0
+PO-2981,Paul Bradford Distribution LTD,TM-8886,Completed,277.5
+PO-2982,Amazon,(no job),Issued,25.57
+PO-2983,WDS,(no job),Issued,0.0
+PO-2984,DPGE,TM-8927,Completed,1035.0
+PO-2986,Oxley Engineering,TM-8935,Completed,120.0
+PO-2987,Quill International,TM-8956,Completed,39.3
+PO-2988,Advanced Design Services,TM-9003,Completed,141.5
+PO-2989,Kwikfixings and Tools,TM-9012,Completed,435.0
+PO-2990,Basic Business Systems,(no job),Completed,750.0
+PO-2991,JKP Engineering,TM-8871,Issued,180.0
+PO-2992,Paul Bradford Distribution LTD,TM-8871,Issued,57.0
+PO-2993,SLS Precision Engineering,TM-8955,Completed,992.0
+PO-2994,Purcell Branding,TM-9004,Completed,4300.0
+PO-2995,MP Engineering,TM-9006,Completed,3014.8
+PO-2996,MP Engineering,TM-9007,Completed,3768.7
+PO-2997,Wells Fabrications,TM-8853,Issued,13390.0
+PO-2998,Wells Fabrications,TM-8892,Issued,9770.0
+PO-2999,Balluff,TM-9009,Cancelled,3028.9
+PO-3000,AMF,TM-9009,Issued,3329.6
+PO-3001,Quill International,TM-9010,Issued,1269.0
+PO-3002,UK Sealants,(no job),Completed,18.93
+PO-3003,FPE Seals,(no job),Completed,40.82
+PO-3004,Stonebridge,TM-8195,Completed,390.86
+PO-3005,Quill International,TM-9012,Completed,305.0
+PO-3006,Cromaston Ltd,TM-8349,Issued,1100.0
+PO-3007,Quill International,TM-8995,Completed,645.0
+PO-3008,RG Engineering,TM-9033,Issued,1904.0
+PO-3009,Stapleford Hydraulics,TM-9025,Issued,112.46
+PO-3010,B2B Quote,(no job),Issued,449.0
+PO-3011,Quill International,TM-9051,Completed,1821.0
+PO-3012,Kwikfixings and Tools,TM-9012,Completed,100.0
+PO-3013,RS Components,(no job),Completed,29.78
+PO-3014,G & D Eng Solutions,TM-9054,Issued,990.0
+PO-3015,Dixon Engineering Supplies,TM-9040,Completed,148.32
+PO-3016,RG Engineering,TM-9053,Issued,594.56
+PO-3017,Basic Business Systems,(no job),Completed,151.0
+PO-3018,Cromaston Ltd,TM-9055,Completed,8400.0
+PO-3019,Amazon,(no job),Issued,101.0
+PO-3020,JKP Engineering,TM-9056,Completed,960.0
+PO-3021,Screwfix,(no job),Completed,45.79
+PO-3022,Oxley Engineering,TM-9005,Completed,330.0
+PO-3023,Baker Engineering,TM-8997,Issued,2508.33
+PO-3024,TEAM,(no job),Issued,0.0
+PO-3025,JKP Engineering,TM-8922,Issued,252.0
+PO-3026,PASS,TM-9062,Issued,280.0
+PO-3027,Baker Engineering,TM-9071,Issued,3552.8
+PO-3028,AMF,TM-9100,Issued,1417.6
+PO-3030,MP Engineering,TM-9102,Completed,289.19
+PO-3031,Renishaw,(no job),Issued,0.0
+PO-3032,Fruugo,(no job),Issued,42.0
+PO-3033,Stapleford Hydraulics,TM-9065,Issued,49.0
+PO-3034,Dixon Engineering Supplies,TM-9043,Completed,398.75
+PO-3035,RUD,TM-9103,Completed,81.89
+PO-3036,Paul Bradford Distribution LTD,TM-9104,Issued,70.0
+PO-3037,Paul Bradford Distribution LTD,TM-9133,Issued,240.0
+PO-3038,TMC Water Jet Cutting,TM-9104,Issued,1671.0
+PO-3039,SLS Precision Engineering,TM-9114,Issued,970.0
+PO-3040,Carrtech,TM-9105,Completed,2120.0
+PO-3041,Carrtech,TM-9106,Completed,1250.5
+PO-3042,Carrtech,TM-9108,Completed,1080.0
+PO-3043,Carrtech,TM-9109,Completed,8868.0
+PO-3044,RG Engineering,TM-9107,Issued,1000.0
+PO-3045,Euerby Engineering,TM-8552,Completed,354.0
+PO-3046,Euerby Engineering,TM-9116,Issued,675.0
+PO-3047,Euerby Engineering,TM-9104,Issued,360.0
+PO-3048,SLG,TM-9115,Issued,80.38
+PO-3049,RUD,TM-9115,Issued,111.58
+PO-3050,RS Components,(no job),Completed,14.94
+PO-3051,Kwikfixings and Tools,TM-9012,Completed,80.0
+PO-3052,Quill International,TM-9122,Issued,400.0
+PO-3053,Carrtech,TM-9138,Completed,2518.8
+PO-3054,Euerby Engineering Ltd,TM-8846,Completed,3863.92
+PO-3055,Zouch Convertors Ltd,TM-9139,Completed,3982.0
+PO-3056,Zouch Convertors Ltd,TM-9140,Completed,4088.5
+PO-3057,Zouch Convertors Ltd,TM-9141,Completed,5619.8
+PO-3058,Zouch Convertors Ltd,TM-9142,Completed,3982.0
+PO-3059,Zouch Convertors Ltd,TM-9143,Completed,4108.5
+PO-3060,amazon,TM-9010,Completed,13.38
+PO-3061,Kwikfixings and Tools,TM-9012,Completed,100.0
+PO-3062,Fife Engineering,(no job),Completed,945.0
+PO-3063,Larkshill,TM-9150,Issued,8200.0
+PO-3065,BEST Fittings Ltd,(no job),Completed,13.01
+PO-3066,Dixon Engineering Supplies,TM-9091,Completed,36.75
+PO-3067,Hydraquip,(no job),Issued,0.0
+PO-3069,Kwikfixings and Tools,TM-9012,Completed,97.71
+PO-3070,Carrtech,TM-9173,Completed,276.0
+PO-3071,MP Engineering,TM-9176,Issued,5558.7
+PO-3072,HP Consulting Services Ltd,TM-9181,Issued,1500.0
+PO-3073,Carrtech,TM-9214,Completed,1372.0
+PO-3074,DC Rolph,TM-9217,Issued,788.0
+PO-3075,JKP Engineering,TM-9116,Issued,10170.0
+PO-3076,JKP Engineering,(no job),Issued,3980.0
+PO-3077,WDS,(no job),Completed,29.0
+PO-3078,Stapleford Hydraulics,(no job),Completed,32.0
+PO-3079,CNTL,(no job),Issued,2800.0
+PO-3080,Quill International,TM-9010,Completed,385.0
+PO-3081,Aerotec,TM-9256,Issued,3670.0
+PO-3082,Oxley Engineering,TM-9254,Completed,260.0
+PO-3083,RG Engineering,TM-9262,Completed,8267.5
+PO-3084,Fife Engineering,TM-9270,Completed,90.0
+PO-3085,Paul Bradford Distribution LTD,TM-9133,Completed,550.0
+PO-3086,JKP Engineering,(no job),Issued,5750.0
+PO-3087,JKP Engineering,(no job),Issued,5835.0
+PO-3088,Baker Engineering,TM-9216,Completed,2725.0
+PO-3089,Oxley Engineering,TM-9077,Completed,250.0
+PO-3090,Dixon Engineering Supplies,TM-9263,Completed,233.26
+PO-3091,EM Precision,TM-9172,Completed,2551.13
+PO-3092,Roemheld,(no job),Completed,3170.34
+PO-3093,Euerby,(no job),Issued,1040.0
+PO-3094,Carrtech,TM-9218,Completed,309.2
+PO-3095,WDS,TM-8844,Issued,0.0
+PO-3096,Stapleford Hydraulics,TM-9208,Issued,49.0
+PO-3097,Oxley Engineering,TM-9255,Issued,450.0
+PO-3098,WDS,TM-9304,Completed,204.44
+PO-3099,Tom Parker Ltd,TM-9186,Completed,24.35
+PO-3100,Marcote,TM-9051,Completed,1755.06
+PO-3101,Stapleford Hydraulics,TM-9202,Issued,49.0
+PO-3102,Paul Bradford Distribution LTD,TM-8846,Completed,95.0
+PO-3103,JKP Engineering,TM-9062,Issued,0.0
+PO-3104,JKP Engineering,TM-9321,Issued,0.0
+PO-3105,Amazon,TM-9309,Completed,104.0
+PO-3106,Stapleford Hydraulics,TM-9189,Issued,49.0
+PO-3107,Baker Engineering,TM-9305,Issued,280.0
+PO-3108,Kwikfixings and Tools,TM-9311,Issued,1556.8
+PO-3109,RUD,TM-9056,Issued,119.28
+PO-3110,Roemheld,(no job),Completed,1895.72
+PO-3111,Swift Engineering,TM-9310,Completed,1320.0
+PO-3112,Cromwell,TM-7412,Issued,124.51
+PO-3113,DC Rolph,TM-9175,Issued,219.0
+PO-3114,SMW Telbrook,TM-9303,Completed,1820.0
+PO-3115,Quill International,TM-9191,Issued,245.0
+PO-3116,Carrtech,TM-9306,Issued,3462.0
+PO-3117,Carrtech,TM-9302,Issued,3890.88
+PO-3118,Carrtech,TM-9308,Issued,766.0
+PO-3119,Quill International,TM-9193,Issued,260.0
+PO-3120,Cromaston Ltd,TM-9314,Completed,740.0
+PO-3121,Ox and WDS,TM-9135,Issued,669.62
+PO-3122,Oxley Engineering,TM-9313,Issued,240.0
+PO-3123,Accu,(no job),Completed,22.35
+PO-3124,AMF,TM-9321,Issued,6076.0
+PO-3125,Paul Bradford Distribution LTD,TM-9311,Issued,300.0
+PO-3126,Cromaston Ltd,TM-9312,Completed,470.0
+PO-3127,Oxley Engineering,(no job),Issued,0.0
+PO-3128,Oxley Engineering,TM-9322,Completed,36.0
+PO-3129,Pollard engineering,TM-8844,Issued,400.0
+PO-3130,STONEBRIDGE TESTING,TM-9339,Issued,1100.0
+PO-3131,DC Rolph,TM-9343,Issued,94.0
+PO-3132,Baker Engineering,TM-9196,Completed,891.69
+PO-3133,G&D development,TM-9344,Issued,2145.0
+PO-3134,JKP Engineering,TM-9360,Issued,25976.0
+PO-3135,WDS,TM-9293,Completed,30.32
+PO-3136,SLG,TM-9339,Completed,126.76
+PO-3137,Screwfix,(no job),Completed,54.15
+PO-3138,Quill International,TM-9010,Completed,198.0
+PO-3139,Quill International,TM-9311,Completed,710.0
+PO-3140,Derby Gaskets,TM-9366,Issued,147.0
+PO-3141,Hoffman Group,TM-9367,Issued,566.27
+PO-3142,Tiger Lifting,TM-9381,Issued,1310.4
+PO-3143,MP Engineering,TM-9382,Completed,345.2
+PO-3144,Nuns Street Plating,TM-9255,Completed,150.0
+PO-3145,Baker Engineering,TM-9301,Completed,1747.83
+PO-3146,Cromwell,(no job),Issued,15.48
+PO-3147,Cromwell,(no job),Issued,50.43
+PO-3148,Stapleford Hydraulics,TM-9361,Completed,156.0
+PO-3149,FPE Seals,TM-9315,Completed,1101.0
+PO-3150,BBL Batteries,(no job),Issued,211.39
+PO-3151,Carrtech,TM-9391,Completed,3067.5
+PO-3152,DC Rolph,TM-9426,Completed,210.0
+PO-3153,Baker Engineering,TM-9390,Completed,240.0
+PO-3154,WDS,TM-9429,Completed,68.0
+PO-3155,DPGE,TM-9427,Completed,1035.0
+PO-3156,DPGE,TM-9428,Completed,1035.0
+PO-3157,Mytec Hydraclamp,(no job),Issued,1250.0
+PO-3158,IXTHUS,TM-8881,Issued,200.0
+PO-3159,Stonebridge testing,TM-9339,Issued,895.0
+PO-3160,DC Rolfe,(no job),Issued,228.0
+PO-3161,Paul Bradford Distribution LTD,(no job),Issued,70.0
+PO-3162,Paul Bradford Distribution LTD,(no job),Issued,540.0
+PO-3163,Kwikfixings and Tools,TM-9192,Completed,50.0
+PO-3164,Countryside services,(no job),Issued,229.6
+PO-3165,Fife Engineering,TM-9040,Completed,150.0
+PO-3166,RG Engineering,(no job),Completed,2550.0
+PO-3167,MP Engineering,(no job),Issued,2186.1
+PO-3168,Quill International,TM-9311,Issued,1420.0
+PO-3169,Metalfabs,TM-9421,Issued,155.0
+PO-3170,Baker Engineering,(no job),Completed,1081.04
+PO-3171,Baker Engineering,(no job),Completed,841.04
+PO-3172,Cell pack,(no job),Completed,497.4
+PO-3173,Oxley Engineering,(no job),Issued,102.0
+PO-3174,DC Rolfe,TM-9217,Issued,123.0
+PO-3175,Euerby Engineering,TM-9056,Issued,480.0
+PO-3176,Paul Bradford Distribution LTD,TM-9311,Issued,115.0
+PO-3177,Derby Gaskets,(no job),Issued,95.85
+PO-3178,Baker Engineering,(no job),Issued,588.72
+PO-3179,WDS,TM-8973,Issued,131.0
+PO-3180,Baker Engineering,TM-9360,Issued,19297.0
+PO-3181,Baker Engineering,TM-9346,Completed,120.0
+PO-3182,SLG,TM-7249,Issued,46.72
+PO-3183,Quill International,TM-9311,Issued,1420.0
+PO-3184,EM Precision,TM-9280,Issued,385.6
+PO-3185,DC Rolfe,TM-9426,Completed,300.15
+PO-3186,RS Components,TM-8971,Issued,0.0
+PO-3187,Quill International,TM-9052,Completed,200.0
+PO-3188,Inserts direct,TM-8973,Completed,29.14
+PO-3189,JKP Engineering,TM-9116,Completed,300.0
+PO-3190,Roemheld,TM-9387,Completed,1528.27
+PO-3191,SLG,(no job),Issued,421.01
+PO-3192,Smart Directions Ltd,(no job),Completed,0.0
+PO-3193,RS,(no job),Issued,146.31
+PO-3194,Baker Engineering,(no job),Issued,0.0
+PO-3195,Spring Master,(no job),Completed,155.43
+PO-3196,Baker Engineering,(no job),Issued,2350.0
+PO-3197,R G Engineering,(no job),Completed,942.16
+PO-3198,Cromwell,(no job),Issued,26.02
+PO-3199,Paul Bradford Distribution LTD,(no job),Completed,185.0
+PO-3200,MP Engineering,(no job),Issued,2125.6
+PO-3201,Paul Bradford Distribution LTD,(no job),Completed,85.0
+PO-3202,Veriohm,(no job),Issued,200.0
+PO-3203,AMF,(no job),Issued,1417.6
+PO-3204,Kwikfixings and Tools,TM-9364,Completed,120.0
+PO-3205,Paul Bradford Distribution LTD,TM-9311,Completed,115.0
+PO-3206,SLS Precision Engineering,(no job),Issued,285.0
+PO-3207,SLS Precision Engineering,TM-9385,Issued,3469.0
+PO-3208,SLS Precision Engineering,TM-9425,Issued,384.0
+PO-3209,GoodHand,TM-9360,Completed,324.07
+PO-3210,UPS,(no job),Issued,13.88
+PO-3211,Paul Bradford Distribution LTD,(no job),Issued,225.0
+PO-3212,RG Engineering,(no job),Issued,147.5
+PO-3213,MP Engineering,(no job),Issued,948.6
+PO-3214,Baker Engineering,(no job),Completed,280.0
+PO-3215,WDS,(no job),Issued,168.97
+PO-3216,Dixon Engineering Supplies,(no job),Completed,257.25
+PO-3217,Baker Engineering,TM-9424,Issued,5860.0
+PO-3218,Stapleford Hydraulics,(no job),Issued,156.0
+PO-3219,Zouch,TM-9365,Completed,3690.5
+PO-3220,Pollard Engineering,(no job),Issued,11340.0
+PO-3221,Baker Engineering,(no job),Issued,105.0
+PO-3222,Stamps Direct,(no job),Issued,0.0
+PO-3223,Baker Engineering,(no job),Completed,360.0
+PO-3224,Quill International,TM-9311,Completed,1420.0
+PO-3225,RG Engineering,(no job),Completed,225.0
+PO-3226,Paul Bradford Distribution LTD,TM-9339,Completed,55.0
+PO-3227,FPE Seals,(no job),Issued,745.3
+PO-3228,Nuns Street Plating,TM-9301,Completed,150.0
+PO-3229,Advanced Design Services,(no job),Issued,46.4
+PO-3230,Cromwell Tools,(no job),Issued,119.7
+PO-3231,H Roberts,(no job),Issued,147.35
+PO-3232,Marcote,(no job),Issued,155.11
+PO-3233,SMW Autoblok Telbrook Ltd.,TM-7232,Issued,6600.0
+PO-3234,Carrtech,(no job),Issued,1296.0
+PO-3235,Carrtech,(no job),Issued,731.5
+PO-3236,Quill International,(no job),Completed,33.0
+PO-3237,,(no job),Issued,0.0
+PO-3238,Stonebridge testing,(no job),Issued,33.2
+
+New suppliers created (check for spelling variants of existing ones)

@@ -1,0 +1,44 @@
+TEAMworks360 - TRIAL COPY (demo data only)
+==========================================
+
+This is a practice copy. It contains made-up customers, suppliers and jobs -
+no real TEAM information - and everything you enter stays on YOUR computer
+only. Nobody else can see it, and nothing you do can affect the real system.
+
+BEFORE YOU START
+  1. Python 3 must be installed (https://www.python.org/downloads/ - on
+     Windows, tick "Add Python to PATH" during setup).
+  2. Have an authenticator app on your phone (Microsoft Authenticator or
+     Google Authenticator). The app requires two-factor sign-in on every account.
+
+TO RUN IT
+  Windows:  unzip the folder, then double-click  start_colleague_test.bat
+  Mac:      unzip, then right-click start_colleague_test.command -> Open
+            (first time only; after that you can double-click it)
+  The first run installs what it needs and sets up the demo data, so it takes
+  a minute or two. Your browser then opens by itself.
+
+SIGN IN
+  Username:  tester
+  Password:  TestDrive2026
+  The first time, the app shows a QR code (and a typed key). Scan it with
+  your authenticator app, enter the 6-digit code, and SAVE the backup codes
+  it shows you. Next time you sign in you'll enter a fresh code from the app.
+  The "tester" account is an Administrator, so you can try every page.
+
+WHAT TO LOOK AT / WHAT TO TELL US
+  Try your own day-to-day tasks: quotes, works orders, purchase orders, goods
+  in, despatch notes, inventory, and the Reporting page. Please note down
+  anything confusing, slow, missing, or that doesn't match how you work, and
+  send it to Simon.
+
+  Every screen carries an orange "TEST COPY" banner so you always know this is
+  the practice version.
+
+TO START AGAIN FROM SCRATCH
+  Close the black window, delete the folder  TEAMworks360-Demo  from your user
+  folder (C:\Users\<you>\TEAMworks360-Demo on Windows, or your home folder on
+  Mac), then run the launcher again.
+
+TO STOP
+  Close the black window that opened alongside the browser.

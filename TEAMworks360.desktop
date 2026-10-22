@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=TEAMworks360
+Comment=Open TEAMworks360 (the shared copy - use start_shared_host.command instead if this computer is the designated host)
+Exec=bash -c "./open_shared_app.command"
+Icon=app_icon/icon.png
+Terminal=true
+Categories=Office;Finance;

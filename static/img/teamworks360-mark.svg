@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="TEAMworks360">
+  <!-- A ring split evenly between TEAM's own brand red/blue (sampled from
+       the company's real logo, app_icon/icon_master_1024.png) - the
+       company's open two-tone swoosh, closed into a full circle: the
+       visual shorthand for "360". -->
+  <g fill="none" stroke-linecap="round" stroke-width="11">
+    <path d="M86.9,14.4 A66,66 0 0,1 86.9,145.6" stroke="#2B4795"/>
+    <path d="M73.1,145.6 A66,66 0 0,1 73.1,14.4" stroke="#E3181F"/>
+  </g>
+  <text x="80" y="89" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+        font-size="30" font-weight="800" fill="#ffffff" letter-spacing="-0.5">360</text>
+</svg>

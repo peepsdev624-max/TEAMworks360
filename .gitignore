@@ -1,0 +1,7 @@
+.secret_key
+jpm.db
+__pycache__/
+*.pyc
+shared_host_address.txt
+shortcut_creation*.log
+backups/

@@ -1,0 +1,20 @@
+#!/bin/bash
+# The actual executable behind the .app bundle's icon. Opens Terminal and
+# runs open_shared_app.command there - the safe everyday default for
+# whoever isn't the designated shared host: it only opens a browser to
+# TEAM's shared copy, never a local server or local database. All the real
+# logic stays in that one script, unchanged and un-duplicated; this just
+# gives it a proper double-clickable icon to be launched from.
+#
+# The one host computer should instead run start_shared_host.command
+# directly (double-click it in the app folder - it doesn't need its own
+# icon bundle), and anyone who genuinely wants a separate local-only copy
+# for testing should run start_mac_linux.command directly the same way.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+
+osascript <<APPLESCRIPT
+tell application "Terminal"
+    activate
+    do script "cd \"$DIR\" && ./open_shared_app.command"
+end tell
+APPLESCRIPT

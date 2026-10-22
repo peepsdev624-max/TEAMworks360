@@ -1,0 +1,20 @@
+# Pinned to exact versions for reproducible installs - "latest compatible
+# at install time" (the old >=X.Y style) means two people setting this up
+# a year apart can silently end up on different versions of everything,
+# which makes a bug report like "it works for me" genuinely ambiguous.
+# These were the current, verified-compatible versions as of this pinning.
+#
+# Re-pin deliberately, not automatically: periodically run
+#     pip install --upgrade -r requirements.txt
+#     pip freeze | grep -iE "flask|werkzeug|reportlab|pillow|openpyxl|waitress"
+# and update the versions below by hand after confirming the app still
+# works - see README.md, "Checking dependencies for known vulnerabilities"
+# for how to check what you currently have pinned against known CVEs
+# first, so an upgrade is informed by something more than "it's newer".
+Flask==3.1.3
+Werkzeug==3.1.8
+reportlab==4.4.10
+Pillow==12.2.0
+openpyxl==3.1.5
+waitress==3.0.2
+python-dateutil==2.9.0.post0
