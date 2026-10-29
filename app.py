@@ -31,8 +31,8 @@ import version as app_version
 import totp
 import qr_png
 
-import turso_serverless
-# import libsql
+# import turso_serverless
+import libsql
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Must run before anything below touches the data directory (the secret
@@ -586,14 +586,14 @@ def get_db():
         # again on a database that already has it (the mode is stored in
         # the file itself), so it's safe to just always ask for it here.
 
-        # g.db = libsql.connect(
-        #     database=os.environ["TURSO_DATABASE_URL"],
+        g.db = libsql.connect(
+            database=os.environ["TURSO_DATABASE_URL"],
+           auth_token=os.environ["TURSO_AUTH_TOKEN"],
+        )
+        # g.db = turso_serverless.connect(
+        #    os.environ["TURSO_DATABASE_URL"],
         #    auth_token=os.environ["TURSO_AUTH_TOKEN"],
         # )
-        g.db = turso_serverless.connect(
-            os.environ["TURSO_DATABASE_URL"],
-            auth_token=os.environ["TURSO_AUTH_TOKEN"],
-        )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
