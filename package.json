@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
+}

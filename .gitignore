@@ -5,3 +5,4 @@ __pycache__/
 shared_host_address.txt
 shortcut_creation*.log
 backups/
+.vercel
