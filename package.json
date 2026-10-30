@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "libsql": "^0.4.6",
     "@libsql/client": "^0.18.0"
   }
 }
