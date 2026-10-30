@@ -588,13 +588,7 @@ def get_db():
         g.db = libsql.connect(
           database = os.environ["TURSO_DATABASE_URL"],
           auth_token=os.environ["TURSO_AUTH_TOKEN"],
-        #  database="libsql://jpm-vercel-icfg-1esii5ughllw7rk73nvltcfc.aws-us-east-1.turso.io", #os.environ["TURSO_DATABASE_URL"],
-        #  auth_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI3NTYyNjQsImlkIjoiMDFhMTY4OTktYWMwMS03NjU5LTg4ZjUtOGIwYjc1NzQ2MWZmIiwia2lkIjoiRDVhakpBbDVwQlU1bjVzcV9vQWFGbU9meVQ3eVV3VV9Ib1VkclUtcHgtTSIsInJpZCI6IjRjNDM0OGJjLWI0ZGMtNDcxMi04YzI0LWQyMWZiZTFiM2M4YyJ9.bcDS1sjRyvzxg3Mn68MLjW0sCY9TqJPTOckwa06_LcCwRNjsBcMhysmJfVxjEYuxjDk70fCwo1guUFW6RxXAAg", #os.environ["TURSO_AUTH_TOKEN"],
         )
-        # g.db = turso_serverless.connect(
-        #    os.environ["TURSO_DATABASE_URL"],
-        #    auth_token=os.environ["TURSO_AUTH_TOKEN"],
-        # )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
         # g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
@@ -960,7 +954,7 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
-    rows = conn.execute("SELECT * FROM users").fetchall()
+    rows = db.execute("SELECT * FROM users").fetchall()
     print(rows)
 
     user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
