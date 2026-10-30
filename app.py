@@ -32,33 +32,33 @@ import totp
 import qr_png
 
 # import turso_serverless
-# import libsql
-import turso
-from http.server import BaseHTTPRequestHandler
+import libsql
+# import turso
+# from http.server import BaseHTTPRequestHandler
 
 # The Vercel Marketplace integration automatically injects these keys
-DATABASE_URL = os.environ.get("TURSO_DATABASE_URL")
-AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
+# DATABASE_URL = os.environ.get("TURSO_DATABASE_URL")
+# AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if not DATABASE_URL or not AUTH_TOKEN:
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(b"Missing Turso Environment Variables from Integration")
-            return
+# class handler(BaseHTTPRequestHandler):
+ #    def do_GET(self):
+  #       if not DATABASE_URL or not AUTH_TOKEN:
+   #          self.send_response(500)
+   #          self.end_headers()
+    #         self.wfile.write(b"Missing Turso Environment Variables from Integration")
+   #          return
 
         # Connect directly using the auto-injected credentials
-        with turso.connect(DATABASE_URL, auth_token=AUTH_TOKEN) as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT * FROM users LIMIT 5;")
-            rows = cursor.fetchall()
+#         with turso.connect(DATABASE_URL, auth_token=AUTH_TOKEN) as db:
+#             cursor = db.cursor()
+#             cursor.execute("SELECT * FROM users LIMIT 5;")
+#             rows = cursor.fetchall()
             
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(str(rows).encode('utf-8'))
-        return
+#         self.send_response(200)
+ #        self.send_header('Content-type', 'application/json')
+ #        self.end_headers()
+ #        self.wfile.write(str(rows).encode('utf-8'))
+ #        return
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Must run before anything below touches the data directory (the secret
@@ -612,10 +612,10 @@ def get_db():
         # again on a database that already has it (the mode is stored in
         # the file itself), so it's safe to just always ask for it here.
 
-        # g.db = libsql.connect(
-        # database="libsql://jpm-vercel-icfg-1esii5ughllw7rk73nvltcfc.aws-us-east-1.turso.io", #os.environ["TURSO_DATABASE_URL"],
-        # auth_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI3NTYyNjQsImlkIjoiMDFhMTY4OTktYWMwMS03NjU5LTg4ZjUtOGIwYjc1NzQ2MWZmIiwia2lkIjoiRDVhakpBbDVwQlU1bjVzcV9vQWFGbU9meVQ3eVV3VV9Ib1VkclUtcHgtTSIsInJpZCI6IjRjNDM0OGJjLWI0ZGMtNDcxMi04YzI0LWQyMWZiZTFiM2M4YyJ9.bcDS1sjRyvzxg3Mn68MLjW0sCY9TqJPTOckwa06_LcCwRNjsBcMhysmJfVxjEYuxjDk70fCwo1guUFW6RxXAAg", #os.environ["TURSO_AUTH_TOKEN"],
-        # )
+        g.db = libsql.connect(
+        database="libsql://jpm-vercel-icfg-1esii5ughllw7rk73nvltcfc.aws-us-east-1.turso.io", #os.environ["TURSO_DATABASE_URL"],
+        auth_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI3NTYyNjQsImlkIjoiMDFhMTY4OTktYWMwMS03NjU5LTg4ZjUtOGIwYjc1NzQ2MWZmIiwia2lkIjoiRDVhakpBbDVwQlU1bjVzcV9vQWFGbU9meVQ3eVV3VV9Ib1VkclUtcHgtTSIsInJpZCI6IjRjNDM0OGJjLWI0ZGMtNDcxMi04YzI0LWQyMWZiZTFiM2M4YyJ9.bcDS1sjRyvzxg3Mn68MLjW0sCY9TqJPTOckwa06_LcCwRNjsBcMhysmJfVxjEYuxjDk70fCwo1guUFW6RxXAAg", #os.environ["TURSO_AUTH_TOKEN"],
+        )
         # g.db = turso_serverless.connect(
         #    os.environ["TURSO_DATABASE_URL"],
         #    auth_token=os.environ["TURSO_AUTH_TOKEN"],
