@@ -25,40 +25,13 @@ from werkzeug.utils import secure_filename
 from quote_pdf import build_quote_pdf
 from po_pdf import build_po_pdf
 from despatch_pdf import build_despatch_pdf
+
 import db_location
 import migrations
 import version as app_version
 import totp
 import qr_png
-
-# import turso_serverless
 import libsql
-# import turso
-# from http.server import BaseHTTPRequestHandler
-
-# The Vercel Marketplace integration automatically injects these keys
-# DATABASE_URL = os.environ.get("TURSO_DATABASE_URL")
-# AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
-
-# class handler(BaseHTTPRequestHandler):
- #    def do_GET(self):
-  #       if not DATABASE_URL or not AUTH_TOKEN:
-   #          self.send_response(500)
-   #          self.end_headers()
-    #         self.wfile.write(b"Missing Turso Environment Variables from Integration")
-   #          return
-
-        # Connect directly using the auto-injected credentials
-#         with turso.connect(DATABASE_URL, auth_token=AUTH_TOKEN) as db:
-#             cursor = db.cursor()
-#             cursor.execute("SELECT * FROM users LIMIT 5;")
-#             rows = cursor.fetchall()
-            
-#         self.send_response(200)
- #        self.send_header('Content-type', 'application/json')
- #        self.end_headers()
- #        self.wfile.write(str(rows).encode('utf-8'))
- #        return
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Must run before anything below touches the data directory (the secret
@@ -621,7 +594,7 @@ def get_db():
         #    auth_token=os.environ["TURSO_AUTH_TOKEN"],
         # )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
-        g.db.row_factory = sqlite3.Row
+        # g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
         g.db.execute("PRAGMA journal_mode = WAL")
     return g.db
