@@ -985,6 +985,9 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
+    rows = conn.execute("SELECT * FROM users").fetchall()
+    print(rows)
+
     user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
