@@ -32,7 +32,7 @@ import totp
 import qr_png
 
 # import turso_serverless
-import libsql_client
+import libsql
 # import turso
 # from http.server import BaseHTTPRequestHandler
 
@@ -612,9 +612,9 @@ def get_db():
         # again on a database that already has it (the mode is stored in
         # the file itself), so it's safe to just always ask for it here.
 
-        g.db = libsql_client.connect(
-        database="libsql://jpm-vercel-icfg-1esii5ughllw7rk73nvltcfc.aws-us-east-1.turso.io", #os.environ["TURSO_DATABASE_URL"],
-        auth_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI3NTYyNjQsImlkIjoiMDFhMTY4OTktYWMwMS03NjU5LTg4ZjUtOGIwYjc1NzQ2MWZmIiwia2lkIjoiRDVhakpBbDVwQlU1bjVzcV9vQWFGbU9meVQ3eVV3VV9Ib1VkclUtcHgtTSIsInJpZCI6IjRjNDM0OGJjLWI0ZGMtNDcxMi04YzI0LWQyMWZiZTFiM2M4YyJ9.bcDS1sjRyvzxg3Mn68MLjW0sCY9TqJPTOckwa06_LcCwRNjsBcMhysmJfVxjEYuxjDk70fCwo1guUFW6RxXAAg", #os.environ["TURSO_AUTH_TOKEN"],
+        g.db = libsql.connect(
+          database="libsql://jpm-vercel-icfg-1esii5ughllw7rk73nvltcfc.aws-us-east-1.turso.io", #os.environ["TURSO_DATABASE_URL"],
+          auth_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI3NTYyNjQsImlkIjoiMDFhMTY4OTktYWMwMS03NjU5LTg4ZjUtOGIwYjc1NzQ2MWZmIiwia2lkIjoiRDVhakpBbDVwQlU1bjVzcV9vQWFGbU9meVQ3eVV3VV9Ib1VkclUtcHgtTSIsInJpZCI6IjRjNDM0OGJjLWI0ZGMtNDcxMi04YzI0LWQyMWZiZTFiM2M4YyJ9.bcDS1sjRyvzxg3Mn68MLjW0sCY9TqJPTOckwa06_LcCwRNjsBcMhysmJfVxjEYuxjDk70fCwo1guUFW6RxXAAg", #os.environ["TURSO_AUTH_TOKEN"],
         )
         # g.db = turso_serverless.connect(
         #    os.environ["TURSO_DATABASE_URL"],
