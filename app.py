@@ -587,12 +587,12 @@ def get_db():
 
         g.db = libsql.connect(
           database = os.environ["TURSO_DATABASE_URL"],
-          auth_token=os.environ["TURSO_AUTH_TOKEN"],
+          auth_token = os.environ["TURSO_AUTH_TOKEN"],
         )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
-        g.db.row_factory = sqlite3.Row
+        # g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
-        # g.db.execute("PRAGMA journal_mode = WAL")
+        g.db.execute("PRAGMA journal_mode = WAL")
     return g.db
 
 
@@ -957,6 +957,21 @@ def login():
     rows = db.execute("SELECT * FROM users").fetchall()
     print(rows)
 
+    cursor = db.cursor()
+    def fetch_all_as_dict(query, params=()):
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        
+        # 2. Extract column names from the cursor metadata
+        columns = [col[0] for col in cursor.description]
+        
+        # 3. Zip columns with values to produce clean dictionaries
+        return [dict(zip(columns, row)) for row in rows]
+    
+    # Example Usage:
+    users = fetch_all_as_dict("SELECT user_id, full_name, email FROM users")
+    print(users)  # Output: [{'id': 1, 'name': 'Alice', 'email': '...'}, ...]
+  
     user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
