@@ -960,8 +960,8 @@ def login():
 
     user = globals.query_db(db,"SELECT * FROM users WHERE username = ?", (username,), one=True)
     print(user)  # Output: {'id': 1, 'name': 'Alice', 'email': '...'}
-    print(user[3])
-    print(user["full_name"])
+    # print(user[3])
+    # print(user["full_name"])
   
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
