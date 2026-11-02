@@ -958,7 +958,7 @@ def login():
     rows = db.execute("SELECT * FROM users").fetchall()
     print(rows)
 
-    user = globals.query_db("SELECT * FROM users WHERE username = ?", (username,), one=True)
+    user = globals.query_db(db,"SELECT * FROM users WHERE username = ?", (username,), one=True)
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
