@@ -590,7 +590,7 @@ def get_db():
           auth_token=os.environ["TURSO_AUTH_TOKEN"],
         )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
-        # g.db.row_factory = sqlite3.Row
+        g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
         # g.db.execute("PRAGMA journal_mode = WAL")
     return g.db
