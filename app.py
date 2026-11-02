@@ -656,7 +656,7 @@ def _revalidate_session_user(db):
     (refreshing session["role"] in place if it's changed); returns False
     - after clearing the session outright - if the account is gone."""
   
-    row = globals.query_db(db,"SELECT role FROM users WHERE user_id=?", (session.get("user_id"), one=True)
+    row = globals.query_db(db,"SELECT role FROM users WHERE user_id=?", (session.get("user_id"),), one=True)
     # row = db.execute("SELECT role FROM users WHERE user_id=?", (session.get("user_id"),)).fetchone()
     if not row:
         session.clear()
