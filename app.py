@@ -32,6 +32,7 @@ import version as app_version
 import totp
 import qr_png
 import libsql
+import globals
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Must run before anything below touches the data directory (the secret
@@ -957,8 +958,8 @@ def login():
     rows = db.execute("SELECT * FROM users").fetchall()
     print(rows)
 
-    # user = fetch_one_as_dict("SELECT * FROM users WHERE username = ?", (username,))
-    user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+    user = query_db("SELECT * FROM users WHERE username = ?", (username,), one=True)
+    # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
     # wrong-password one, letting an attacker enumerate valid usernames by
