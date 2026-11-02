@@ -971,8 +971,27 @@ def login():
     # Example Usage:
     users = fetch_all_as_dict("SELECT user_id, full_name, email FROM users")
     print(users)  # Output: [{'id': 1, 'name': 'Alice', 'email': '...'}, ...]
+
+    def fetch_one_as_dict(query, params=()):
+      cursor.execute(query, params)
+      row = cursor.fetchone()  # Grabs only the next single row
+      
+      if not row:
+          return None  # Return None if no record matches your query
+          
+      # Extract column names from the cursor metadata
+      columns = [col for col in cursor.description]
+      
+      # Zip headers and the single row into one dictionary
+      return dict(zip(columns, row))
   
-    user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+  # Example Usage:
+  user = fetch_one_as_dict("SELECT user_id, full_name, email FROM users WHERE user_id = ?", (7,))
+  print(user)  # Output: {'id': 1, 'name': 'Alice', 'email': '...'}
+  print(user["email"])  # Output: {'id': 1, 'name': 'Alice', 'email': '...'}
+
+    user = fetch_one_as_dict("SELECT * FROM users WHERE username = ?", (username,))
+    # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
     # wrong-password one, letting an attacker enumerate valid usernames by
