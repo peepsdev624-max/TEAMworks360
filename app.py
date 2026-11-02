@@ -955,12 +955,10 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
-    rows = db.execute("SELECT * FROM users").fetchall()
-    print(rows)
-
     user = globals.query_db(db,"SELECT * FROM users WHERE username = ?", (username,), one=True)
     print(user)  # Output: {'id': 1, 'name': 'Alice', 'email': '...'}
     print(user["full_name"])
+    print(user["password_hash"])
   
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
@@ -968,6 +966,7 @@ def login():
     # wrong-password one, letting an attacker enumerate valid usernames by
     # timing alone.
     password_ok = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
+    print("password_ok: " + str(password_ok))
     if not user or not password_ok:
         record_failed_login(throttle_key)
         log_login_event(db, username, "failure")
