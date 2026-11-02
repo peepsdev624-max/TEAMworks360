@@ -54,7 +54,7 @@ async function api(path, opts = {}) {
     const csrf = getCsrfToken();
     if (csrf) headers["X-CSRF-Token"] = csrf;
   }
-  print("path: " + str(path))
+  print(path)
   const res = await fetch(path, {
     method,
     headers,
