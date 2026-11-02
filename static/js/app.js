@@ -54,6 +54,7 @@ async function api(path, opts = {}) {
     const csrf = getCsrfToken();
     if (csrf) headers["X-CSRF-Token"] = csrf;
   }
+  print("path: " + str(path))
   const res = await fetch(path, {
     method,
     headers,
@@ -71,6 +72,8 @@ async function api(path, opts = {}) {
     showLogin();
     throw new Error("Session expired - please sign in again");
   }
+  print(data)
+  print(res)
   if (!res.ok) throw new Error(data.error || "Request failed");
   return data;
 }
