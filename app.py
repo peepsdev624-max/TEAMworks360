@@ -1028,7 +1028,8 @@ def change_password():
     if len(new_password) < 8:
         return jsonify({"error": "New password must be at least 8 characters."}), 400
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user or not check_password_hash(user["password_hash"], current_password):
         return jsonify({"error": "Current password is incorrect."}), 400
     db.execute(
@@ -1090,7 +1091,8 @@ def get_2fa_setup_qr():
     the manual key, not a replacement for it (see totp.py's module
     docstring for why manual entry is the primary path)."""
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return Response("Two-factor authentication is already set up for this account.", status=400)
     secret = _pending_totp_secret(db, user)
@@ -1112,7 +1114,8 @@ def confirm_2fa_setup():
     data = request.get_json(force=True) or {}
     code = data.get("code", "")
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
     if not user["totp_secret"]:
@@ -1143,7 +1146,8 @@ def verify_2fa():
     if is_totp_locked_out(key):
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user["totp_enabled"] or not user["totp_secret"]:
         return jsonify({"error": "Two-factor authentication isn't set up for this account."}), 400
     ok = verify_backup_code(db, session["user_id"], code) if is_backup else totp.verify(user["totp_secret"], code)
