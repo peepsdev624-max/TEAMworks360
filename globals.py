@@ -14,7 +14,7 @@ def query_db(conn, query, args=(), one=False):
         return None
 
     # 2. Extract columns safely
-    columns = [col for col in cursor.description]
+    columns = [col[0] for col in cursor.description]
     
     if one:
         row = cursor.fetchone()
