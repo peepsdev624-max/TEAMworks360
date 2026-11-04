@@ -10,8 +10,7 @@ def query_db(conn, query, args=(), commit=True, one=False):
     
     # Check if this is an action query (INSERT, UPDATE, DELETE), if so save changes and exit
     if cursor.description is None:
-        if commit:
-            conn.commit() # Save changes immediately if requested
+        if commit: conn.commit() # Save changes immediately if requested
         cursor.close()
         return None
 

@@ -1067,8 +1067,12 @@ def _pending_totp_secret(db, user):
     authenticator app. Shared by get_2fa_setup and get_2fa_setup_qr below
     so both always agree on the same secret."""
     secret = user["totp_secret"]
+    print(secret)
+    print(user["totp_secret"])
     if not secret:
         secret = totp.generate_secret()
+        print(secret)
+        print(user["user_id"])
         globals.query_db(db,"UPDATE users SET totp_secret=? WHERE user_id=?",(secret, user["user_id"]))
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
         # db.commit()
