@@ -338,11 +338,14 @@ def verify_backup_code(db, user_id, code):
     ).fetchall()
     for row in rows:
         if check_password_hash(row["code_hash"], code):
-            db.execute(
+            globals.query_db(db,
                 "UPDATE totp_backup_codes SET used_date=CURRENT_TIMESTAMP WHERE backup_code_id=?",
-                (row["backup_code_id"],),
-            )
-            db.commit()
+                (row["backup_code_id"],))
+            # db.execute(
+            #     "UPDATE totp_backup_codes SET used_date=CURRENT_TIMESTAMP WHERE backup_code_id=?",
+            #     (row["backup_code_id"],),
+            # )
+            # db.commit()
             return True
     return False
 
@@ -1036,11 +1039,14 @@ def change_password():
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user or not check_password_hash(user["password_hash"], current_password):
         return jsonify({"error": "Current password is incorrect."}), 400
-    db.execute(
+    globals.query_db(db,
         "UPDATE users SET password_hash=?, must_change_password=0 WHERE user_id=?",
-        (generate_password_hash(new_password), session["user_id"]),
-    )
-    db.commit()
+        (generate_password_hash(new_password), session["user_id"]))
+    #db.execute(
+    #    "UPDATE users SET password_hash=?, must_change_password=0 WHERE user_id=?",
+    #    (generate_password_hash(new_password), session["user_id"]),
+    #)
+    # db.commit()
     session["must_change_password"] = False
     return jsonify({"ok": True})
 
@@ -1063,8 +1069,9 @@ def _pending_totp_secret(db, user):
     secret = user["totp_secret"]
     if not secret:
         secret = totp.generate_secret()
-        db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
-        db.commit()
+        globals.query_db(db,"UPDATE users SET totp_secret=? WHERE user_id=?",(secret, user["user_id"]))
+        # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
+        # db.commit()
     return secret
 
 
@@ -1126,8 +1133,9 @@ def confirm_2fa_setup():
         return jsonify({"error": "Start setup first to get a setup key."}), 400
     if not totp.verify(user["totp_secret"], code):
         return jsonify({"error": "That code didn't match. Check the time on your phone and try again."}), 400
-    db.execute("UPDATE users SET totp_enabled=1 WHERE user_id=?", (session["user_id"],))
-    db.commit()
+    globals.query_db(db,"UPDATE users SET totp_enabled=1 WHERE user_id=?",(session["user_id"],))
+    # db.execute("UPDATE users SET totp_enabled=1 WHERE user_id=?", (session["user_id"],))
+    # db.commit()
     backup_codes = generate_backup_codes(db, session["user_id"])
     session["must_setup_2fa"] = False
     session["must_verify_2fa"] = False
@@ -1403,18 +1411,27 @@ def update_quote(qid):
     # quote_number is intentionally not accepted here - it's fixed once
     # assigned, the same way a SharePoint folder name wouldn't be renamed
     # just because the record was edited.
-    db.execute(
-        """UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
-           estimated_value=?, quote_date=?, valid_until=?, notes=?, sharepoint_url=?,
-           contact_name=?, your_ref=?, works_order_ref=?, works_order_id=?, scope_items=?, delivery_terms=?,
-           updated_by=?, updated_date=datetime('now') WHERE quote_id=?""",
-        (data.get("customer_id") or None, data.get("description"), data.get("owner"),
-         data.get("status"), safe_float(data.get("estimated_value")),
-         data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
-         data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
-         data.get("scope_items"), data.get("delivery_terms"), current_user_name(), qid),
-    )
-    db.commit()
+    globals.query_db(db,"""UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
+               estimated_value=?, quote_date=?, valid_until=?, notes=?, sharepoint_url=?,
+               contact_name=?, your_ref=?, works_order_ref=?, works_order_id=?, scope_items=?, delivery_terms=?,
+               updated_by=?, updated_date=datetime('now') WHERE quote_id=?""",
+            (data.get("customer_id") or None, data.get("description"), data.get("owner"),
+             data.get("status"), safe_float(data.get("estimated_value")),
+             data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
+             data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
+             data.get("scope_items"), data.get("delivery_terms"), current_user_name(),qid))
+    #db.execute(
+    #    """UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
+    #       estimated_value=?, quote_date=?, valid_until=?, notes=?, sharepoint_url=?,
+    #       contact_name=?, your_ref=?, works_order_ref=?, works_order_id=?, scope_items=?, delivery_terms=?,
+    #       updated_by=?, updated_date=datetime('now') WHERE quote_id=?""",
+    #    (data.get("customer_id") or None, data.get("description"), data.get("owner"),
+    #     data.get("status"), safe_float(data.get("estimated_value")),
+    #     data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
+    #     data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
+    #     data.get("scope_items"), data.get("delivery_terms"), current_user_name(), qid),
+    #)
+    #db.commit()
     return jsonify({"ok": True})
 
 
@@ -1455,11 +1472,13 @@ def create_customer():
 def update_customer(cid):
     data = request.get_json(force=True) or {}
     db = get_db()
-    db.execute(
-        "UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
-        (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid),
-    )
-    db.commit()
+    globals.query_db(db,"UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
+            (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid))
+    #db.execute(
+    #    "UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
+    #    (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid),
+    #)
+    #db.commit()
     return jsonify({"ok": True})
 
 
@@ -1505,13 +1524,17 @@ def create_supplier():
 def update_supplier(sid):
     data = request.get_json(force=True) or {}
     db = get_db()
-    db.execute(
-        """UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
-           address=?, contact_name=?, email=?, vat_number=?, updated_by=?, updated_date=datetime('now') WHERE supplier_id=?""",
-        (data.get("supplier_name"), data.get("supply_of"), data.get("reason_for_use"), data.get("authorised_by"),
-         data.get("address"), data.get("contact_name"), data.get("email"), data.get("vat_number"), current_user_name(), sid),
-    )
-    db.commit()
+    globals.query_db(db,"""UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
+               address=?, contact_name=?, email=?, vat_number=?, updated_by=?, updated_date=datetime('now') WHERE supplier_id=?""",
+            (data.get("supplier_name"), data.get("supply_of"), data.get("reason_for_use"), data.get("authorised_by"),
+             data.get("address"), data.get("contact_name"), data.get("email"), data.get("vat_number"), current_user_name(), sid))
+    #db.execute(
+    #    """UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
+    #       address=?, contact_name=?, email=?, vat_number=?, updated_by=?, updated_date=datetime('now') WHERE supplier_id=?""",
+    #    (data.get("supplier_name"), data.get("supply_of"), data.get("reason_for_use"), data.get("authorised_by"),
+    #     data.get("address"), data.get("contact_name"), data.get("email"), data.get("vat_number"), current_user_name(), sid),
+    #)
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -1658,16 +1681,23 @@ def update_works_order(wid):
                        {"status": data.get("status"), "contract_value": safe_float(data.get("contract_value")),
                         "budget_cost": safe_float(data.get("budget_cost"))},
                        ["status", "contract_value", "budget_cost"], current_user_name())
-    db.execute(
-        """UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
-           start_date=?, end_date=?, contract_value=?, budget_cost=?, budget_is_estimated=?, sharepoint_url=?, contract_code=?,
-           location=?, updated_by=?, updated_date=datetime('now') WHERE works_order_id=?""",
-        (old["job_number"], data.get("job_name"), data.get("customer_id"), data.get("project_manager"),
-         data.get("status"), data.get("start_date"), data.get("end_date"),
-         safe_float(data.get("contract_value")), safe_float(data.get("budget_cost")), keep_estimated, data.get("sharepoint_url"),
-         data.get("contract_code") or None, data.get("location") or None, current_user_name(), wid),
-    )
-    db.commit()
+    globals.query_db(db,"""UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
+               start_date=?, end_date=?, contract_value=?, budget_cost=?, budget_is_estimated=?, sharepoint_url=?, contract_code=?,
+               location=?, updated_by=?, updated_date=datetime('now') WHERE works_order_id=?""",
+            (old["job_number"], data.get("job_name"), data.get("customer_id"), data.get("project_manager"),
+             data.get("status"), data.get("start_date"), data.get("end_date"),
+             safe_float(data.get("contract_value")), safe_float(data.get("budget_cost")), keep_estimated, data.get("sharepoint_url"),
+             data.get("contract_code") or None, data.get("location") or None, current_user_name(), wid))
+    #db.execute(
+    #    """UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
+    #       start_date=?, end_date=?, contract_value=?, budget_cost=?, budget_is_estimated=?, sharepoint_url=?, contract_code=?,
+    #       location=?, updated_by=?, updated_date=datetime('now') WHERE works_order_id=?""",
+    #    (old["job_number"], data.get("job_name"), data.get("customer_id"), data.get("project_manager"),
+    #     data.get("status"), data.get("start_date"), data.get("end_date"),
+    #     safe_float(data.get("contract_value")), safe_float(data.get("budget_cost")), keep_estimated, data.get("sharepoint_url"),
+    #     data.get("contract_code") or None, data.get("location") or None, current_user_name(), wid),
+    #)
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -1708,10 +1738,14 @@ def delete_works_order_records(db, wid):
     db.execute("DELETE FROM purchase_orders WHERE works_order_id=?", (wid,))
     db.execute("DELETE FROM labour_entries WHERE works_order_id=?", (wid,))
     db.execute("DELETE FROM customer_invoices WHERE works_order_id=?", (wid,))
-    db.execute("UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,))
-    db.execute("UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,))
-    db.execute("UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,))
-    db.execute("DELETE FROM works_orders WHERE works_order_id=?", (wid,))
+    globals.query_db(db,"UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,), commit=False)
+    # db.execute("UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,))
+    globals.query_db(db,"UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,), commit=False)
+    # db.execute("UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,))
+    globals.query_db(db,"UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,), commit=False)
+    # db.execute("UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,))
+    globals.query_db(db,"DELETE FROM works_orders WHERE works_order_id=?", (wid,), commit=False)
+    # db.execute("DELETE FROM works_orders WHERE works_order_id=?", (wid,))
     return files_goods, files_sigs
 
 
@@ -1829,7 +1863,8 @@ def create_purchase_order():
             pid = cur.lastrowid
             if lines:
                 subtotal = save_purchase_order_lines(db, pid, lines)
-                db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
+                globals.query_db(db,"UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
+                # db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
             db.commit()
             break
         except sqlite3.IntegrityError as e:
@@ -1867,19 +1902,27 @@ def update_purchase_order(pid):
                            {"status": data.get("status"), "po_value": final_po_value,
                             "vat_rate": safe_float(data.get("vat_rate"), 20)},
                            ["status", "po_value", "vat_rate"], current_user_name())
-        db.execute(
-            """UPDATE purchase_orders SET po_number=?, works_order_id=?, supplier_id=?, description=?,
-               order_date=?, po_value=?, status=?, sharepoint_url=?, ship_to_id=?,
-               date_required=?, account_number=?, raised_by=?, vat_rate=? WHERE purchase_order_id=?""",
-            (old["po_number"], data.get("works_order_id"), data.get("supplier_id"), data.get("description"),
-             data.get("order_date"), po_value, data.get("status"),
-             data.get("sharepoint_url"), data.get("ship_to_id") or None, data.get("date_required") or None,
-             data.get("account_number"), data.get("raised_by"), safe_float(data.get("vat_rate"), 20), pid),
-        )
+        globals.query_db(db,"""UPDATE purchase_orders SET po_number=?, works_order_id=?, supplier_id=?, description=?,
+                       order_date=?, po_value=?, status=?, sharepoint_url=?, ship_to_id=?,
+                       date_required=?, account_number=?, raised_by=?, vat_rate=? WHERE purchase_order_id=?""",
+                    (old["po_number"], data.get("works_order_id"), data.get("supplier_id"), data.get("description"),
+                     data.get("order_date"), po_value, data.get("status"),
+                     data.get("sharepoint_url"), data.get("ship_to_id") or None, data.get("date_required") or None,
+                     data.get("account_number"), data.get("raised_by"), safe_float(data.get("vat_rate"), 20), pid), commit=False)
+        # db.execute(
+        #     """UPDATE purchase_orders SET po_number=?, works_order_id=?, supplier_id=?, description=?,
+        #        order_date=?, po_value=?, status=?, sharepoint_url=?, ship_to_id=?,
+        #        date_required=?, account_number=?, raised_by=?, vat_rate=? WHERE purchase_order_id=?""",
+        #     (old["po_number"], data.get("works_order_id"), data.get("supplier_id"), data.get("description"),
+        #      data.get("order_date"), po_value, data.get("status"),
+        #      data.get("sharepoint_url"), data.get("ship_to_id") or None, data.get("date_required") or None,
+        #      data.get("account_number"), data.get("raised_by"), safe_float(data.get("vat_rate"), 20), pid),
+        # )
         if lines is not None:
             subtotal = save_purchase_order_lines(db, pid, lines)
             if lines:
-                db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
+                globals.query_db(db,"UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
+                # db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
         db.commit()
     except sqlite3.IntegrityError as e:
         db.rollback()
@@ -1918,8 +1961,9 @@ def get_purchase_order_pdf(pid):
 @permission_required("purchase_orders:write")
 def approve_purchase_order(pid):
     db = get_db()
-    db.execute("UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,))
-    db.commit()
+    globals.query_db(db,"UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,))
+    # db.execute("UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,))
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -2138,16 +2182,24 @@ def update_goods_in(gid):
     if data.get("destination_type") == "Stock" and not data.get("ship_to_id"):
         return jsonify({"error": "Choose a site for stock deliveries"}), 400
     db = get_db()
-    db.execute(
+    globals.query_db(db,
         """UPDATE goods_in SET purchase_order_id=?, destination_type=?, ship_to_id=?, received_date=?,
               quantity_status=?, quantity_received=?, received_by=?, comment=? WHERE goods_in_id=?""",
         (data.get("purchase_order_id"), data.get("destination_type"),
          data.get("ship_to_id") if data.get("destination_type") == "Stock" else None,
          data.get("received_date"), data.get("quantity_status"),
          safe_float(data.get("quantity_received"), None),
-         data.get("received_by"), data.get("comment"), gid),
-    )
-    db.commit()
+         data.get("received_by"), data.get("comment"), gid)    )
+    # db.execute(
+    #     """UPDATE goods_in SET purchase_order_id=?, destination_type=?, ship_to_id=?, received_date=?,
+    #           quantity_status=?, quantity_received=?, received_by=?, comment=? WHERE goods_in_id=?""",
+    #     (data.get("purchase_order_id"), data.get("destination_type"),
+    #      data.get("ship_to_id") if data.get("destination_type") == "Stock" else None,
+    #      data.get("received_date"), data.get("quantity_status"),
+    #      safe_float(data.get("quantity_received"), None),
+    #      data.get("received_by"), data.get("comment"), gid),
+    # )
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -2260,13 +2312,18 @@ def update_despatch_note(did):
     old = db.execute("SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
     log_field_changes(db, "despatch_notes", did, old, {"status": data.get("status")}, ["status"], current_user_name())
     try:
-        db.execute(
-            """UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
+        globals.query_db(db,"""UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
                despatched_by=?, notes=?, status=?, updated_by=?, updated_date=datetime('now')
                WHERE despatch_note_id=?""",
             (data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"), data.get("carrier"),
-             data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did),
-        )
+             data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did), commit=False)
+        # db.execute(
+        #     """UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
+        #        despatched_by=?, notes=?, status=?, updated_by=?, updated_date=datetime('now')
+        #        WHERE despatch_note_id=?""",
+        #     (data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"), data.get("carrier"),
+        #      data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did),
+        # )
         if data.get("lines") is not None:
             save_despatch_note_lines(db, did, data.get("lines"))
         db.commit()
@@ -2347,12 +2404,16 @@ def sign_despatch_note(did):
     with open(dest, "wb") as f:
         f.write(png_bytes)
 
-    db.execute(
+    globals.query_db(db,
         """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
            signature_captured_by=? WHERE despatch_note_id=?""",
-        (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did),
-    )
-    db.commit()
+        (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did))
+    # db.execute(
+    #     """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
+    #        signature_captured_by=? WHERE despatch_note_id=?""",
+    #     (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did),
+    # )
+    # db.commit()
     db_location.harden_file_permissions()
 
     if old_filename:
@@ -2435,7 +2496,8 @@ def move_stock(db, stock_item_id, quantity, from_ship_to_id, from_works_order_id
         if remaining <= 0:
             db.execute("DELETE FROM stock_allocations WHERE allocation_id=?", (src["allocation_id"],))
         else:
-            db.execute("UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]))
+            globals.query_db(db,"UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]), commit=False)
+            # db.execute("UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]))
 
     if to_ship_to_id:
         dest = db.execute(
@@ -2448,7 +2510,8 @@ def move_stock(db, stock_item_id, quantity, from_ship_to_id, from_works_order_id
             (stock_item_id, to_works_order_id),
         ).fetchone()
     if dest:
-        db.execute("UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]))
+        globals.query_db(db,"UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]), commit=False)
+        # db.execute("UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]))
     else:
         db.execute(
             "INSERT INTO stock_allocations (stock_item_id, quantity, ship_to_id, works_order_id, notes) VALUES (?,?,?,?,?)",
@@ -2547,14 +2610,20 @@ def update_stock_item(item_id):
         return jsonify({"error": "Part number is required"}), 400
     db = get_db()
     try:
-        db.execute(
+        globals.query_db(db,
             """UPDATE stock_items SET part_number=?, description=?, unit=?, purchase_cost=?, sale_price=?,
                reorder_level=?, supplier_id=?, notes=? WHERE stock_item_id=?""",
             (part_number, data.get("description"), data.get("unit") or "each",
              safe_float(data.get("purchase_cost")), safe_float(data.get("sale_price")),
-             safe_float(data.get("reorder_level")), data.get("supplier_id") or None, data.get("notes"), item_id),
-        )
-        db.commit()
+             safe_float(data.get("reorder_level")), data.get("supplier_id") or None, data.get("notes"), item_id))
+        # db.execute(
+        #     """UPDATE stock_items SET part_number=?, description=?, unit=?, purchase_cost=?, sale_price=?,
+        #        reorder_level=?, supplier_id=?, notes=? WHERE stock_item_id=?""",
+        #     (part_number, data.get("description"), data.get("unit") or "each",
+        #      safe_float(data.get("purchase_cost")), safe_float(data.get("sale_price")),
+        #      safe_float(data.get("reorder_level")), data.get("supplier_id") or None, data.get("notes"), item_id),
+        # )
+        # db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"ok": True})
@@ -2606,12 +2675,16 @@ def update_stock_allocation(allocation_id):
         return jsonify({"error": "Quantity must be a positive number"}), 400
     db = get_db()
     try:
-        db.execute(
+        globals.query_db(db,
             """UPDATE stock_allocations SET quantity=?, ship_to_id=?, works_order_id=?, notes=?
                WHERE allocation_id=?""",
-            (quantity, ship_to_id, works_order_id, data.get("notes"), allocation_id),
-        )
-        db.commit()
+            (quantity, ship_to_id, works_order_id, data.get("notes"), allocation_id))
+        # db.execute(
+        #     """UPDATE stock_allocations SET quantity=?, ship_to_id=?, works_order_id=?, notes=?
+        #        WHERE allocation_id=?""",
+        #     (quantity, ship_to_id, works_order_id, data.get("notes"), allocation_id),
+        # )
+        # db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"ok": True})
@@ -2725,12 +2798,16 @@ def update_supplier_invoice(iid):
     log_field_changes(db, "supplier_invoices", iid, old,
                        {"status": data.get("status"), "invoice_amount": safe_float(data.get("invoice_amount"))},
                        ["status", "invoice_amount"], current_user_name())
-    db.execute(
+    globals.query_db(db,
         """UPDATE supplier_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
            updated_by=?, updated_date=datetime('now') WHERE supplier_invoice_id=?""",
-        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid),
-    )
-    db.commit()
+        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid))
+    # db.execute(
+    #     """UPDATE supplier_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
+    #        updated_by=?, updated_date=datetime('now') WHERE supplier_invoice_id=?""",
+    #     (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid),
+    # )
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -2840,12 +2917,16 @@ def update_labour_entry(lid):
     log_field_changes(db, "labour_entries", lid, old,
                        {"hours_worked": hours, "hourly_rate": rate, "labour_cost": cost},
                        ["hours_worked", "hourly_rate", "labour_cost"], current_user_name())
-    db.execute(
+    globals.query_db(db,
         """UPDATE labour_entries SET employee_name=?, work_date=?, hours_worked=?, hourly_rate=?, labour_cost=?,
            updated_by=?, updated_date=datetime('now') WHERE labour_entry_id=?""",
-        (data.get("employee_name"), data.get("work_date"), hours, rate, cost, current_user_name(), lid),
-    )
-    db.commit()
+        (data.get("employee_name"), data.get("work_date"), hours, rate, cost, current_user_name(), lid))
+    # db.execute(
+    #     """UPDATE labour_entries SET employee_name=?, work_date=?, hours_worked=?, hourly_rate=?, labour_cost=?,
+    #        updated_by=?, updated_date=datetime('now') WHERE labour_entry_id=?""",
+    #     (data.get("employee_name"), data.get("work_date"), hours, rate, cost, current_user_name(), lid),
+    # )
+    # db.commit()
     return jsonify({"ok": True, "labour_cost": cost})
 
 
@@ -2897,12 +2978,16 @@ def update_customer_invoice(iid):
     log_field_changes(db, "customer_invoices", iid, old,
                        {"status": data.get("status"), "invoice_amount": safe_float(data.get("invoice_amount"))},
                        ["status", "invoice_amount"], current_user_name())
-    db.execute(
+    globals.query_db(db,
         """UPDATE customer_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
            updated_by=?, updated_date=datetime('now') WHERE customer_invoice_id=?""",
-        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid),
-    )
-    db.commit()
+        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid))
+    # db.execute(
+    #     """UPDATE customer_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
+    #        updated_by=?, updated_date=datetime('now') WHERE customer_invoice_id=?""",
+    #     (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid),
+    # )
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -3769,16 +3854,22 @@ def update_user(uid):
             # A password set here was chosen by whoever's doing the reset,
             # not the account holder - same reasoning as a brand new
             # account, so it must be changed again on their next sign-in.
-            db.execute(
+            globals.query_db(db,
                 "UPDATE users SET role=?, email=?, password_hash=?, must_change_password=1 WHERE user_id=?",
-                (new_role, new_email, generate_password_hash(new_password), uid),
-            )
+                (new_role, new_email, generate_password_hash(new_password), uid))
+            # db.execute(
+            #     "UPDATE users SET role=?, email=?, password_hash=?, must_change_password=1 WHERE user_id=?",
+            #     (new_role, new_email, generate_password_hash(new_password), uid),
+            # )
         else:
-            db.execute(
+            globals.query_db(db,
                 "UPDATE users SET role=?, email=? WHERE user_id=?",
-                (new_role, new_email, uid),
-            )
-        db.commit()
+                (new_role, new_email, uid))
+            # db.execute(
+            #     "UPDATE users SET role=?, email=? WHERE user_id=?",
+            #     (new_role, new_email, uid),
+            # )
+        # db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"ok": True})
@@ -3817,7 +3908,8 @@ def reset_2fa(uid):
     target = db.execute("SELECT * FROM users WHERE user_id=?", (uid,)).fetchone()
     if not target:
         return jsonify({"error": "User not found"}), 404
-    db.execute("UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,))
+    globals.query_db(db,"UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,), commit=False)
+    # db.execute("UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,))
     db.execute("DELETE FROM totp_backup_codes WHERE user_id=?", (uid,))
     db.commit()
     return jsonify({"ok": True})
@@ -4028,13 +4120,18 @@ def update_ship_to_address(sid):
         return jsonify({"error": "Label is required"}), 400
     db = get_db()
     try:
-        db.execute(
+        globals.query_db(db,
             """UPDATE ship_to_addresses SET label=?, company_name=?, address_line1=?, address_line2=?,
                city=?, postcode=? WHERE ship_to_id=?""",
             (label, data.get("company_name"), data.get("address_line1"), data.get("address_line2"),
-             data.get("city"), data.get("postcode"), sid),
-        )
-        db.commit()
+             data.get("city"), data.get("postcode"), sid))
+        # db.execute(
+        #     """UPDATE ship_to_addresses SET label=?, company_name=?, address_line1=?, address_line2=?,
+        #        city=?, postcode=? WHERE ship_to_id=?""",
+        #     (label, data.get("company_name"), data.get("address_line1"), data.get("address_line2"),
+        #      data.get("city"), data.get("postcode"), sid),
+        # )
+        # db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"ok": True})
