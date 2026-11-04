@@ -874,7 +874,8 @@ def job_profit_margin_for_year(db, year):
     - a job with no activity this year has nothing to plot on a "this year"
     chart, however large its all-time total is."""
     yr = str(year)
-    rows = db.execute(
+    rows = globals.query_db(db,
+    #rows = db.execute(
         """SELECT wo.works_order_id, wo.job_number, wo.job_name, wo.contract_code,
                   COALESCE(rev.total, 0) AS revenue,
                   COALESCE(sup.total, 0) + COALESCE(lab.total, 0) AS actual_cost
@@ -896,7 +897,8 @@ def job_profit_margin_for_year(db, year):
            ) lab ON lab.works_order_id = wo.works_order_id
            WHERE COALESCE(rev.total, 0) != 0 OR COALESCE(sup.total, 0) != 0 OR COALESCE(lab.total, 0) != 0""",
         (yr, yr, yr),
-    ).fetchall()
+    one=False)
+    #).fetchall()
 
     result = []
     for r in rows:
@@ -2938,7 +2940,9 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
         # ).fetchall()
         jobs = [works_order_with_metrics(db, r) for r in rows]
 
-    accepted = {r[0] for r in db.execute("SELECT alert_key FROM alert_acceptances").fetchall()}
+    accepted = {r[0] for r in globals.query_db(db,"SELECT alert_key FROM alert_acceptances",None,one=True)}
+    # accepted = {r[0] for r in db.execute("SELECT alert_key FROM alert_acceptances").fetchall()}
+
     all_alerts = []
     for j in jobs:
         # A finished job (Completed / Closed / Cancelled) can't be acted on any
