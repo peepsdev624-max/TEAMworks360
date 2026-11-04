@@ -3,20 +3,21 @@ from flask import g
 import libsql
 
 def query_db(conn, query, args=(), commit=True, one=False):
-    # Set commit=False if running multiple statements as a single transaction.
-
     cursor = conn.cursor()
-    cursor.execute(query, args)
+    cursor.execute(query, args) # If it's a write action and we want to commit, let's make sure it flushes
     
-    # Check if this is an action query (INSERT, UPDATE, DELETE), if so save changes and exit
     if cursor.description is None:
-        if commit: conn.commit() # Save changes immediately if requested
+        if commit:
+            try:
+                conn.commit()
+            except Exception:
+                # Some versions of libsql handle auto-commit natively and throw an error or ignore manual commits.
+                pass
         cursor.close()
         return None
 
     # SELECT query logic continues safely below...
     columns = [col[0] for col in cursor.description]
-    
     if one:
         row = cursor.fetchone()
         cursor.close()

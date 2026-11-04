@@ -136,10 +136,10 @@ def get_margin_settings(db):
     once per Works Order, sometimes 1000+ times in a single list/report
     request - doesn't re-query settings every single time."""
     if not hasattr(g, "_margin_settings"):
-        row = globals.query_db(db,"SELECT value FROM settings WHERE key='default_margin_target'",None,one=True)
+        row = globals.query_db(db, "SELECT value FROM settings WHERE key='default_margin_target'", None, one=True)
         # row = db.execute("SELECT value FROM settings WHERE key='default_margin_target'").fetchone()
         default_target = safe_float(row["value"], DEFAULT_MARGIN_TARGET) if row else DEFAULT_MARGIN_TARGET
-        code_rows = globals.query_db(db,"SELECT contract_code, target_pct FROM contract_code_targets",None,one=False)
+        code_rows = globals.query_db(db, "SELECT contract_code, target_pct FROM contract_code_targets", None, one=False)
         # code_rows = db.execute("SELECT contract_code, target_pct FROM contract_code_targets").fetchall()
         code_targets = {r["contract_code"].strip().upper(): r["target_pct"] for r in code_rows}
         g._margin_settings = (default_target, code_targets)
@@ -340,7 +340,7 @@ def verify_backup_code(db, user_id, code):
         if check_password_hash(row["code_hash"], code):
             globals.query_db(db,
                 "UPDATE totp_backup_codes SET used_date=CURRENT_TIMESTAMP WHERE backup_code_id=?",
-                (row["backup_code_id"],))
+                (row["backup_code_id"],), commit=True)
             # db.execute(
             #     "UPDATE totp_backup_codes SET used_date=CURRENT_TIMESTAMP WHERE backup_code_id=?",
             #     (row["backup_code_id"],),
@@ -661,7 +661,7 @@ def _revalidate_session_user(db):
     (refreshing session["role"] in place if it's changed); returns False
     - after clearing the session outright - if the account is gone."""
   
-    row = globals.query_db(db,"SELECT role FROM users WHERE user_id=?", (session.get("user_id"),), one=True)
+    row = globals.query_db(db, "SELECT role FROM users WHERE user_id=?", (session.get("user_id"),), one=True)
     # row = db.execute("SELECT role FROM users WHERE user_id=?", (session.get("user_id"),)).fetchone()
     if not row:
         session.clear()
@@ -899,8 +899,7 @@ def job_profit_margin_for_year(db, year):
                GROUP BY works_order_id
            ) lab ON lab.works_order_id = wo.works_order_id
            WHERE COALESCE(rev.total, 0) != 0 OR COALESCE(sup.total, 0) != 0 OR COALESCE(lab.total, 0) != 0""",
-        (yr, yr, yr),
-    one=False)
+        (yr, yr, yr), one=False)
     #).fetchall()
 
     result = []
@@ -964,7 +963,7 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
-    user = globals.query_db(db,"SELECT * FROM users WHERE username = ?", (username,), one=True)
+    user = globals.query_db(db, "SELECT * FROM users WHERE username = ?", (username,), one=True)
     print(user["full_name"])
   
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
@@ -1035,13 +1034,13 @@ def change_password():
     if len(new_password) < 8:
         return jsonify({"error": "New password must be at least 8 characters."}), 400
     db = get_db()
-    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user or not check_password_hash(user["password_hash"], current_password):
         return jsonify({"error": "Current password is incorrect."}), 400
     globals.query_db(db,
         "UPDATE users SET password_hash=?, must_change_password=0 WHERE user_id=?",
-        (generate_password_hash(new_password), session["user_id"]))
+        (generate_password_hash(new_password), session["user_id"]), commit=True)
     #db.execute(
     #    "UPDATE users SET password_hash=?, must_change_password=0 WHERE user_id=?",
     #    (generate_password_hash(new_password), session["user_id"]),
@@ -1073,7 +1072,7 @@ def _pending_totp_secret(db, user):
         secret = totp.generate_secret()
         print(secret)
         print(user["user_id"])
-        globals.query_db(db,"UPDATE users SET totp_secret=? WHERE user_id=?",(secret, user["user_id"]))
+        globals.query_db(db, "UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]), commit=True)
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
         # db.commit()
     return secret
@@ -1085,7 +1084,7 @@ def get_2fa_setup():
     """Returns the manual setup key (and otpauth:// link) for whichever
     secret is currently pending for this user."""
     db = get_db()
-    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
@@ -1106,7 +1105,7 @@ def get_2fa_setup_qr():
     the manual key, not a replacement for it (see totp.py's module
     docstring for why manual entry is the primary path)."""
     db = get_db()
-    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return Response("Two-factor authentication is already set up for this account.", status=400)
@@ -1129,7 +1128,7 @@ def confirm_2fa_setup():
     data = request.get_json(force=True) or {}
     code = data.get("code", "")
     db = get_db()
-    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
@@ -1137,7 +1136,7 @@ def confirm_2fa_setup():
         return jsonify({"error": "Start setup first to get a setup key."}), 400
     if not totp.verify(user["totp_secret"], code):
         return jsonify({"error": "That code didn't match. Check the time on your phone and try again."}), 400
-    globals.query_db(db,"UPDATE users SET totp_enabled=1 WHERE user_id=?",(session["user_id"],))
+    globals.query_db(db, "UPDATE users SET totp_enabled=1 WHERE user_id=?",(session["user_id"],), commit=True)
     # db.execute("UPDATE users SET totp_enabled=1 WHERE user_id=?", (session["user_id"],))
     # db.commit()
     backup_codes = generate_backup_codes(db, session["user_id"])
@@ -1162,7 +1161,7 @@ def verify_2fa():
     if is_totp_locked_out(key):
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
     db = get_db()
-    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
+    user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user["totp_enabled"] or not user["totp_secret"]:
         return jsonify({"error": "Two-factor authentication isn't set up for this account."}), 400
@@ -1276,7 +1275,7 @@ def list_quotes():
         """SELECT q.*, c.customer_name, wo.job_number AS linked_job_number FROM quotes q
            LEFT JOIN customers c ON c.customer_id = q.customer_id
            LEFT JOIN works_orders wo ON wo.works_order_id = q.works_order_id
-           ORDER BY q.quote_id DESC""",None,one=False)
+           ORDER BY q.quote_id DESC""", None, one=False)
     # rows = db.execute(
     #    """SELECT q.*, c.customer_name, wo.job_number AS linked_job_number FROM quotes q
     #       LEFT JOIN customers c ON c.customer_id = q.customer_id
@@ -1358,12 +1357,12 @@ def create_quote():
 def get_quote_cost_breakdown(qid):
     db = get_db()
     labour = globals.query_db(db,
-        "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,),one=False)
+        "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,), one=False)
     #labour = db.execute(
     #    "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,)
     #).fetchall()
     purchases = globals.query_db(db,
-        "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,),one=False)
+        "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,), one=False)
     #purchases = db.execute(
     #    "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,)
     #).fetchall()
@@ -1415,7 +1414,8 @@ def update_quote(qid):
     # quote_number is intentionally not accepted here - it's fixed once
     # assigned, the same way a SharePoint folder name wouldn't be renamed
     # just because the record was edited.
-    globals.query_db(db,"""UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
+    globals.query_db(db,
+        """UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
                estimated_value=?, quote_date=?, valid_until=?, notes=?, sharepoint_url=?,
                contact_name=?, your_ref=?, works_order_ref=?, works_order_id=?, scope_items=?, delivery_terms=?,
                updated_by=?, updated_date=datetime('now') WHERE quote_id=?""",
@@ -1423,7 +1423,7 @@ def update_quote(qid):
              data.get("status"), safe_float(data.get("estimated_value")),
              data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
              data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
-             data.get("scope_items"), data.get("delivery_terms"), current_user_name(),qid))
+             data.get("scope_items"), data.get("delivery_terms"), current_user_name(), qid), commit=True)
     #db.execute(
     #    """UPDATE quotes SET customer_id=?, description=?, owner=?, status=?,
     #       estimated_value=?, quote_date=?, valid_until=?, notes=?, sharepoint_url=?,
@@ -1476,8 +1476,9 @@ def create_customer():
 def update_customer(cid):
     data = request.get_json(force=True) or {}
     db = get_db()
-    globals.query_db(db,"UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
-            (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid))
+    globals.query_db(db,
+        "UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
+            (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid), commit=True)
     #db.execute(
     #    "UPDATE customers SET customer_name=?, address=?, contact_name=?, email=?, phone=?, updated_by=?, updated_date=datetime('now') WHERE customer_id=?",
     #    (data.get("customer_name"), data.get("address"), data.get("contact_name"), data.get("email"), data.get("phone"), current_user_name(), cid),
@@ -1528,10 +1529,11 @@ def create_supplier():
 def update_supplier(sid):
     data = request.get_json(force=True) or {}
     db = get_db()
-    globals.query_db(db,"""UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
+    globals.query_db(db,
+        """UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
                address=?, contact_name=?, email=?, vat_number=?, updated_by=?, updated_date=datetime('now') WHERE supplier_id=?""",
             (data.get("supplier_name"), data.get("supply_of"), data.get("reason_for_use"), data.get("authorised_by"),
-             data.get("address"), data.get("contact_name"), data.get("email"), data.get("vat_number"), current_user_name(), sid))
+             data.get("address"), data.get("contact_name"), data.get("email"), data.get("vat_number"), current_user_name(), sid), commit=True)
     #db.execute(
     #    """UPDATE suppliers SET supplier_name=?, supply_of=?, reason_for_use=?, authorised_by=?,
     #       address=?, contact_name=?, email=?, vat_number=?, updated_by=?, updated_date=datetime('now') WHERE supplier_id=?""",
@@ -1685,13 +1687,14 @@ def update_works_order(wid):
                        {"status": data.get("status"), "contract_value": safe_float(data.get("contract_value")),
                         "budget_cost": safe_float(data.get("budget_cost"))},
                        ["status", "contract_value", "budget_cost"], current_user_name())
-    globals.query_db(db,"""UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
+    globals.query_db(db,
+        """UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
                start_date=?, end_date=?, contract_value=?, budget_cost=?, budget_is_estimated=?, sharepoint_url=?, contract_code=?,
                location=?, updated_by=?, updated_date=datetime('now') WHERE works_order_id=?""",
             (old["job_number"], data.get("job_name"), data.get("customer_id"), data.get("project_manager"),
              data.get("status"), data.get("start_date"), data.get("end_date"),
              safe_float(data.get("contract_value")), safe_float(data.get("budget_cost")), keep_estimated, data.get("sharepoint_url"),
-             data.get("contract_code") or None, data.get("location") or None, current_user_name(), wid))
+             data.get("contract_code") or None, data.get("location") or None, current_user_name(), wid), commit=True)
     #db.execute(
     #    """UPDATE works_orders SET job_number=?, job_name=?, customer_id=?, project_manager=?, status=?,
     #       start_date=?, end_date=?, contract_value=?, budget_cost=?, budget_is_estimated=?, sharepoint_url=?, contract_code=?,
@@ -1742,13 +1745,13 @@ def delete_works_order_records(db, wid):
     db.execute("DELETE FROM purchase_orders WHERE works_order_id=?", (wid,))
     db.execute("DELETE FROM labour_entries WHERE works_order_id=?", (wid,))
     db.execute("DELETE FROM customer_invoices WHERE works_order_id=?", (wid,))
-    globals.query_db(db,"UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,), commit=False)
+    globals.query_db(db, "UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,), commit=False)
     # db.execute("UPDATE quotes SET works_order_id=NULL WHERE works_order_id=?", (wid,))
-    globals.query_db(db,"UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,), commit=False)
+    globals.query_db(db, "UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,), commit=False)
     # db.execute("UPDATE stock_movements SET from_works_order_id=NULL WHERE from_works_order_id=?", (wid,))
-    globals.query_db(db,"UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,), commit=False)
+    globals.query_db(db, "UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,), commit=False)
     # db.execute("UPDATE stock_movements SET to_works_order_id=NULL WHERE to_works_order_id=?", (wid,))
-    globals.query_db(db,"DELETE FROM works_orders WHERE works_order_id=?", (wid,), commit=False)
+    globals.query_db(db, "DELETE FROM works_orders WHERE works_order_id=?", (wid,), commit=False)
     # db.execute("DELETE FROM works_orders WHERE works_order_id=?", (wid,))
     return files_goods, files_sigs
 
@@ -1867,7 +1870,7 @@ def create_purchase_order():
             pid = cur.lastrowid
             if lines:
                 subtotal = save_purchase_order_lines(db, pid, lines)
-                globals.query_db(db,"UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
+                globals.query_db(db, "UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
                 # db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
             db.commit()
             break
@@ -1906,7 +1909,8 @@ def update_purchase_order(pid):
                            {"status": data.get("status"), "po_value": final_po_value,
                             "vat_rate": safe_float(data.get("vat_rate"), 20)},
                            ["status", "po_value", "vat_rate"], current_user_name())
-        globals.query_db(db,"""UPDATE purchase_orders SET po_number=?, works_order_id=?, supplier_id=?, description=?,
+        globals.query_db(db,
+            """UPDATE purchase_orders SET po_number=?, works_order_id=?, supplier_id=?, description=?,
                        order_date=?, po_value=?, status=?, sharepoint_url=?, ship_to_id=?,
                        date_required=?, account_number=?, raised_by=?, vat_rate=? WHERE purchase_order_id=?""",
                     (old["po_number"], data.get("works_order_id"), data.get("supplier_id"), data.get("description"),
@@ -1925,7 +1929,7 @@ def update_purchase_order(pid):
         if lines is not None:
             subtotal = save_purchase_order_lines(db, pid, lines)
             if lines:
-                globals.query_db(db,"UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
+                globals.query_db(db, "UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid), commit=False)
                 # db.execute("UPDATE purchase_orders SET po_value=? WHERE purchase_order_id=?", (round(subtotal, 2), pid))
         db.commit()
     except sqlite3.IntegrityError as e:
@@ -1965,7 +1969,7 @@ def get_purchase_order_pdf(pid):
 @permission_required("purchase_orders:write")
 def approve_purchase_order(pid):
     db = get_db()
-    globals.query_db(db,"UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,))
+    globals.query_db(db, "UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,), commit=True)
     # db.execute("UPDATE purchase_orders SET status='Approved' WHERE purchase_order_id=?", (pid,))
     # db.commit()
     return jsonify({"ok": True})
@@ -2193,7 +2197,7 @@ def update_goods_in(gid):
          data.get("ship_to_id") if data.get("destination_type") == "Stock" else None,
          data.get("received_date"), data.get("quantity_status"),
          safe_float(data.get("quantity_received"), None),
-         data.get("received_by"), data.get("comment"), gid)    )
+         data.get("received_by"), data.get("comment"), gid), commit=True)
     # db.execute(
     #     """UPDATE goods_in SET purchase_order_id=?, destination_type=?, ship_to_id=?, received_date=?,
     #           quantity_status=?, quantity_received=?, received_by=?, comment=? WHERE goods_in_id=?""",
@@ -2316,7 +2320,8 @@ def update_despatch_note(did):
     old = db.execute("SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
     log_field_changes(db, "despatch_notes", did, old, {"status": data.get("status")}, ["status"], current_user_name())
     try:
-        globals.query_db(db,"""UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
+        globals.query_db(db,
+            """UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
                despatched_by=?, notes=?, status=?, updated_by=?, updated_date=datetime('now')
                WHERE despatch_note_id=?""",
             (data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"), data.get("carrier"),
@@ -2411,7 +2416,7 @@ def sign_despatch_note(did):
     globals.query_db(db,
         """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
            signature_captured_by=? WHERE despatch_note_id=?""",
-        (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did))
+        (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did), commit=True)
     # db.execute(
     #     """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
     #        signature_captured_by=? WHERE despatch_note_id=?""",
@@ -2500,7 +2505,7 @@ def move_stock(db, stock_item_id, quantity, from_ship_to_id, from_works_order_id
         if remaining <= 0:
             db.execute("DELETE FROM stock_allocations WHERE allocation_id=?", (src["allocation_id"],))
         else:
-            globals.query_db(db,"UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]), commit=False)
+            globals.query_db(db, "UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]), commit=False)
             # db.execute("UPDATE stock_allocations SET quantity=? WHERE allocation_id=?", (remaining, src["allocation_id"]))
 
     if to_ship_to_id:
@@ -2514,7 +2519,7 @@ def move_stock(db, stock_item_id, quantity, from_ship_to_id, from_works_order_id
             (stock_item_id, to_works_order_id),
         ).fetchone()
     if dest:
-        globals.query_db(db,"UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]), commit=False)
+        globals.query_db(db, "UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]), commit=False)
         # db.execute("UPDATE stock_allocations SET quantity=quantity+? WHERE allocation_id=?", (quantity, dest["allocation_id"]))
     else:
         db.execute(
@@ -2619,7 +2624,7 @@ def update_stock_item(item_id):
                reorder_level=?, supplier_id=?, notes=? WHERE stock_item_id=?""",
             (part_number, data.get("description"), data.get("unit") or "each",
              safe_float(data.get("purchase_cost")), safe_float(data.get("sale_price")),
-             safe_float(data.get("reorder_level")), data.get("supplier_id") or None, data.get("notes"), item_id))
+             safe_float(data.get("reorder_level")), data.get("supplier_id") or None, data.get("notes"), item_id), commit=True)
         # db.execute(
         #     """UPDATE stock_items SET part_number=?, description=?, unit=?, purchase_cost=?, sale_price=?,
         #        reorder_level=?, supplier_id=?, notes=? WHERE stock_item_id=?""",
@@ -2682,7 +2687,7 @@ def update_stock_allocation(allocation_id):
         globals.query_db(db,
             """UPDATE stock_allocations SET quantity=?, ship_to_id=?, works_order_id=?, notes=?
                WHERE allocation_id=?""",
-            (quantity, ship_to_id, works_order_id, data.get("notes"), allocation_id))
+            (quantity, ship_to_id, works_order_id, data.get("notes"), allocation_id), commit=True)
         # db.execute(
         #     """UPDATE stock_allocations SET quantity=?, ship_to_id=?, works_order_id=?, notes=?
         #        WHERE allocation_id=?""",
@@ -2805,7 +2810,7 @@ def update_supplier_invoice(iid):
     globals.query_db(db,
         """UPDATE supplier_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
            updated_by=?, updated_date=datetime('now') WHERE supplier_invoice_id=?""",
-        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid))
+        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid), commit=True)
     # db.execute(
     #     """UPDATE supplier_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
     #        updated_by=?, updated_date=datetime('now') WHERE supplier_invoice_id=?""",
@@ -2924,7 +2929,7 @@ def update_labour_entry(lid):
     globals.query_db(db,
         """UPDATE labour_entries SET employee_name=?, work_date=?, hours_worked=?, hourly_rate=?, labour_cost=?,
            updated_by=?, updated_date=datetime('now') WHERE labour_entry_id=?""",
-        (data.get("employee_name"), data.get("work_date"), hours, rate, cost, current_user_name(), lid))
+        (data.get("employee_name"), data.get("work_date"), hours, rate, cost, current_user_name(), lid), commit=True)
     # db.execute(
     #     """UPDATE labour_entries SET employee_name=?, work_date=?, hours_worked=?, hourly_rate=?, labour_cost=?,
     #        updated_by=?, updated_date=datetime('now') WHERE labour_entry_id=?""",
@@ -2985,7 +2990,7 @@ def update_customer_invoice(iid):
     globals.query_db(db,
         """UPDATE customer_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
            updated_by=?, updated_date=datetime('now') WHERE customer_invoice_id=?""",
-        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid))
+        (data.get("invoice_number"), data.get("invoice_date"), safe_float(data.get("invoice_amount")), data.get("status"), current_user_name(), iid), commit=True)
     # db.execute(
     #     """UPDATE customer_invoices SET invoice_number=?, invoice_date=?, invoice_amount=?, status=?,
     #        updated_by=?, updated_date=datetime('now') WHERE customer_invoice_id=?""",
@@ -3021,15 +3026,16 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
     redo that work. Jobs that are already Completed, Closed or Cancelled are
     left out - there is nothing left to do about them."""
     if jobs is None:
-        rows = globals.query_db(db,f"""SELECT wo.*, c.customer_name FROM works_orders wo
-                       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""",None,one=False)
+        rows = globals.query_db(db,
+            f"""SELECT wo.*, c.customer_name FROM works_orders wo
+            JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", None, one=False)
         # rows = db.execute(
         #     f"""SELECT wo.*, c.customer_name FROM works_orders wo
         #       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
         # ).fetchall()
         jobs = [works_order_with_metrics(db, r) for r in rows]
 
-    accepted = {r[0] for r in globals.query_db(db,"SELECT alert_key FROM alert_acceptances",None,one=True)}
+    accepted = {r[0] for r in globals.query_db(db, "SELECT alert_key FROM alert_acceptances", None, one=True)}
     # accepted = {r[0] for r in db.execute("SELECT alert_key FROM alert_acceptances").fetchall()}
 
     all_alerts = []
@@ -3126,8 +3132,9 @@ def get_alerts():
 @login_required
 def dashboard():
     db = get_db()
-    rows = globals.query_db(db,f"""SELECT wo.*, c.customer_name FROM works_orders wo
-        JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""",None,one=False)
+    rows = globals.query_db(db,
+        f"""SELECT wo.*, c.customer_name FROM works_orders wo
+            JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", None, one=False)
     # rows = db.execute(
     #    f"""SELECT wo.*, c.customer_name FROM works_orders wo
     #       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
@@ -3860,15 +3867,13 @@ def update_user(uid):
             # account, so it must be changed again on their next sign-in.
             globals.query_db(db,
                 "UPDATE users SET role=?, email=?, password_hash=?, must_change_password=1 WHERE user_id=?",
-                (new_role, new_email, generate_password_hash(new_password), uid))
+                (new_role, new_email, generate_password_hash(new_password), uid), commit=True)
             # db.execute(
             #     "UPDATE users SET role=?, email=?, password_hash=?, must_change_password=1 WHERE user_id=?",
             #     (new_role, new_email, generate_password_hash(new_password), uid),
             # )
         else:
-            globals.query_db(db,
-                "UPDATE users SET role=?, email=? WHERE user_id=?",
-                (new_role, new_email, uid))
+            globals.query_db(db, "UPDATE users SET role=?, email=? WHERE user_id=?", (new_role, new_email, uid), commit=True)
             # db.execute(
             #     "UPDATE users SET role=?, email=? WHERE user_id=?",
             #     (new_role, new_email, uid),
@@ -3912,7 +3917,7 @@ def reset_2fa(uid):
     target = db.execute("SELECT * FROM users WHERE user_id=?", (uid,)).fetchone()
     if not target:
         return jsonify({"error": "User not found"}), 404
-    globals.query_db(db,"UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,), commit=False)
+    globals.query_db(db, "UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,), commit=False)
     # db.execute("UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE user_id=?", (uid,))
     db.execute("DELETE FROM totp_backup_codes WHERE user_id=?", (uid,))
     db.commit()
@@ -4017,12 +4022,12 @@ def get_margin_targets():
     # a second round trip from the frontend.
     counts = {
         (row["contract_code"] or "").strip().upper(): row["n"]
-        for row in globals.query_db(db, "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code",None,one=False)
+        for row in globals.query_db(db, "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code", None, one=False)
         # for row in db.execute(
         #    "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code"
         # ).fetchall()
     }
-    pricing_rows = globals.query_db(db,"SELECT contract_code, standard_value, standard_cost FROM contract_code_targets",None,one=False)
+    pricing_rows = globals.query_db(db, "SELECT contract_code, standard_value, standard_cost FROM contract_code_targets", None, one=False)
     # pricing_rows = db.execute("SELECT contract_code, standard_value, standard_cost FROM contract_code_targets").fetchall()
     pricing = {r["contract_code"]: (r["standard_value"], r["standard_cost"]) for r in pricing_rows}
     targets = [
@@ -4128,7 +4133,7 @@ def update_ship_to_address(sid):
             """UPDATE ship_to_addresses SET label=?, company_name=?, address_line1=?, address_line2=?,
                city=?, postcode=? WHERE ship_to_id=?""",
             (label, data.get("company_name"), data.get("address_line1"), data.get("address_line2"),
-             data.get("city"), data.get("postcode"), sid))
+             data.get("city"), data.get("postcode"), sid), commit=True)
         # db.execute(
         #     """UPDATE ship_to_addresses SET label=?, company_name=?, address_line1=?, address_line2=?,
         #        city=?, postcode=? WHERE ship_to_id=?""",
@@ -4202,35 +4207,35 @@ def get_version():
 def reference():
     db = get_db()
     return jsonify({
-        "customers": rows_to_list(globals.query_db(db,"SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name",None,one=False)),
+        "customers": rows_to_list(globals.query_db(db, "SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name", None, one=False)),
         # "customers": rows_to_list(db.execute("SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name").fetchall()),
-        "suppliers": rows_to_list(globals.query_db(db,"SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name",None,one=False)),
+        "suppliers": rows_to_list(globals.query_db(db, "SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name", None, one=False)),
         # "suppliers": rows_to_list(db.execute("SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name").fetchall()),
         # project_manager is included here (not just on the live /api/works-orders
         # list) because the Works Orders page's own Owner filter dropdown builds
         # its option list from this reference set, not from the page's current
         # (possibly already-filtered) rows - see renderWorksOrders() in app.js.
-        "works_orders": rows_to_list(globals.query_db(db,"SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number",None,one=False)),
+        "works_orders": rows_to_list(globals.query_db(db, "SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number", None, one=False)),
         # "works_orders": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number").fetchall()),
         # placeholder jobs the historic POs sit on: not offered in pick-lists, but the
         # Purchase Orders page still needs them to show the customer for those POs
-        "placeholder_jobs": rows_to_list(globals.query_db(db,"SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number",None,one=False)),
+        "placeholder_jobs": rows_to_list(globals.query_db(db, "SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number", None, one=False)),
         # "placeholder_jobs": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number").fetchall()),
         # Real people only - used to keep the PO "Raised by" filter free of initials,
         # combined entries and other non-names.
         "staff_names": sorted({n for n in __import__("tidy_raised_by").PEOPLE}
-                              | {r['full_name'] for r in globals.query_db(db,"SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''",None,one=False)}),
+                              | {r['full_name'] for r in globals.query_db(db, "SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''", None, one=False)}),
                               # | {r[0] for r in db.execute("SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''")}),
-        "locations": [r['location'] for r in globals.query_db(db,"SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location",None,one=False)],
+        "locations": [r['location'] for r in globals.query_db(db, "SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location", None, one=False)],
         # "locations": [r[0] for r in db.execute("SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location")],
-        "purchase_orders": rows_to_list(globals.query_db(db,"SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
-                    "WHERE is_historic=0 ORDER BY po_number",None,one=False)),
+        "purchase_orders": rows_to_list(globals.query_db(db, "SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
+                    "WHERE is_historic=0 ORDER BY po_number", None, one=False)),
         # "purchase_orders": rows_to_list(db.execute(
         #    "SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
         #    "WHERE is_historic=0 ORDER BY po_number").fetchall()),
-        "ship_to_addresses": rows_to_list(globals.query_db(db,"SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label",None,one=False)),
+        "ship_to_addresses": rows_to_list(globals.query_db(db, "SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label", None, one=False)),
         # "ship_to_addresses": rows_to_list(db.execute("SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label").fetchall()),
-        "contract_code_targets": [] if is_service_engineer() else rows_to_list(globals.query_db(db,"SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code",None,one=False)),
+        "contract_code_targets": [] if is_service_engineer() else rows_to_list(globals.query_db(db, "SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code", None, one=False)),
         # "contract_code_targets": [] if is_service_engineer() else rows_to_list(db.execute("SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code").fetchall()),
     })
 
