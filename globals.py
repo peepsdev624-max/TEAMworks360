@@ -28,4 +28,8 @@ def query_db(conn, query, args=(), one=False):
         cursor.close()
         if not rows:
             return []  # Return an empty list if no records match
+<<<<<<< HEAD
         return [dict(zip(columns, row)) for row in rows]
+=======
+        return [dict(zip(columns, row)) for row in rows]
+>>>>>>> 893fa0f878bfadf06c8f3c64093b5b986f8e7a73

@@ -12,6 +12,7 @@ alone.
 import os
 import sqlite3
 import sys
+import globals
 
 from werkzeug.security import generate_password_hash
 
@@ -30,7 +31,8 @@ def main():
         sys.exit("No database found - run seed.py first.")
     conn = sqlite3.connect(db_location.DB_PATH)
     try:
-        if conn.execute("SELECT 1 FROM users WHERE username=?", (USERNAME,)).fetchone():
+        if globals.query_db(conn,"SELECT 1 FROM users WHERE username=?", (USERNAME,), one=True):
+        # if conn.execute("SELECT 1 FROM users WHERE username=?", (USERNAME,)).fetchone():
             print(f"Account '{USERNAME}' already exists - left as it was.")
             return
         conn.execute(
