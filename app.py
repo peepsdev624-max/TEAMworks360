@@ -1258,12 +1258,17 @@ def is_past_validity(valid_until, status):
 @login_required
 def list_quotes():
     db = get_db()
-    rows = db.execute(
+    rows = globals.query_db(db,
         """SELECT q.*, c.customer_name, wo.job_number AS linked_job_number FROM quotes q
            LEFT JOIN customers c ON c.customer_id = q.customer_id
            LEFT JOIN works_orders wo ON wo.works_order_id = q.works_order_id
-           ORDER BY q.quote_id DESC"""
-    ).fetchall()
+           ORDER BY q.quote_id DESC""",None,one=False)
+    # rows = db.execute(
+    #    """SELECT q.*, c.customer_name, wo.job_number AS linked_job_number FROM quotes q
+    #       LEFT JOIN customers c ON c.customer_id = q.customer_id
+    #       LEFT JOIN works_orders wo ON wo.works_order_id = q.works_order_id
+    #       ORDER BY q.quote_id DESC"""
+    # ).fetchall()
     # Highest quote number at the top (TMQ-3001 above TMQ-3000).
     rows = sorted(rows, key=lambda r: number_sort_key(r["quote_number"]), reverse=True)
     quotes = rows_to_list(rows)
@@ -1338,12 +1343,16 @@ def create_quote():
 @login_required
 def get_quote_cost_breakdown(qid):
     db = get_db()
-    labour = db.execute(
-        "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,)
-    ).fetchall()
-    purchases = db.execute(
-        "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,)
-    ).fetchall()
+    labour = globals.query_db(db,
+        "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,),one=False)
+    #labour = db.execute(
+    #    "SELECT * FROM quote_labour_lines WHERE quote_id=? ORDER BY line_id", (qid,)
+    #).fetchall()
+    purchases = globals.query_db(db,
+        "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,),one=False)
+    #purchases = db.execute(
+    #    "SELECT * FROM quote_purchase_lines WHERE quote_id=? ORDER BY line_id", (qid,)
+    #).fetchall()
     return jsonify({
         "labour_lines": rows_to_list(labour),
         "purchase_lines": rows_to_list(purchases),
