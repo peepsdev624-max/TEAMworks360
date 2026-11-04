@@ -136,9 +136,11 @@ def get_margin_settings(db):
     once per Works Order, sometimes 1000+ times in a single list/report
     request - doesn't re-query settings every single time."""
     if not hasattr(g, "_margin_settings"):
-        row = db.execute("SELECT value FROM settings WHERE key='default_margin_target'").fetchone()
+        row = globals.query_db(db,"SELECT value FROM settings WHERE key='default_margin_target'",None,one=True)
+        # row = db.execute("SELECT value FROM settings WHERE key='default_margin_target'").fetchone()
         default_target = safe_float(row["value"], DEFAULT_MARGIN_TARGET) if row else DEFAULT_MARGIN_TARGET
-        code_rows = db.execute("SELECT contract_code, target_pct FROM contract_code_targets").fetchall()
+        code_rows = globals.query_db(db,"SELECT contract_code, target_pct FROM contract_code_targets",None,one=False)
+        # code_rows = db.execute("SELECT contract_code, target_pct FROM contract_code_targets").fetchall()
         code_targets = {r["contract_code"].strip().upper(): r["target_pct"] for r in code_rows}
         g._margin_settings = (default_target, code_targets)
     return g._margin_settings
@@ -2919,10 +2921,12 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
     redo that work. Jobs that are already Completed, Closed or Cancelled are
     left out - there is nothing left to do about them."""
     if jobs is None:
-        rows = db.execute(
-            f"""SELECT wo.*, c.customer_name FROM works_orders wo
-               JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
-        ).fetchall()
+        rows = globals.query_db(db,f"""SELECT wo.*, c.customer_name FROM works_orders wo
+                       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""",None,one=False)
+        # rows = db.execute(
+        #     f"""SELECT wo.*, c.customer_name FROM works_orders wo
+        #       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
+        # ).fetchall()
         jobs = [works_order_with_metrics(db, r) for r in rows]
 
     accepted = {r[0] for r in db.execute("SELECT alert_key FROM alert_acceptances").fetchall()}
@@ -3020,10 +3024,12 @@ def get_alerts():
 @login_required
 def dashboard():
     db = get_db()
-    rows = db.execute(
-        f"""SELECT wo.*, c.customer_name FROM works_orders wo
-           JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
-    ).fetchall()
+    rows = globals.query_db(db,f"""SELECT wo.*, c.customer_name FROM works_orders wo
+        JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""",None,one=False)
+    # rows = db.execute(
+    #    f"""SELECT wo.*, c.customer_name FROM works_orders wo
+    #       JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}"""
+    # ).fetchall()
     jobs = [works_order_with_metrics(db, r) for r in rows]
 
     total_revenue = sum(j["revenue"] for j in jobs)
@@ -3902,11 +3908,13 @@ def get_margin_targets():
     # a second round trip from the frontend.
     counts = {
         (row["contract_code"] or "").strip().upper(): row["n"]
-        for row in db.execute(
-            "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code"
-        ).fetchall()
+        for row in globals.query_db(db, "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code",None,one=False)
+        # for row in db.execute(
+        #    "SELECT contract_code, COUNT(*) AS n FROM works_orders WHERE contract_code IS NOT NULL GROUP BY contract_code"
+        # ).fetchall()
     }
-    pricing_rows = db.execute("SELECT contract_code, standard_value, standard_cost FROM contract_code_targets").fetchall()
+    pricing_rows = globals.query_db(db,"SELECT contract_code, standard_value, standard_cost FROM contract_code_targets",None,one=False)
+    # pricing_rows = db.execute("SELECT contract_code, standard_value, standard_cost FROM contract_code_targets").fetchall()
     pricing = {r["contract_code"]: (r["standard_value"], r["standard_cost"]) for r in pricing_rows}
     targets = [
         {"contract_code": code, "target_pct": pct, "job_count": counts.get(code, 0),
