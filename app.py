@@ -25,14 +25,14 @@ from werkzeug.utils import secure_filename
 from quote_pdf import build_quote_pdf
 from po_pdf import build_po_pdf
 from despatch_pdf import build_despatch_pdf
+
 import db_location
 import migrations
 import version as app_version
 import totp
 import qr_png
-
-# import turso_serverless
 import libsql
+import globals
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Must run before anything below touches the data directory (the secret
@@ -587,17 +587,13 @@ def get_db():
         # the file itself), so it's safe to just always ask for it here.
 
         g.db = libsql.connect(
-            database=os.environ["TURSO_DATABASE_URL"],
-           auth_token=os.environ["TURSO_AUTH_TOKEN"],
+          database = os.environ["TURSO_DATABASE_URL"],
+          auth_token = os.environ["TURSO_AUTH_TOKEN"],
         )
-        # g.db = turso_serverless.connect(
-        #    os.environ["TURSO_DATABASE_URL"],
-        #    auth_token=os.environ["TURSO_AUTH_TOKEN"],
-        # )
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
-        g.db.execute("PRAGMA journal_mode = WAL")
+        # g.db.row_factory = sqlite3.Row
+        # g.db.execute("PRAGMA foreign_keys = ON")
+        # g.db.execute("PRAGMA journal_mode = WAL")
     return g.db
 
 
@@ -659,7 +655,9 @@ def _revalidate_session_user(db):
     of that window. Returns True if the session is still good to use
     (refreshing session["role"] in place if it's changed); returns False
     - after clearing the session outright - if the account is gone."""
-    row = db.execute("SELECT role FROM users WHERE user_id=?", (session.get("user_id"),)).fetchone()
+  
+    row = globals.query_db(db,"SELECT role FROM users WHERE user_id=?", (session.get("user_id"),), one=True)
+    # row = db.execute("SELECT role FROM users WHERE user_id=?", (session.get("user_id"),)).fetchone()
     if not row:
         session.clear()
         return False
@@ -959,7 +957,10 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
-    user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE username = ?", (username,), one=True)
+    print(user["full_name"])
+  
+    # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
     # wrong-password one, letting an attacker enumerate valid usernames by
@@ -1027,7 +1028,8 @@ def change_password():
     if len(new_password) < 8:
         return jsonify({"error": "New password must be at least 8 characters."}), 400
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user or not check_password_hash(user["password_hash"], current_password):
         return jsonify({"error": "Current password is incorrect."}), 400
     db.execute(
@@ -1068,7 +1070,8 @@ def get_2fa_setup():
     """Returns the manual setup key (and otpauth:// link) for whichever
     secret is currently pending for this user."""
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
     secret = _pending_totp_secret(db, user)
@@ -1088,7 +1091,8 @@ def get_2fa_setup_qr():
     the manual key, not a replacement for it (see totp.py's module
     docstring for why manual entry is the primary path)."""
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return Response("Two-factor authentication is already set up for this account.", status=400)
     secret = _pending_totp_secret(db, user)
@@ -1110,7 +1114,8 @@ def confirm_2fa_setup():
     data = request.get_json(force=True) or {}
     code = data.get("code", "")
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
     if not user["totp_secret"]:
@@ -1141,7 +1146,8 @@ def verify_2fa():
     if is_totp_locked_out(key):
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
+    user = globals.query_db(db,"SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
+    # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user["totp_enabled"] or not user["totp_secret"]:
         return jsonify({"error": "Two-factor authentication isn't set up for this account."}), 400
     ok = verify_backup_code(db, session["user_id"], code) if is_backup else totp.verify(user["totp_secret"], code)
@@ -4074,20 +4080,25 @@ def get_version():
 def reference():
     db = get_db()
     return jsonify({
-        "customers": rows_to_list(db.execute("SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name").fetchall()),
-        "suppliers": rows_to_list(db.execute("SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name").fetchall()),
+        "customers": rows_to_list(globals.query_db(db,"SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name",None,one=False)),
+        # "customers": rows_to_list(db.execute("SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name").fetchall()),
+        "suppliers": rows_to_list(globals.query_db(db,"SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name",None,one=False)),
+        # "suppliers": rows_to_list(db.execute("SELECT supplier_id, supplier_name FROM suppliers ORDER BY supplier_name").fetchall()),
         # project_manager is included here (not just on the live /api/works-orders
         # list) because the Works Orders page's own Owner filter dropdown builds
         # its option list from this reference set, not from the page's current
         # (possibly already-filtered) rows - see renderWorksOrders() in app.js.
-        "works_orders": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number").fetchall()),
+        "works_orders": rows_to_list(globals.query_db(db,"SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number",None,one=False)),
+        # "works_orders": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE " + PLACEHOLDER_JOB_SQL + " ORDER BY job_number").fetchall()),
         # placeholder jobs the historic POs sit on: not offered in pick-lists, but the
         # Purchase Orders page still needs them to show the customer for those POs
-        "placeholder_jobs": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number").fetchall()),
+        "placeholder_jobs": rows_to_list(globals.query_db(db,"SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number",None,one=False)),
+        # "placeholder_jobs": rows_to_list(db.execute("SELECT works_order_id, job_number, job_name, customer_id, contract_code, location, project_manager FROM works_orders wo WHERE wo.job_number LIKE 'HIST-PO-%' ORDER BY job_number").fetchall()),
         # Real people only - used to keep the PO "Raised by" filter free of initials,
         # combined entries and other non-names.
         "staff_names": sorted({n for n in __import__("tidy_raised_by").PEOPLE}
-                              | {r[0] for r in db.execute("SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''")}),
+                              | {r[0] for r in globals.query_db(db,"SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''",None,one=False)}),
+                              # | {r[0] for r in db.execute("SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''")}),
         "locations": [r[0] for r in db.execute(
             "SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location")],
         "purchase_orders": rows_to_list(db.execute(
