@@ -4097,17 +4097,19 @@ def reference():
         # Real people only - used to keep the PO "Raised by" filter free of initials,
         # combined entries and other non-names.
         "staff_names": sorted({n for n in __import__("tidy_raised_by").PEOPLE}
-                              | {r[0] for r in globals.query_db(db,"SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''",None,one=False)}),
+                              | {r['full_name'] for r in globals.query_db(db,"SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''",None,one=False)}),
                               # | {r[0] for r in db.execute("SELECT full_name FROM users WHERE full_name IS NOT NULL AND TRIM(full_name) != ''")}),
-        "locations": [r[0] for r in db.execute(
-            "SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location")],
-        "purchase_orders": rows_to_list(db.execute(
-            "SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
-            "WHERE is_historic=0 ORDER BY po_number").fetchall()),
-        "ship_to_addresses": rows_to_list(db.execute(
-            "SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label").fetchall()),
-        "contract_code_targets": [] if is_service_engineer() else rows_to_list(db.execute(
-            "SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code").fetchall()),
+        "locations": [r['location'] for r in globals.query_db(db,"SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location",None,one=False)],
+        # "locations": [r[0] for r in db.execute("SELECT DISTINCT location FROM works_orders WHERE location IS NOT NULL AND TRIM(location) != '' ORDER BY location")],
+        "purchase_orders": rows_to_list(globals.query_db(db,"SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
+                    "WHERE is_historic=0 ORDER BY po_number",None,one=False)),
+        # "purchase_orders": rows_to_list(db.execute(
+        #    "SELECT purchase_order_id, po_number, works_order_id, po_value FROM purchase_orders "
+        #    "WHERE is_historic=0 ORDER BY po_number").fetchall()),
+        "ship_to_addresses": rows_to_list(globals.query_db(db,"SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label",None,one=False)),
+        # "ship_to_addresses": rows_to_list(db.execute("SELECT ship_to_id, label, company_name, address_line1, address_line2, city, postcode FROM ship_to_addresses ORDER BY label").fetchall()),
+        "contract_code_targets": [] if is_service_engineer() else rows_to_list(globals.query_db(db,"SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code",None,one=False)),
+        # "contract_code_targets": [] if is_service_engineer() else rows_to_list(db.execute("SELECT contract_code, target_pct, standard_value, standard_cost FROM contract_code_targets ORDER BY contract_code").fetchall()),
     })
 
 
