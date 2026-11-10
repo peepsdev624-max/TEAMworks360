@@ -1067,11 +1067,11 @@ def _pending_totp_secret(db, user):
     authenticator app. Shared by get_2fa_setup and get_2fa_setup_qr below
     so both always agree on the same secret."""
     secret = user["totp_secret"]
-    print("_pending_totp_secret secret: " + secret)
+    print("_pending_totp_secret secret: " + str(secret))
     print("_pending_totp_secret totp_secret: " + user["totp_secret"])
     if not secret:
         secret = totp.generate_secret()
-        print("_pending_totp_secret secret: " + secret)
+        print("_pending_totp_secret secret: " + str(secret))
         print("_pending_totp_secret user id: " + user["user_id"])
         globals.query_db(db, "UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]), commit=True)
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
@@ -1085,9 +1085,7 @@ def get_2fa_setup():
     """Returns the manual setup key (and otpauth:// link) for whichever
     secret is currently pending for this user."""
     db = get_db()
-    print(db)
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
-    print(user)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
