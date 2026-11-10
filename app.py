@@ -7,7 +7,7 @@ Then open: http://127.0.0.1:5000
 import base64
 import csv
 import io
-import oskeydb
+import os
 import sys
 import re
 import secrets
