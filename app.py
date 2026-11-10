@@ -1075,6 +1075,7 @@ def _pending_totp_secret(db, user):
         print("secret 2: " + str(secret))
         print(user["user_id"])
         globals.query_db(db, "UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]), commit=True)
+        print("_pending_totp_secret secret updated")
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
         # db.commit()
     return secret
@@ -1091,6 +1092,8 @@ def get_2fa_setup():
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
     secret = _pending_totp_secret(db, user)
+    print("get_2fa_setup secret")
+    print("secret: " + str(secret))
     return jsonify({
         "manual_entry_key": totp.format_secret_for_display(secret),
         "otpauth_uri": totp.provisioning_uri(secret, user["username"]),

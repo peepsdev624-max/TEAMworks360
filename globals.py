@@ -1,32 +1,34 @@
+# globals.py
 import os
 from flask import g
 import libsql
 
 def query_db(conn, query, args=(), one=False, commit=True):
-    cursor = conn.cursor()
-    cursor.execute(query, args) # If it's a write action and we want to commit, let's make sure it flushes
-    
-    # Check if this is an action query (INSERT, UPDATE, DELETE)
-    if cursor.description is None:
+    # 1. Handle Action Queries (INSERT, UPDATE, DELETE) directly on the Connection
+    # We check if it's a select query by seeing if 'select' is at the start of the string
+    if not query.strip().lower().startswith("select"):
+        # Execute straight on the connection so libsql's internal sync engine tracks it!
+        conn.execute(query, args)
         if commit:
-            try:
-                conn.commit()
-            except Exception:
-                # Catches cases where libsql handles auto-commit natively
-                pass
-        cursor.close()
+            conn.commit()  # This will now successfully sync to Turso Cloud!
         return None
 
-    # SELECT query logic continues safely below...
+    # 2. Handle Search Queries (SELECT) using the standard Cursor pattern
+    cursor = conn.cursor()
+    cursor.execute(query, args)
+    
+    # Extract columns cleanly (index 0 gets just the text name string)
     columns = [col[0] for col in cursor.description]
+    
     if one:
         row = cursor.fetchone()
         cursor.close()
-        # If no row matches, return None cleanly without looping
-        if not row: return None
+        if not row: 
+            return None
         return dict(zip(columns, row))
     else:
         rows = cursor.fetchall()
         cursor.close()
-        if not rows: return []  # Return an empty list if no records match
+        if not rows: 
+            return []
         return [dict(zip(columns, row)) for row in rows]
