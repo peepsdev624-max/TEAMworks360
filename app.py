@@ -972,7 +972,7 @@ def login():
     # wrong-password one, letting an attacker enumerate valid usernames by
     # timing alone.
     password_ok = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
-    print("login password_ok: " + password_ok)
+    print("login password_ok: " + str(password_ok))
     if not user or not password_ok:
         record_failed_login(throttle_key)
         log_login_event(db, username, "failure")
