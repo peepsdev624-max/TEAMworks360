@@ -1085,9 +1085,9 @@ def get_2fa_setup():
     """Returns the manual setup key (and otpauth:// link) for whichever
     secret is currently pending for this user."""
     db = get_db()
-    print("get_2fa_setup db: " + db)
+    print(db)
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
-    print("get_2fa_setup user: " + user)
+    print(user)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
