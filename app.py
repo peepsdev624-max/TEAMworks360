@@ -7,7 +7,7 @@ Then open: http://127.0.0.1:5000
 import base64
 import csv
 import io
-import os
+import oskeydb
 import sys
 import re
 import secrets
@@ -595,6 +595,22 @@ def get_db():
           database = os.environ["TURSO_DATABASE_URL"],
           auth_token = os.environ["TURSO_AUTH_TOKEN"],
         )
+
+        # Force-create the missing alert_acceptances table directly from your schema setup
+        g.db.execute("""
+        CREATE TABLE IF NOT EXISTS alert_acceptances (
+            acceptance_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+            alert_key      TEXT NOT NULL UNIQUE,
+            job_number     TEXT,
+            alert_type     TEXT,
+            message        TEXT,
+            reason         TEXT NOT NULL,
+            accepted_by    TEXT,
+            accepted_date  TEXT DEFAULT (datetime('now'))
+        );
+        """)
+        g.db.commit() # Flush the table initialization straight up to Turso Cloud!
+
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
         # g.db.row_factory = sqlite3.Row
         # g.db.execute("PRAGMA foreign_keys = ON")
