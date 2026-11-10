@@ -972,6 +972,7 @@ def login():
     # wrong-password one, letting an attacker enumerate valid usernames by
     # timing alone.
     password_ok = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
+    print(password_ok)
     if not user or not password_ok:
         record_failed_login(throttle_key)
         log_login_event(db, username, "failure")
@@ -1085,6 +1086,7 @@ def get_2fa_setup():
     secret is currently pending for this user."""
     db = get_db()
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
+    print(user)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
