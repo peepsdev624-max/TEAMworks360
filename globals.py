@@ -2,16 +2,17 @@ import os
 from flask import g
 import libsql
 
-def query_db(conn, query, args=(), commit=True, one=False):
+def query_db(conn, query, args=(), one=False, commit=True):
     cursor = conn.cursor()
     cursor.execute(query, args) # If it's a write action and we want to commit, let's make sure it flushes
     
+    # Check if this is an action query (INSERT, UPDATE, DELETE)
     if cursor.description is None:
         if commit:
             try:
                 conn.commit()
             except Exception:
-                # Some versions of libsql handle auto-commit natively and throw an error or ignore manual commits.
+                # Catches cases where libsql handles auto-commit natively
                 pass
         cursor.close()
         return None
