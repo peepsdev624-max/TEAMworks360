@@ -964,7 +964,7 @@ def login():
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
     user = globals.query_db(db, "SELECT * FROM users WHERE username = ?", (username,), one=True)
-    print(user["full_name"])
+    print("login full_name: " + user["full_name"])
   
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     # Always run a hash check, even for an unknown username, against a dummy
@@ -972,7 +972,7 @@ def login():
     # wrong-password one, letting an attacker enumerate valid usernames by
     # timing alone.
     password_ok = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
-    print(password_ok)
+    print("login password_ok: " + password_ok)
     if not user or not password_ok:
         record_failed_login(throttle_key)
         log_login_event(db, username, "failure")
@@ -1067,12 +1067,12 @@ def _pending_totp_secret(db, user):
     authenticator app. Shared by get_2fa_setup and get_2fa_setup_qr below
     so both always agree on the same secret."""
     secret = user["totp_secret"]
-    print(secret)
-    print(user["totp_secret"])
+    print("_pending_totp_secret secret: " + secret)
+    print("_pending_totp_secret totp_secret: " + user["totp_secret"])
     if not secret:
         secret = totp.generate_secret()
-        print(secret)
-        print(user["user_id"])
+        print("_pending_totp_secret secret: " + secret)
+        print("_pending_totp_secret user id: " + user["user_id"])
         globals.query_db(db, "UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]), commit=True)
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
         # db.commit()
@@ -1085,8 +1085,9 @@ def get_2fa_setup():
     """Returns the manual setup key (and otpauth:// link) for whichever
     secret is currently pending for this user."""
     db = get_db()
+    print("get_2fa_setup db: " + db)
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)
-    print(user)
+    print("get_2fa_setup user: " + user)
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
