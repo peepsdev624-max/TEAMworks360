@@ -3040,7 +3040,7 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
         # ).fetchall()
         jobs = [works_order_with_metrics(db, r) for r in rows]
 
-    accepted = {r[0] for r in globals.query_db(db, "SELECT alert_key FROM alert_acceptances", None, one=True)}
+    accepted = {r["alert_key"] for r in globals.query_db(db, "SELECT alert_key FROM alert_acceptances", None, one=False)}
     # accepted = {r[0] for r in db.execute("SELECT alert_key FROM alert_acceptances").fetchall()}
 
     all_alerts = []
@@ -3264,21 +3264,33 @@ def dashboard():
     # Monthly revenue / cost / profit, this year only, Jan through the
     # current month - zero-filled so a quiet month still appears on the
     # x-axis rather than silently vanishing.
-    monthly_revenue_rows = db.execute(
+    monthly_revenue_rows = globals.query_db(db, 
         """SELECT strftime('%Y-%m', invoice_date) AS ym, COALESCE(SUM(invoice_amount),0) AS total
            FROM customer_invoices WHERE status != 'Cancelled' AND strftime('%Y', invoice_date) = ?
-           GROUP BY ym""", (str(current_year),)
-    ).fetchall()
-    monthly_supplier_cost = db.execute(
+           GROUP BY ym""", (str(current_year),), one=False)
+    # monthly_revenue_rows = db.execute(
+    #     """SELECT strftime('%Y-%m', invoice_date) AS ym, COALESCE(SUM(invoice_amount),0) AS total
+    #        FROM customer_invoices WHERE status != 'Cancelled' AND strftime('%Y', invoice_date) = ?
+    #        GROUP BY ym""", (str(current_year),)
+    # ).fetchall()
+    monthly_supplier_cost = globals.query_db(db, 
         """SELECT strftime('%Y-%m', invoice_date) AS ym, COALESCE(SUM(invoice_amount),0) AS total
            FROM supplier_invoices WHERE status != 'Cancelled' AND strftime('%Y', invoice_date) = ?
-           GROUP BY ym""", (str(current_year),)
-    ).fetchall()
-    monthly_labour_cost = db.execute(
+           GROUP BY ym""", (str(current_year),), one=False)
+    # monthly_supplier_cost = db.execute(
+    #     """SELECT strftime('%Y-%m', invoice_date) AS ym, COALESCE(SUM(invoice_amount),0) AS total
+    #        FROM supplier_invoices WHERE status != 'Cancelled' AND strftime('%Y', invoice_date) = ?
+    #        GROUP BY ym""", (str(current_year),)
+    # ).fetchall()
+    monthly_labour_cost = globals.query_db(db, 
         """SELECT strftime('%Y-%m', work_date) AS ym, COALESCE(SUM(labour_cost),0) AS total
            FROM labour_entries WHERE strftime('%Y', work_date) = ?
-           GROUP BY ym""", (str(current_year),)
-    ).fetchall()
+           GROUP BY ym""", (str(current_year),), one=False)
+    # monthly_labour_cost = db.execute(
+    #     """SELECT strftime('%Y-%m', work_date) AS ym, COALESCE(SUM(labour_cost),0) AS total
+    #        FROM labour_entries WHERE strftime('%Y', work_date) = ?
+    #        GROUP BY ym""", (str(current_year),)
+    # ).fetchall()
 
     revenue_by_month = {r["ym"]: r["total"] for r in monthly_revenue_rows if r["ym"]}
     cost_by_month = {}
