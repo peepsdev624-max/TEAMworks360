@@ -596,21 +596,6 @@ def get_db():
           auth_token = os.environ["TURSO_AUTH_TOKEN"],
         )
 
-        # Force-create the missing alert_acceptances table directly from your schema setup
-        g.db.execute("""
-        CREATE TABLE IF NOT EXISTS alert_acceptances (
-            acceptance_id  INTEGER PRIMARY KEY AUTOINCREMENT,
-            alert_key      TEXT NOT NULL UNIQUE,
-            job_number     TEXT,
-            alert_type     TEXT,
-            message        TEXT,
-            reason         TEXT NOT NULL,
-            accepted_by    TEXT,
-            accepted_date  TEXT DEFAULT (datetime('now'))
-        );
-        """)
-        g.db.commit() # Flush the table initialization straight up to Turso Cloud!
-
         # g.db = sqlite3.connect(DB_PATH, timeout=10)
         # g.db.row_factory = sqlite3.Row
         # g.db.execute("PRAGMA foreign_keys = ON")
@@ -979,16 +964,14 @@ def login():
         log_login_event(db, username, "lockout")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
 
-    user = globals.query_db(db, "SELECT * FROM users WHERE username = ?", (username,), one=True)
-    print("login full_name: " + user["full_name"])
-  
+    user = globals.query_db(db, "SELECT * FROM users WHERE username = ?", (username,), one=True)  
     # user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+
     # Always run a hash check, even for an unknown username, against a dummy
     # hash - otherwise a nonexistent-user response returns faster than a
     # wrong-password one, letting an attacker enumerate valid usernames by
     # timing alone.
     password_ok = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
-    print("login password_ok: " + str(password_ok))
     if not user or not password_ok:
         record_failed_login(throttle_key)
         log_login_event(db, username, "failure")
@@ -1180,18 +1163,22 @@ def verify_2fa():
     is_backup = bool(data.get("is_backup_code"))
     key = _totp_throttle_key()
     if is_totp_locked_out(key):
+        print("here 1: error Too many failed attempts")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
     db = get_db()
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user["totp_enabled"] or not user["totp_secret"]:
+        print("here 2: error Two-factor authentication isn't set up for this account")
         return jsonify({"error": "Two-factor authentication isn't set up for this account."}), 400
     ok = verify_backup_code(db, session["user_id"], code) if is_backup else totp.verify(user["totp_secret"], code)
     if not ok:
         record_failed_totp(key)
+        print("here 3: error That code wasn't recognised")
         return jsonify({"error": "That code wasn't recognised."}), 400
     clear_totp_attempts(key)
     session["must_verify_2fa"] = False
+    print("here 4: ok")
     return jsonify({"ok": True})
 
 
