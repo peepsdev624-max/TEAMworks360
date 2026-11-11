@@ -1163,22 +1163,18 @@ def verify_2fa():
     is_backup = bool(data.get("is_backup_code"))
     key = _totp_throttle_key()
     if is_totp_locked_out(key):
-        print("here 1: error Too many failed attempts")
         return jsonify({"error": "Too many failed attempts. Try again in a few minutes."}), 429
     db = get_db()
     user = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (session["user_id"],), one=True)  
     # user = db.execute("SELECT * FROM users WHERE user_id=?", (session["user_id"],)).fetchone()
     if not user["totp_enabled"] or not user["totp_secret"]:
-        print("here 2: error Two-factor authentication isn't set up for this account")
         return jsonify({"error": "Two-factor authentication isn't set up for this account."}), 400
     ok = verify_backup_code(db, session["user_id"], code) if is_backup else totp.verify(user["totp_secret"], code)
     if not ok:
         record_failed_totp(key)
-        print("here 3: error That code wasn't recognised")
         return jsonify({"error": "That code wasn't recognised."}), 400
     clear_totp_attempts(key)
     session["must_verify_2fa"] = False
-    print("here 4: ok")
     return jsonify({"ok": True})
 
 
@@ -1276,7 +1272,7 @@ def is_past_validity(valid_until, status):
 
 
 @app.route("/api/quotes", methods=["GET"])
-@login_required
+# @login_required
 def list_quotes():
     db = get_db()
     rows = globals.query_db(db,
