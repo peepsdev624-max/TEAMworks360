@@ -694,16 +694,15 @@ def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
-            print("here 1")
+            print("here 1: Authentication required")
             return jsonify({"error": "Authentication required"}), 401
         gate_response = _check_auth_gates()
         print(gate_response)
         if gate_response is not None:
-            print("here 2")
+            print("here 2: gate_response is not None")
             return gate_response
-        print("here 3")
+        print("here 3: fn(*args, **kwargs)")
         return fn(*args, **kwargs)
-    print("here 4")
     return wrapper
 
 
@@ -4214,18 +4213,21 @@ def fetch_latest_release():
 @app.route("/api/version")
 @login_required
 def get_version():
+    print("get_version here!")
     out = {"version": app_version.APP_VERSION, "build_date": app_version.APP_BUILD_DATE,
            "update_available": False}
     if session.get("role") == "Administrator":
         latest = fetch_latest_release()
         if latest and app_version.is_newer(latest["version"], app_version.APP_VERSION):
             out.update(update_available=True, latest_version=latest["version"], notes=latest["notes"])
+    print(out)
     return jsonify(out)
 
 
 @app.route("/api/reference")
 @login_required
 def reference():
+    print("reference here!")
     db = get_db()
     return jsonify({
         "customers": rows_to_list(globals.query_db(db, "SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name", None, one=False)),
