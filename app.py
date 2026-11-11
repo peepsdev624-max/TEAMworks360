@@ -1469,7 +1469,8 @@ def get_quote_pdf(qid):
 @login_required
 def get_rate_card():
     db = get_db()
-    rows = db.execute("SELECT * FROM rate_card ORDER BY sort_order").fetchall()
+    rows = globals.query_db(db, "SELECT * FROM rate_card ORDER BY sort_order", None, one=False)
+    # rows = db.execute("SELECT * FROM rate_card ORDER BY sort_order").fetchall()
     return jsonify(rows_to_list(rows))
 
 
