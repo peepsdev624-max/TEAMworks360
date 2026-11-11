@@ -751,30 +751,50 @@ def current_user_name():
 def compute_job_metrics(db, wo):
     wo_id = wo["works_order_id"]
 
-    revenue = db.execute(
+    revenue = globals.query_db(db, 
         "SELECT COALESCE(SUM(invoice_amount),0) FROM customer_invoices "
-        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
-    ).fetchone()[0]
+        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)[0]
 
-    supplier_invoice_total = db.execute(
+    # revenue = db.execute(
+    #     "SELECT COALESCE(SUM(invoice_amount),0) FROM customer_invoices "
+    #     "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
+    # ).fetchone()[0]
+
+    supplier_invoice_total = globals.query_db(db, 
         "SELECT COALESCE(SUM(invoice_amount),0) FROM supplier_invoices "
-        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
-    ).fetchone()[0]
+        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)[0]
 
-    labour_total = db.execute(
-        "SELECT COALESCE(SUM(labour_cost),0) FROM labour_entries WHERE works_order_id=?", (wo_id,)
-    ).fetchone()[0]
+    # supplier_invoice_total = db.execute(
+    #     "SELECT COALESCE(SUM(invoice_amount),0) FROM supplier_invoices "
+    #     "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
+    # ).fetchone()[0]
 
-    po_total = db.execute(
+    labour_total = globals.query_db(db, 
+        "SELECT COALESCE(SUM(labour_cost),0) FROM labour_entries WHERE works_order_id=?", (wo_id,), one=True)[0]
+
+    # labour_total = db.execute(
+    #     "SELECT COALESCE(SUM(labour_cost),0) FROM labour_entries WHERE works_order_id=?", (wo_id,)
+    # ).fetchone()[0]
+
+    po_total = globals.query_db(db, 
         "SELECT COALESCE(SUM(po_value),0) FROM purchase_orders "
-        "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,)
-    ).fetchone()[0]
+        "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,), one=True)[0]
 
-    stock_cost = db.execute(
+    # po_total = db.execute(
+    #     "SELECT COALESCE(SUM(po_value),0) FROM purchase_orders "
+    #     "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,)
+    # ).fetchone()[0]
+
+    stock_cost = globals.query_db(db, 
         """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
            FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id
-           WHERE sa.works_order_id=?""", (wo_id,)
-    ).fetchone()[0]
+           WHERE sa.works_order_id=?""", (wo_id,), one=True)[0]
+
+    # stock_cost = db.execute(
+    #     """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
+    #        FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id
+    #        WHERE sa.works_order_id=?""", (wo_id,)
+    # ).fetchone()[0]
 
     actual_cost = supplier_invoice_total + labour_total + stock_cost
     outstanding_commitment = max(0.0, po_total - supplier_invoice_total)
@@ -805,15 +825,23 @@ def compute_job_metrics(db, wo):
     # cancelled PO is no longer a live commitment, so it shouldn't trigger
     # a "£X exceeds PO value - approval required" alert just because a
     # non-cancelled invoice happens to still reference it.
-    over_invoiced_pos = db.execute(
+    over_invoiced_pos = globals.query_db(db, 
         """SELECT po.po_number, po.po_value, COALESCE(SUM(si.invoice_amount),0) AS invoiced
            FROM purchase_orders po
            LEFT JOIN supplier_invoices si ON si.purchase_order_id = po.purchase_order_id AND si.status != 'Cancelled'
            WHERE po.works_order_id = ? AND po.status != 'Cancelled' AND po.is_historic = 0
            GROUP BY po.purchase_order_id
            HAVING invoiced > po.po_value""",
-        (wo_id,),
-    ).fetchall()
+        (wo_id,), one=False)
+    # over_invoiced_pos = db.execute(
+    #     """SELECT po.po_number, po.po_value, COALESCE(SUM(si.invoice_amount),0) AS invoiced
+    #        FROM purchase_orders po
+    #        LEFT JOIN supplier_invoices si ON si.purchase_order_id = po.purchase_order_id AND si.status != 'Cancelled'
+    #        WHERE po.works_order_id = ? AND po.status != 'Cancelled' AND po.is_historic = 0
+    #        GROUP BY po.purchase_order_id
+    #        HAVING invoiced > po.po_value""",
+    #     (wo_id,),
+    # ).fetchall()
     for po in over_invoiced_pos:
         alerts.append({
             "level": "red", "type": "Over-Invoiced PO",
@@ -3094,13 +3122,19 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
     # Quotes still open (Draft/Sent) whose Valid Until date has passed -
     # same "needs attention" treatment as a job alert, so a stale quote
     # doesn't sit there looking current until someone happens to open it.
-    open_quotes = db.execute(
+    open_quotes = globals.query_db(db, 
         f"""SELECT q.quote_id, q.quote_number, q.valid_until, q.status, c.customer_name FROM quotes q
             LEFT JOIN customers c ON c.customer_id = q.customer_id
             WHERE q.status IN ({",".join("?" for _ in QUOTE_OPEN_STATUSES)})
               AND q.valid_until IS NOT NULL AND q.valid_until != ''""",
-        QUOTE_OPEN_STATUSES,
-    ).fetchall()
+        QUOTE_OPEN_STATUSES, one=False)
+    # open_quotes = db.execute(
+    #     f"""SELECT q.quote_id, q.quote_number, q.valid_until, q.status, c.customer_name FROM quotes q
+    #         LEFT JOIN customers c ON c.customer_id = q.customer_id
+    #         WHERE q.status IN ({",".join("?" for _ in QUOTE_OPEN_STATUSES)})
+    #           AND q.valid_until IS NOT NULL AND q.valid_until != ''""",
+    #     QUOTE_OPEN_STATUSES,
+    # ).fetchall()
     for q in open_quotes:
         if is_past_validity(q["valid_until"], q["status"]):
             msg = f"Valid until {q['valid_until'][:10]} has passed - review or re-quote before it's accepted at this price."
@@ -3262,10 +3296,13 @@ def dashboard():
     # means avoids the two ever disagreeing.
     due_month_keys = [f"{y:04d}-{m:02d}" for y, m in target_months]
 
-    total_stock_value = db.execute(
+    total_stock_value = globals.query_db(db, 
         """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
-           FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id"""
-    ).fetchone()[0]
+           FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", None, one=False)[0]
+    # total_stock_value = db.execute(
+    #     """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
+    #        FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id"""
+    # ).fetchone()[0]
 
     # --- Dashboard chart area: deliberately always "this year to date," never
     # a user-adjustable range. A dashboard is a snapshot of how things stand
