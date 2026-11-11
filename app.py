@@ -363,11 +363,14 @@ def log_document_access(db, document_type, reference):
     and login_events (sign-ins). Read via the admin-only
     /api/document-access-log endpoint. Never pruned automatically, same
     as those two."""
-    db.execute(
+    globals.query_db(db, 
         "INSERT INTO document_access_log (username, document_type, reference, ip_address) VALUES (?,?,?,?)",
-        (current_user_name(), document_type, reference, request.remote_addr),
-    )
-    db.commit()
+        (current_user_name(), document_type, reference, request.remote_addr), commit=True)
+    # db.execute(
+    #     "INSERT INTO document_access_log (username, document_type, reference, ip_address) VALUES (?,?,?,?)",
+    #     (current_user_name(), document_type, reference, request.remote_addr),
+    # )
+    # db.commit()
 
 
 # ---- Security headers on every response (defense in depth) ----
@@ -521,7 +524,8 @@ QUOTE_NUMBER_START = 3000
 
 
 def get_next_quote_number(db):
-    rows = db.execute("SELECT quote_number FROM quotes").fetchall()
+    rows = globals.query_db(db, "SELECT quote_number FROM quotes", None, one=False)
+    # rows = db.execute("SELECT quote_number FROM quotes").fetchall()
     max_n = QUOTE_NUMBER_START - 1
     for r in rows:
         m = re.search(r"(\d+)\s*$", r["quote_number"] or "")
@@ -638,11 +642,15 @@ def log_field_changes(db, table, record_id, old_row, new_values, fields, changed
         old_norm = "" if old_val is None else str(old_val)
         new_norm = "" if new_val is None else str(new_val)
         if old_norm != new_norm:
-            db.execute(
+            globals.query_db(db, 
                 """INSERT INTO audit_log (table_name, record_id, field_name, old_value, new_value, changed_by)
                    VALUES (?,?,?,?,?,?)""",
-                (table, record_id, field, old_val, new_val, changed_by),
-            )
+                (table, record_id, field, old_val, new_val, changed_by),commit=False)
+            # db.execute(
+            #     """INSERT INTO audit_log (table_name, record_id, field_name, old_value, new_value, changed_by)
+            #        VALUES (?,?,?,?,?,?)""",
+            #     (table, record_id, field, old_val, new_val, changed_by),
+            # )
 
 
 def get_audit_history(db, table, record_id):
@@ -700,17 +708,11 @@ def _check_auth_gates():
 def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        print("login_required started!")
-        print(session["user_id"])
         if "user_id" not in session:
-            print("login_required here 1: Authentication required")
             return jsonify({"error": "Authentication required"}), 401
         gate_response = _check_auth_gates()
-        print(gate_response)
         if gate_response is not None:
-            print("login_required here 2: gate_response is not None")
             return gate_response
-        print("login_required here 3: fn(*args, **kwargs)")
         return fn(*args, **kwargs)
     return wrapper
 
@@ -995,8 +997,6 @@ def login():
     session.clear()
     session.permanent = True
     session["user_id"] = user["user_id"]
-    print(user["user_id"])
-    print(session["user_id"])
     session["role"] = user["role"]
     session["full_name"] = user["full_name"]
     session["username"] = user["username"]
@@ -1319,7 +1319,7 @@ def create_quote():
     quote_number = get_next_quote_number(db)
     valid_until = data.get("valid_until") or default_valid_until(data.get("quote_date"))
     try:
-        cur = db.execute(
+        cur = globals.query_db(db, 
             """INSERT INTO quotes
                (quote_number, customer_id, description, owner, status, estimated_value, quote_date, valid_until, notes, sharepoint_url,
                 contact_name, your_ref, works_order_ref, works_order_id, scope_items, delivery_terms, created_by)
@@ -1328,8 +1328,18 @@ def create_quote():
              data.get("status", "Draft"), safe_float(data.get("estimated_value")),
              data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
              data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
-             data.get("scope_items"), data.get("delivery_terms"), current_user_name()),
-        )
+             data.get("scope_items"), data.get("delivery_terms"), current_user_name()), commit=False)
+        # cur = db.execute(
+        #     """INSERT INTO quotes
+        #        (quote_number, customer_id, description, owner, status, estimated_value, quote_date, valid_until, notes, sharepoint_url,
+        #         contact_name, your_ref, works_order_ref, works_order_id, scope_items, delivery_terms, created_by)
+        #        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        #     (quote_number, data.get("customer_id") or None, data.get("description"), data.get("owner"),
+        #      data.get("status", "Draft"), safe_float(data.get("estimated_value")),
+        #      data.get("quote_date"), valid_until, data.get("notes"), data.get("sharepoint_url"),
+        #      data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
+        #      data.get("scope_items"), data.get("delivery_terms"), current_user_name()),
+        # )
         quote_id = cur.lastrowid
 
         # Optional cost buildup from the New Quote wizard - a plain quote
@@ -1339,24 +1349,37 @@ def create_quote():
             ot_hours = safe_float(line.get("ot_hours"))
             if std_hours <= 0 and ot_hours <= 0:
                 continue  # skip rate-card rows the user left blank
-            db.execute(
+            globals.query_db(db, 
                 """INSERT INTO quote_labour_lines
                    (quote_id, category, activity, standard_rate, ot_rate, standard_hours, ot_hours)
                    VALUES (?,?,?,?,?,?,?)""",
                 (quote_id, line.get("category"), line.get("activity"),
-                 safe_float(line.get("standard_rate")), safe_float(line.get("ot_rate")), std_hours, ot_hours),
-            )
+                 safe_float(line.get("standard_rate")), safe_float(line.get("ot_rate")), std_hours, ot_hours), commit=False)
+            # db.execute(
+            #     """INSERT INTO quote_labour_lines
+            #        (quote_id, category, activity, standard_rate, ot_rate, standard_hours, ot_hours)
+            #        VALUES (?,?,?,?,?,?,?)""",
+            #     (quote_id, line.get("category"), line.get("activity"),
+            #      safe_float(line.get("standard_rate")), safe_float(line.get("ot_rate")), std_hours, ot_hours),
+            # )
         for line in data.get("purchase_lines") or []:
             if not (line.get("description") or safe_float(line.get("purchase_amount")) > 0):
                 continue  # skip fully-blank rows
-            db.execute(
+            globals.query_db(db, 
                 """INSERT INTO quote_purchase_lines
                    (quote_id, invoice_no, line_date, supplier, description, quantity, purchase_amount, sales_value)
                    VALUES (?,?,?,?,?,?,?,?)""",
                 (quote_id, line.get("invoice_no"), line.get("line_date"), line.get("supplier"),
                  line.get("description"), safe_float(line.get("quantity")),
-                 safe_float(line.get("purchase_amount")), safe_float(line.get("sales_value"))),
-            )
+                 safe_float(line.get("purchase_amount")), safe_float(line.get("sales_value"))), commit=False)
+            # db.execute(
+            #     """INSERT INTO quote_purchase_lines
+            #        (quote_id, invoice_no, line_date, supplier, description, quantity, purchase_amount, sales_value)
+            #        VALUES (?,?,?,?,?,?,?,?)""",
+            #     (quote_id, line.get("invoice_no"), line.get("line_date"), line.get("supplier"),
+            #      line.get("description"), safe_float(line.get("quantity")),
+            #      safe_float(line.get("purchase_amount")), safe_float(line.get("sales_value"))),
+            # )
         db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
@@ -1387,12 +1410,17 @@ def get_quote_cost_breakdown(qid):
 @login_required
 def get_quote_pdf(qid):
     db = get_db()
-    quote = db.execute(
+    quote = globals.query_db(db, 
         """SELECT q.*, c.customer_name, c.address AS customer_address, c.contact_name AS customer_contact_name
            FROM quotes q LEFT JOIN customers c ON c.customer_id = q.customer_id
            WHERE q.quote_id=?""",
-        (qid,),
-    ).fetchone()
+        (qid,), one=True)
+    # quote = db.execute(
+    #     """SELECT q.*, c.customer_name, c.address AS customer_address, c.contact_name AS customer_contact_name
+    #        FROM quotes q LEFT JOIN customers c ON c.customer_id = q.customer_id
+    #        WHERE q.quote_id=?""",
+    #     (qid,),
+    # ).fetchone()
     if not quote:
         return jsonify({"error": "Quote not found"}), 404
     pdf_bytes = build_quote_pdf(quote)
@@ -1417,7 +1445,8 @@ def get_rate_card():
 def update_quote(qid):
     data = request.get_json(force=True) or {}
     db = get_db()
-    old = db.execute("SELECT * FROM quotes WHERE quote_id=?", (qid,)).fetchone()
+    old = globals.query_db(db, "SELECT * FROM quotes WHERE quote_id=?", (qid,), one=True)
+    # old = db.execute("SELECT * FROM quotes WHERE quote_id=?", (qid,)).fetchone()
     valid_until = data.get("valid_until") or default_valid_until(data.get("quote_date"))
     log_field_changes(db, "quotes", qid, old,
                        {"status": data.get("status"), "estimated_value": safe_float(data.get("estimated_value"))},
@@ -1454,8 +1483,9 @@ def update_quote(qid):
 @permission_required("all")
 def delete_quote(qid):
     db = get_db()
-    db.execute("DELETE FROM quotes WHERE quote_id=?", (qid,))
-    db.commit()
+    globals.query_db(db, "DELETE FROM quotes WHERE quote_id=?", (qid,), commit=True)
+    # db.execute("DELETE FROM quotes WHERE quote_id=?", (qid,))
+    # db.commit()
     return jsonify({"ok": True})
 
 
@@ -4216,24 +4246,18 @@ def fetch_latest_release():
 @app.route("/api/version")
 @login_required
 def get_version():
-    print("get_version started!")
-    print(session["user_id"])
-    print(session.get("role"))
     out = {"version": app_version.APP_VERSION, "build_date": app_version.APP_BUILD_DATE,
            "update_available": False}
     if session.get("role") == "Administrator":
         latest = fetch_latest_release()
         if latest and app_version.is_newer(latest["version"], app_version.APP_VERSION):
             out.update(update_available=True, latest_version=latest["version"], notes=latest["notes"])
-    print(out)
     return jsonify(out)
 
 
 @app.route("/api/reference")
 @login_required
 def reference():
-    print("reference started!")
-    print(session["user_id"])
     db = get_db()
     return jsonify({
         "customers": rows_to_list(globals.query_db(db, "SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name", None, one=False)),
