@@ -8,7 +8,7 @@ def query_db(conn, query, args=(), one=False, commit=True):
     # We check if it's a select query by seeing if 'select' is at the start of the string
     if not query.strip().lower().startswith("select"):
         # Execute straight on the connection so libsql's internal sync engine tracks it!
-        conn.execute(query, args)
+        cursor = conn.execute(query, args)
         last_id = getattr(cursor, "lastrowid", None)
         if commit:
             conn.commit()  # This will now successfully sync to Turso Cloud!
