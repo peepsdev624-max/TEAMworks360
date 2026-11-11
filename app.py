@@ -693,17 +693,17 @@ def _check_auth_gates():
 def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        print("login_required here!")
+        print("login_required started!")
         print(session["user_id"])
         if "user_id" not in session:
-            print("here 1: Authentication required")
+            print("login_required here 1: Authentication required")
             return jsonify({"error": "Authentication required"}), 401
         gate_response = _check_auth_gates()
         print(gate_response)
         if gate_response is not None:
-            print("here 2: gate_response is not None")
+            print("login_required here 2: gate_response is not None")
             return gate_response
-        print("here 3: fn(*args, **kwargs)")
+        print("login_required here 3: fn(*args, **kwargs)")
         return fn(*args, **kwargs)
     return wrapper
 
@@ -1074,15 +1074,9 @@ def _pending_totp_secret(db, user):
     authenticator app. Shared by get_2fa_setup and get_2fa_setup_qr below
     so both always agree on the same secret."""
     secret = user["totp_secret"]
-    print("_pending_totp_secret secret")
-    print("secret 1: " + str(secret))
-    print(user["totp_secret"])
     if not secret:
         secret = totp.generate_secret()
-        print("secret 2: " + str(secret))
-        print(user["user_id"])
         globals.query_db(db, "UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]), commit=True)
-        print("_pending_totp_secret secret updated")
         # db.execute("UPDATE users SET totp_secret=? WHERE user_id=?", (secret, user["user_id"]))
         # db.commit()
     return secret
@@ -1099,8 +1093,6 @@ def get_2fa_setup():
     if user["totp_enabled"]:
         return jsonify({"error": "Two-factor authentication is already set up for this account."}), 400
     secret = _pending_totp_secret(db, user)
-    print("get_2fa_setup secret")
-    print("secret: " + str(secret))
     return jsonify({
         "manual_entry_key": totp.format_secret_for_display(secret),
         "otpauth_uri": totp.provisioning_uri(secret, user["username"]),
@@ -4217,7 +4209,8 @@ def fetch_latest_release():
 @app.route("/api/version")
 @login_required
 def get_version():
-    print("get_version here!")
+    print("get_version started!")
+    print(session["user_id"])
     out = {"version": app_version.APP_VERSION, "build_date": app_version.APP_BUILD_DATE,
            "update_available": False}
     if session.get("role") == "Administrator":
@@ -4231,7 +4224,8 @@ def get_version():
 @app.route("/api/reference")
 @login_required
 def reference():
-    print("reference here!")
+    print("reference started!")
+    print(session["user_id"])
     db = get_db()
     return jsonify({
         "customers": rows_to_list(globals.query_db(db, "SELECT customer_id, customer_name, contact_name, address FROM customers ORDER BY customer_name", None, one=False)),
