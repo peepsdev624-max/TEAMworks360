@@ -77,7 +77,14 @@ def load_or_create_secret_key():
 
 
 app = Flask(__name__)
-app.secret_key = load_or_create_secret_key()
+# app.secret_key = load_or_create_secret_key()
+app.secret_key = os.environ.get("SECRET_KEY", "8f9d2b4e7a1c6f3e0b5d9a8c2e4f1b7d9a3c5e8f1b2d4a6c8e0f2b4d6a8c0e2f")
+
+app.config.update(
+    SESSION_COOKIE_SECURE=True,      # Required for HTTPS (Vercel uses HTTPS)
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
 
 # Sessions expire automatically after a period of inactivity rather than
 # staying valid forever - reduces the window a stolen/left-open browser
@@ -4211,6 +4218,7 @@ def fetch_latest_release():
 def get_version():
     print("get_version started!")
     print(session["user_id"])
+    print(session.get("role"))
     out = {"version": app_version.APP_VERSION, "build_date": app_version.APP_BUILD_DATE,
            "update_available": False}
     if session.get("role") == "Administrator":
