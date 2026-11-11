@@ -9,9 +9,10 @@ def query_db(conn, query, args=(), one=False, commit=True):
     if not query.strip().lower().startswith("select"):
         # Execute straight on the connection so libsql's internal sync engine tracks it!
         conn.execute(query, args)
+        last_id = getattr(cursor, "lastrowid", None)
         if commit:
             conn.commit()  # This will now successfully sync to Turso Cloud!
-        return None
+        return last_id
 
     # 2. Handle Search Queries (SELECT) using the standard Cursor pattern
     cursor = conn.cursor()

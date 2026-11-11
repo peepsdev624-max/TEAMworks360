@@ -1352,7 +1352,7 @@ def create_quote():
     quote_number = get_next_quote_number(db)
     valid_until = data.get("valid_until") or default_valid_until(data.get("quote_date"))
     try:
-        cur = globals.query_db(db, 
+        quote_id = globals.query_db(db, 
             """INSERT INTO quotes
                (quote_number, customer_id, description, owner, status, estimated_value, quote_date, valid_until, notes, sharepoint_url,
                 contact_name, your_ref, works_order_ref, works_order_id, scope_items, delivery_terms, created_by)
@@ -1373,7 +1373,7 @@ def create_quote():
         #      data.get("contact_name"), data.get("your_ref"), data.get("works_order_ref"), data.get("works_order_id") or None,
         #      data.get("scope_items"), data.get("delivery_terms"), current_user_name()),
         # )
-        quote_id = cur.lastrowid
+        # quote_id = cur.lastrowid
 
         # Optional cost buildup from the New Quote wizard - a plain quote
         # created without these fields behaves exactly as before.
@@ -1416,7 +1416,7 @@ def create_quote():
         db.commit()
     except sqlite3.IntegrityError as e:
         return jsonify({"error": str(e)}), 400
-    return jsonify({"quote_id": cur.lastrowid, "quote_number": quote_number}), 201
+    return jsonify({"quote_id": quote_id, "quote_number": quote_number}), 201
 
 
 @app.route("/api/quotes/<int:qid>/cost-breakdown")
