@@ -751,44 +751,49 @@ def current_user_name():
 def compute_job_metrics(db, wo):
     wo_id = wo["works_order_id"]
 
-    revenue = globals.query_db(db, 
-        "SELECT COALESCE(SUM(invoice_amount),0) FROM customer_invoices "
-        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)[0]
+    rev_row = globals.query_db(db, 
+        "SELECT COALESCE(SUM(invoice_amount),0) AS total FROM customer_invoices "
+        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)
+    revenue = rev_row['total'] if rev_row else 0
 
     # revenue = db.execute(
     #     "SELECT COALESCE(SUM(invoice_amount),0) FROM customer_invoices "
     #     "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
     # ).fetchone()[0]
 
-    supplier_invoice_total = globals.query_db(db, 
-        "SELECT COALESCE(SUM(invoice_amount),0) FROM supplier_invoices "
-        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)[0]
+    sup_row = globals.query_db(db, 
+        "SELECT COALESCE(SUM(invoice_amount),0) AS total FROM supplier_invoices "
+        "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,), one=True)
+    supplier_invoice_total = sup_row['total'] if sup_row else 0
 
     # supplier_invoice_total = db.execute(
     #     "SELECT COALESCE(SUM(invoice_amount),0) FROM supplier_invoices "
     #     "WHERE works_order_id=? AND status != 'Cancelled'", (wo_id,)
     # ).fetchone()[0]
 
-    labour_total = globals.query_db(db, 
-        "SELECT COALESCE(SUM(labour_cost),0) FROM labour_entries WHERE works_order_id=?", (wo_id,), one=True)[0]
+    lab_row = globals.query_db(db, 
+        "SELECT COALESCE(SUM(labour_cost),0) AS total FROM labour_entries WHERE works_order_id=?", (wo_id,), one=True)
+    labour_total = lab_row['total'] if lab_row else 0
 
     # labour_total = db.execute(
     #     "SELECT COALESCE(SUM(labour_cost),0) FROM labour_entries WHERE works_order_id=?", (wo_id,)
     # ).fetchone()[0]
 
-    po_total = globals.query_db(db, 
-        "SELECT COALESCE(SUM(po_value),0) FROM purchase_orders "
-        "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,), one=True)[0]
+    po_row = globals.query_db(db, 
+        "SELECT COALESCE(SUM(po_value),0) AS total FROM purchase_orders "
+        "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,), one=True)
+    po_total = po_row['total'] if po_row else 0
 
     # po_total = db.execute(
     #     "SELECT COALESCE(SUM(po_value),0) FROM purchase_orders "
     #     "WHERE works_order_id=? AND status != 'Cancelled' AND is_historic=0", (wo_id,)
     # ).fetchone()[0]
 
-    stock_cost = globals.query_db(db, 
-        """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
-           FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id
-           WHERE sa.works_order_id=?""", (wo_id,), one=True)[0]
+    sto_row = globals.query_db(db, 
+        """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0) AS total
+            FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id
+            WHERE sa.works_order_id=?""", (wo_id,), one=True)
+    stock_cost = sto_row['total'] if sto_row else 0
 
     # stock_cost = db.execute(
     #     """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
@@ -3296,9 +3301,10 @@ def dashboard():
     # means avoids the two ever disagreeing.
     due_month_keys = [f"{y:04d}-{m:02d}" for y, m in target_months]
 
-    total_stock_value = globals.query_db(db, 
+    stock_row = globals.query_db(db, 
         """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
-           FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", None, one=False)[0]
+            FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", None, one=False)
+    total_stock_value = stock_row['total'] if stock_row else 0
     # total_stock_value = db.execute(
     #     """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
     #        FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id"""
@@ -3978,7 +3984,8 @@ def update_user(uid):
 @permission_required("all")
 def delete_user(uid):
     db = get_db()
-    target = db.execute("SELECT * FROM users WHERE user_id=?", (uid,)).fetchone()
+    target = globals.query_db(db, "SELECT * FROM users WHERE user_id=?", (uid,), one=True)
+    # target = db.execute("SELECT * FROM users WHERE user_id=?", (uid,)).fetchone()
     if not target:
         return jsonify({"error": "User not found"}), 404
     if target["role"] == "Administrator":
