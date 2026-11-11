@@ -693,6 +693,8 @@ def _check_auth_gates():
 def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        print("login_required here!")
+        print(session["user_id"])
         if "user_id" not in session:
             print("here 1: Authentication required")
             return jsonify({"error": "Authentication required"}), 401
@@ -986,6 +988,8 @@ def login():
     session.clear()
     session.permanent = True
     session["user_id"] = user["user_id"]
+    print(user["user_id"])
+    print(session["user_id"])
     session["role"] = user["role"]
     session["full_name"] = user["full_name"]
     session["username"] = user["username"]
