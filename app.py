@@ -694,11 +694,16 @@ def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
+            print("here 1")
             return jsonify({"error": "Authentication required"}), 401
         gate_response = _check_auth_gates()
+        print(gate_response)
         if gate_response is not None:
+            print("here 2")
             return gate_response
+        print("here 3")
         return fn(*args, **kwargs)
+    print("here 4")
     return wrapper
 
 
@@ -1272,7 +1277,7 @@ def is_past_validity(valid_until, status):
 
 
 @app.route("/api/quotes", methods=["GET"])
-# @login_required
+@login_required
 def list_quotes():
     db = get_db()
     rows = globals.query_db(db,
