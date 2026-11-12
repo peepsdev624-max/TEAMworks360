@@ -18,8 +18,10 @@ from datetime import datetime, timedelta, date
 import calendar
 from functools import wraps
 
-from flask import (Flask, g, jsonify, request, session, send_from_directory,
+from io import BytesIO
+from flask import (Flask, g, jsonify, request, session, send_from_directory, send_file,
                     Response, render_template, has_request_context)
+from vercel.blob import sync as blob
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from quote_pdf import build_quote_pdf
@@ -2075,19 +2077,10 @@ def delete_purchase_order(pid):
 # retroactively via POST /api/goods-in/<gid>/documents, but existing
 # records are never forced to gain one just to stay editable.
 # --------------------------------------------------------------------------
-def _goods_in_doc_path(stored_filename):
-    return os.path.join(db_location.GOODS_IN_DOCS_DIR, stored_filename)
-
-
 def save_goods_in_documents(db, goods_in_id, files):
-    """Validates and saves one or more uploaded files as documents against
-    an existing (already INSERTed, not yet committed) goods_in row. Returns
-    None on success or an (error_message, status_code) tuple on the first
-    problem found - file-type/count checks run before anything touches disk
-    or the database, and if saving itself fails partway through (e.g. a
-    full disk), every file this call wrote is removed again and the
-    exception re-raised so the caller's transaction can be rolled back
-    rather than left half-applied."""
+    """Validates and uploads one or more files to Private Vercel Blob storage
+    against an existing goods_in row. If uploading or saving fails partway
+    through, any blobs already uploaded in this batch are deleted cleanly."""
     files = [f for f in (files or []) if f and f.filename]
     if not files:
         return ("A goods received document (e.g. a delivery note, packing slip, or "
@@ -2098,35 +2091,40 @@ def save_goods_in_documents(db, goods_in_id, files):
         ext = os.path.splitext(f.filename)[1].lower()
         if ext not in GOODS_IN_ALLOWED_EXTENSIONS:
             return (f"'{f.filename}' isn't an accepted file type. Allowed: "
-                     f"{', '.join(sorted(GOODS_IN_ALLOWED_EXTENSIONS))}.", 400)
+                    f"{', '.join(sorted(GOODS_IN_ALLOWED_EXTENSIONS))}.", 400)
 
-    saved_paths = []
+    uploaded_urls = []
     try:
         for f in files:
             original_name = secure_filename(f.filename) or "document"
             ext = os.path.splitext(original_name)[1].lower()
-            stored_name = f"{secrets.token_hex(16)}{ext}"
-            dest = _goods_in_doc_path(stored_name)
-            f.save(dest)
-            saved_paths.append(dest)
-            try:
-                size = os.path.getsize(dest)
-            except OSError:
-                size = None
-            db.execute(
+            blob_pathname = f"goods-in/{secrets.token_hex(16)}{ext}"
+            
+            file_bytes = f.read()
+            size = len(file_bytes)
+            
+            # Upload to Private Vercel Blob store
+            result = blob.put_blob(
+                blob_pathname,
+                file_bytes,
+                access="private",
+                content_type=f.mimetype or "application/octet-stream"
+            )
+            uploaded_urls.append(result.url)
+            
+            # Store the full Blob URL in the stored_filename column
+            globals.query_db(db,
                 """INSERT INTO goods_in_documents
                        (goods_in_id, original_filename, stored_filename, content_type, file_size, uploaded_by)
                    VALUES (?,?,?,?,?,?)""",
-                (goods_in_id, original_name, stored_name, f.mimetype, size, current_user_name()),
-            )
+                (goods_in_id, original_name, result.url, f.mimetype, size, current_user_name()), commit=False)
     except Exception:
-        for p in saved_paths:
+        for url in uploaded_urls:
             try:
-                os.remove(p)
-            except OSError:
+                blob.delete_blob(url)
+            except Exception:
                 pass
         raise
-    db_location.harden_file_permissions()
     return None
 
 
@@ -2134,7 +2132,7 @@ def save_goods_in_documents(db, goods_in_id, files):
 @login_required
 def list_goods_in():
     db = get_db()
-    rows = db.execute(
+    rows = globals.query_db(db,
         """SELECT gi.*, po.po_number, po.description AS po_description, s.supplier_name,
                   wo.job_number, sta.label AS ship_to_label,
                   (SELECT COUNT(*) FROM goods_in_documents d WHERE d.goods_in_id = gi.goods_in_id) AS document_count
@@ -2143,44 +2141,51 @@ def list_goods_in():
            JOIN suppliers s ON s.supplier_id = po.supplier_id
            LEFT JOIN works_orders wo ON wo.works_order_id = po.works_order_id
            LEFT JOIN ship_to_addresses sta ON sta.ship_to_id = gi.ship_to_id
-           ORDER BY gi.received_date DESC, gi.goods_in_id DESC"""
-    ).fetchall()
-    return jsonify(rows_to_list(rows))
+           ORDER BY gi.received_date DESC, gi.goods_in_id DESC""", one=False)
+    return jsonify(rows)
 
 
 @app.route("/api/goods-in/<int:gid>/documents", methods=["GET"])
 @login_required
 def list_goods_in_documents(gid):
     db = get_db()
-    rows = db.execute(
+    rows = globals.query_db(db,
         """SELECT document_id, original_filename, content_type, file_size, uploaded_by, uploaded_date
            FROM goods_in_documents WHERE goods_in_id=? ORDER BY uploaded_date, document_id""",
-        (gid,),
-    ).fetchall()
-    return jsonify(rows_to_list(rows))
+        (gid,), one=False)
+    return jsonify(rows)
 
 
 @app.route("/api/goods-in/documents/<int:doc_id>/download")
 @login_required
 def download_goods_in_document(doc_id):
     db = get_db()
-    doc = db.execute(
+    doc = globals.query_db(db,
         """SELECT d.*, gi.purchase_order_id, po.po_number
            FROM goods_in_documents d
            JOIN goods_in gi ON gi.goods_in_id = d.goods_in_id
            JOIN purchase_orders po ON po.purchase_order_id = gi.purchase_order_id
            WHERE d.document_id=?""",
-        (doc_id,),
-    ).fetchone()
+        (doc_id,), one=True)
     if not doc:
         return jsonify({"error": "Document not found"}), 404
-    if not os.path.exists(_goods_in_doc_path(doc["stored_filename"])):
-        return jsonify({"error": "That document's file is missing from storage - it may have been removed "
-                                  "outside the app. Contact an Administrator."}), 404
+        
+    blob_url = doc["stored_filename"]
+    if not blob_url or not blob_url.startswith("https://"):
+        return jsonify({"error": "That document's file is missing from cloud storage."}), 404
+        
+    try:
+        blob_data = blob.get_blob(blob_url, access="private")
+    except Exception:
+        return jsonify({"error": "Could not retrieve document from storage - it may have been removed."}), 404
+
     log_document_access(db, "Goods In document", f"{doc['po_number']} - {doc['original_filename']}")
-    return send_from_directory(
-        db_location.GOODS_IN_DOCS_DIR, doc["stored_filename"],
-        mimetype=doc["content_type"] or None, as_attachment=True, download_name=doc["original_filename"],
+    
+    return send_file(
+        BytesIO(blob_data.body),
+        mimetype=doc["content_type"] or blob_data.metadata.content_type or "application/octet-stream",
+        as_attachment=True,
+        download_name=doc["original_filename"],
     )
 
 
@@ -2188,8 +2193,10 @@ def download_goods_in_document(doc_id):
 @permission_required("goods_in:write")
 def add_goods_in_documents(gid):
     db = get_db()
-    if not db.execute("SELECT 1 FROM goods_in WHERE goods_in_id=?", (gid,)).fetchone():
+    exists = globals.query_db(db, "SELECT 1 AS found FROM goods_in WHERE goods_in_id=?", (gid,), one=True)
+    if not exists:
         return jsonify({"error": "Goods In record not found"}), 404
+        
     err = save_goods_in_documents(db, gid, request.files.getlist("documents"))
     if err:
         db.rollback()
@@ -2201,26 +2208,29 @@ def add_goods_in_documents(gid):
 @app.route("/api/goods-in/documents/<int:doc_id>", methods=["DELETE"])
 @permission_required("all")
 def delete_goods_in_document(doc_id):
-    """Administrator-only: lets a wrongly-attached document be removed
-    (e.g. the wrong file was picked), but never the last one on a record -
-    every Goods In record must keep at least one, so correcting a mistake
-    always means uploading the right file before removing the wrong one."""
+    """Administrator-only: lets a wrongly-attached document be removed,
+    but never the last one on a record."""
     db = get_db()
-    doc = db.execute("SELECT * FROM goods_in_documents WHERE document_id=?", (doc_id,)).fetchone()
+    doc = globals.query_db(db, "SELECT * FROM goods_in_documents WHERE document_id=?", (doc_id,), one=True)
     if not doc:
         return jsonify({"error": "Document not found"}), 404
-    remaining = db.execute(
-        "SELECT COUNT(*) AS n FROM goods_in_documents WHERE goods_in_id=?", (doc["goods_in_id"],)
-    ).fetchone()["n"]
+        
+    count_row = globals.query_db(db,
+        "SELECT COUNT(*) AS n FROM goods_in_documents WHERE goods_in_id=?", 
+        (doc["goods_in_id"],), one=True)
+    remaining = count_row["n"] if count_row else 0
     if remaining <= 1:
         return jsonify({"error": "This is the only document on this Goods In record - upload a replacement "
                                   "before removing it."}), 400
-    db.execute("DELETE FROM goods_in_documents WHERE document_id=?", (doc_id,))
-    db.commit()
-    try:
-        os.remove(_goods_in_doc_path(doc["stored_filename"]))
-    except OSError:
-        pass
+                                  
+    globals.query_db(db, "DELETE FROM goods_in_documents WHERE document_id=?", (doc_id,), commit=True)
+    
+    blob_url = doc["stored_filename"]
+    if blob_url and blob_url.startswith("https://"):
+        try:
+            blob.delete_blob(blob_url)
+        except Exception:
+            pass
     return jsonify({"ok": True})
 
 
@@ -2236,8 +2246,9 @@ def create_goods_in():
         return jsonify({"error": "Choose a site for stock deliveries"}), 400
     if not data.get("received_by"):
         return jsonify({"error": "Name of person accepting goods is required"}), 400
+        
     db = get_db()
-    cur = db.execute(
+    gid = globals.query_db(db,
         """INSERT INTO goods_in (purchase_order_id, destination_type, ship_to_id, received_date,
               quantity_status, quantity_received, received_by, comment)
            VALUES (?,?,?,?,?,?,?,?)""",
@@ -2245,60 +2256,13 @@ def create_goods_in():
          safe_int(data.get("ship_to_id")) if data.get("destination_type") == "Stock" else None,
          data.get("received_date"), data.get("quantity_status"),
          safe_float(data.get("quantity_received"), None),
-         data.get("received_by"), data.get("comment")),
-    )
-    gid = cur.lastrowid
+         data.get("received_by"), data.get("comment")), commit=False)
     err = save_goods_in_documents(db, gid, request.files.getlist("documents"))
     if err:
         db.rollback()
         return jsonify({"error": err[0]}), err[1]
     db.commit()
     return jsonify({"goods_in_id": gid}), 201
-
-
-@app.route("/api/goods-in/<int:gid>", methods=["PUT"])
-@permission_required("goods_in:write")
-def update_goods_in(gid):
-    data = request.get_json(force=True) or {}
-    if data.get("destination_type") not in ("Works Order", "Stock"):
-        return jsonify({"error": "Destination must be 'Works Order' or 'Stock'"}), 400
-    if data.get("destination_type") == "Stock" and not data.get("ship_to_id"):
-        return jsonify({"error": "Choose a site for stock deliveries"}), 400
-    db = get_db()
-    globals.query_db(db,
-        """UPDATE goods_in SET purchase_order_id=?, destination_type=?, ship_to_id=?, received_date=?,
-              quantity_status=?, quantity_received=?, received_by=?, comment=? WHERE goods_in_id=?""",
-        (data.get("purchase_order_id"), data.get("destination_type"),
-         data.get("ship_to_id") if data.get("destination_type") == "Stock" else None,
-         data.get("received_date"), data.get("quantity_status"),
-         safe_float(data.get("quantity_received"), None),
-         data.get("received_by"), data.get("comment"), gid), commit=True)
-    # db.execute(
-    #     """UPDATE goods_in SET purchase_order_id=?, destination_type=?, ship_to_id=?, received_date=?,
-    #           quantity_status=?, quantity_received=?, received_by=?, comment=? WHERE goods_in_id=?""",
-    #     (data.get("purchase_order_id"), data.get("destination_type"),
-    #      data.get("ship_to_id") if data.get("destination_type") == "Stock" else None,
-    #      data.get("received_date"), data.get("quantity_status"),
-    #      safe_float(data.get("quantity_received"), None),
-    #      data.get("received_by"), data.get("comment"), gid),
-    # )
-    # db.commit()
-    return jsonify({"ok": True})
-
-
-@app.route("/api/goods-in/<int:gid>", methods=["DELETE"])
-@permission_required("all")
-def delete_goods_in(gid):
-    db = get_db()
-    docs = db.execute("SELECT stored_filename FROM goods_in_documents WHERE goods_in_id=?", (gid,)).fetchall()
-    db.execute("DELETE FROM goods_in WHERE goods_in_id=?", (gid,))
-    db.commit()
-    for d in docs:
-        try:
-            os.remove(_goods_in_doc_path(d["stored_filename"]))
-        except OSError:
-            pass
-    return jsonify({"ok": True})
 
 
 # --------------------------------------------------------------------------
