@@ -544,7 +544,8 @@ DESPATCH_NUMBER_START = 4000
 
 
 def get_next_despatch_number(db):
-    rows = db.execute("SELECT despatch_number FROM despatch_notes").fetchall()
+    rows = globals.query_db(db, "SELECT despatch_number FROM despatch_notes", None, one=False)
+    # rows = db.execute("SELECT despatch_number FROM despatch_notes").fetchall()
     max_n = DESPATCH_NUMBER_START - 1
     for r in rows:
         m = re.search(r"(\d+)\s*$", r["despatch_number"] or "")
@@ -567,7 +568,7 @@ PO_NUMBER_START = 3000
 def _next_plain_number(db, table, column, prefix, start):
     pattern = re.compile(r"^" + re.escape(prefix) + r"(\d+)$")
     max_n = start - 1
-    for r in db.execute(f"SELECT {column} FROM {table}").fetchall():
+    for r in globals.query_db(db, f"SELECT {column} FROM {table}", None, one=False):
         m = pattern.match((r[column] or "").strip())
         if m:
             max_n = max(max_n, int(m.group(1)))
@@ -1849,15 +1850,25 @@ def delete_works_order(wid):
         db.rollback()
         return jsonify({"error": f"This works order is still linked to other records and could not be deleted ({e})."}), 400
     for fn in files_goods:
-        try:
-            os.remove(_goods_in_doc_path(fn))
-        except OSError:
-            pass
+        if fn and fn.startswith("https://"):
+            try:
+                blob.delete_blob(fn)
+            except Exception:
+                pass
+        # try:
+        #     os.remove(_goods_in_doc_path(fn))
+        # except OSError:
+        #     pass
     for fn in files_sigs:
-        try:
-            os.remove(_despatch_signature_path(fn))
-        except OSError:
-            pass
+        if fn and fn.startswith("https://"):
+            try:
+                blob.delete_blob(fn)
+            except Exception:
+                pass
+        # try:
+        #     os.remove(_despatch_signature_path(fn))
+        # except OSError:
+        #     pass
     return jsonify({"ok": True})
 
 
@@ -2271,26 +2282,26 @@ def create_goods_in():
 # printable PDF built on the same branding as Quotes and Purchase Orders.
 # --------------------------------------------------------------------------
 def despatch_note_lines(db, did):
-    rows = db.execute(
-        "SELECT * FROM despatch_note_lines WHERE despatch_note_id=? ORDER BY line_id", (did,)
-    ).fetchall()
-    return rows_to_list(rows)
+    return globals.query_db(
+        db,
+        "SELECT * FROM despatch_note_lines WHERE despatch_note_id=? ORDER BY line_id",
+        (did,),
+        one=False
+    )
 
 
 def save_despatch_note_lines(db, did, lines):
     """Replace-all, mirroring save_purchase_order_lines - deletes any
     existing lines for this despatch note and inserts the new set."""
-    db.execute("DELETE FROM despatch_note_lines WHERE despatch_note_id=?", (did,))
+    globals.query_db(db, "DELETE FROM despatch_note_lines WHERE despatch_note_id=?", (did,), commit=False)
     for ln in lines or []:
         qty = safe_float(ln.get("qty"), 1) or 1
-        db.execute(
+        globals.query_db(
+            db,
             "INSERT INTO despatch_note_lines (despatch_note_id, qty, part_number, description) VALUES (?,?,?,?)",
             (did, qty, ln.get("part_number"), ln.get("description")),
+            commit=False
         )
-
-
-def _despatch_signature_path(stored_filename):
-    return os.path.join(db_location.SIGNATURES_DIR, stored_filename)
 
 
 # A signature pad PNG at a sensible on-screen size comes to a few tens of KB;
@@ -2304,14 +2315,15 @@ MAX_SIGNATURE_BYTES = 2 * 1024 * 1024
 @login_required
 def list_despatch_notes():
     db = get_db()
-    rows = db.execute(
+    result = globals.query_db(
+        db,
         """SELECT dn.*, wo.job_number, wo.job_name, c.customer_name
            FROM despatch_notes dn
            JOIN works_orders wo ON wo.works_order_id = dn.works_order_id
            JOIN customers c ON c.customer_id = wo.customer_id
-           ORDER BY dn.despatch_date DESC, dn.despatch_note_id DESC"""
-    ).fetchall()
-    result = rows_to_list(rows)
+           ORDER BY dn.despatch_date DESC, dn.despatch_note_id DESC""",
+        one=False
+    )
     for r in result:
         r["lines"] = despatch_note_lines(db, r["despatch_note_id"])
     return jsonify(result)
@@ -2329,23 +2341,21 @@ def next_despatch_number():
 def create_despatch_note():
     data = request.get_json(force=True) or {}
     db = get_db()
-    # Server-assigned, same reasoning as quote numbers: always generated
-    # here, never taken from the request, so it stays a reliable, gapless
-    # sequence regardless of what a client sends.
     despatch_number = get_next_despatch_number(db)
     try:
-        cur = db.execute(
+        did = globals.query_db(
+            db,
             """INSERT INTO despatch_notes (despatch_number, works_order_id, despatch_date, delivery_address,
                   carrier, despatched_by, notes, status, created_by, created_date)
                VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))""",
             (despatch_number, data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"),
              data.get("carrier"), data.get("despatched_by"), data.get("notes"), data.get("status", "Draft"),
              current_user_name()),
+            commit=False
         )
-        did = cur.lastrowid
         save_despatch_note_lines(db, did, data.get("lines") or [])
         db.commit()
-    except sqlite3.IntegrityError as e:
+    except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 400
     return jsonify({"despatch_note_id": did}), 201
@@ -2356,26 +2366,22 @@ def create_despatch_note():
 def update_despatch_note(did):
     data = request.get_json(force=True) or {}
     db = get_db()
-    old = db.execute("SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
+    old = globals.query_db(db, "SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,), one=True)
     log_field_changes(db, "despatch_notes", did, old, {"status": data.get("status")}, ["status"], current_user_name())
     try:
-        globals.query_db(db,
+        globals.query_db(
+            db,
             """UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
                despatched_by=?, notes=?, status=?, updated_by=?, updated_date=datetime('now')
                WHERE despatch_note_id=?""",
             (data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"), data.get("carrier"),
-             data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did), commit=False)
-        # db.execute(
-        #     """UPDATE despatch_notes SET works_order_id=?, despatch_date=?, delivery_address=?, carrier=?,
-        #        despatched_by=?, notes=?, status=?, updated_by=?, updated_date=datetime('now')
-        #        WHERE despatch_note_id=?""",
-        #     (data.get("works_order_id"), data.get("despatch_date"), data.get("delivery_address"), data.get("carrier"),
-        #      data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did),
-        # )
+             data.get("despatched_by"), data.get("notes"), data.get("status"), current_user_name(), did),
+            commit=False
+        )
         if data.get("lines") is not None:
             save_despatch_note_lines(db, did, data.get("lines"))
         db.commit()
-    except sqlite3.IntegrityError as e:
+    except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 400
     return jsonify({"ok": True})
@@ -2385,22 +2391,29 @@ def update_despatch_note(did):
 @login_required
 def get_despatch_note_pdf(did):
     db = get_db()
-    dn = db.execute(
+    dn = globals.query_db(
+        db,
         """SELECT dn.*, wo.job_number, c.customer_name
            FROM despatch_notes dn
            JOIN works_orders wo ON wo.works_order_id = dn.works_order_id
            JOIN customers c ON c.customer_id = wo.customer_id
            WHERE dn.despatch_note_id=?""",
         (did,),
-    ).fetchone()
+        one=True
+    )
     if not dn:
         return jsonify({"error": "Despatch Note not found"}), 404
     lines = despatch_note_lines(db, did)
+    
     signature_path = None
-    if dn["signature_filename"]:
-        candidate = _despatch_signature_path(dn["signature_filename"])
-        if os.path.exists(candidate):
-            signature_path = candidate
+    sig_url = dn.get("signature_filename")
+    if sig_url and sig_url.startswith("https://"):
+        try:
+            blob_data = blob.get_blob(sig_url, access="private")
+            signature_path = BytesIO(blob_data.body)
+        except Exception:
+            signature_path = None
+            
     pdf_bytes = build_despatch_pdf(dn, lines, signature_path=signature_path)
     log_document_access(db, "Despatch Note PDF", dn["despatch_number"])
     return Response(
@@ -2420,7 +2433,7 @@ def sign_despatch_note(did):
     signing again (e.g. a mis-drawn signature) simply replaces whatever
     was captured before rather than keeping both."""
     db = get_db()
-    dn = db.execute("SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
+    dn = globals.query_db(db, "SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,), one=True)
     if not dn:
         return jsonify({"error": "Despatch Note not found"}), 404
     if dn["status"] != "Despatched":
@@ -2446,28 +2459,38 @@ def sign_despatch_note(did):
     if not png_bytes or len(png_bytes) > MAX_SIGNATURE_BYTES:
         return jsonify({"error": "The signature image was empty or too large."}), 400
 
-    old_filename = dn["signature_filename"]
-    stored_name = f"{secrets.token_hex(16)}.png"
-    dest = _despatch_signature_path(stored_name)
-    with open(dest, "wb") as f:
-        f.write(png_bytes)
+    old_url = dn.get("signature_filename")
+    blob_pathname = f"signatures/{secrets.token_hex(16)}.png"
+    
+    # Upload PNG directly to Private Vercel Blob store
+    result = blob.put_blob(
+        blob_pathname,
+        png_bytes,
+        access="private",
+        content_type="image/png"
+    )
 
-    globals.query_db(db,
-        """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
-           signature_captured_by=? WHERE despatch_note_id=?""",
-        (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did), commit=True)
-    # db.execute(
-    #     """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
-    #        signature_captured_by=? WHERE despatch_note_id=?""",
-    #     (stored_name, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did),
-    # )
-    # db.commit()
-    db_location.harden_file_permissions()
-
-    if old_filename:
+    try:
+        globals.query_db(
+            db,
+            """UPDATE despatch_notes SET signature_filename=?, signature_name=?, signature_date=?,
+               signature_captured_by=? WHERE despatch_note_id=?""",
+            (result.url, name, data.get("date") or datetime.now().strftime("%Y-%m-%d"), current_user_name(), did),
+            commit=True
+        )
+    except Exception:
+        # Clean up the new blob if the database update fails
         try:
-            os.remove(_despatch_signature_path(old_filename))
-        except OSError:
+            blob.delete_blob(result.url)
+        except Exception:
+            pass
+        raise
+
+    # Delete the previous signature blob from Vercel if re-signing
+    if old_url and old_url.startswith("https://"):
+        try:
+            blob.delete_blob(old_url)
+        except Exception:
             pass
 
     return jsonify({"ok": True})
@@ -2477,27 +2500,43 @@ def sign_despatch_note(did):
 @login_required
 def get_despatch_note_signature(did):
     db = get_db()
-    dn = db.execute("SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
-    if not dn or not dn["signature_filename"]:
+    dn = globals.query_db(db, "SELECT * FROM despatch_notes WHERE despatch_note_id=?", (did,), one=True)
+    if not dn or not dn.get("signature_filename"):
         return jsonify({"error": "No signature has been captured for this Despatch Note"}), 404
-    if not os.path.exists(_despatch_signature_path(dn["signature_filename"])):
-        return jsonify({"error": "That signature's file is missing from storage - it may have been removed "
+        
+    sig_url = dn["signature_filename"]
+    if not sig_url.startswith("https://"):
+        return jsonify({"error": "That signature's file is missing from cloud storage - it may have been removed "
                                    "outside the app. Contact an Administrator."}), 404
+                                   
+    try:
+        blob_data = blob.get_blob(sig_url, access="private")
+    except Exception:
+        return jsonify({"error": "That signature's file is missing from cloud storage - it may have been removed "
+                                   "outside the app. Contact an Administrator."}), 404
+
     log_document_access(db, "Despatch Note Signature", dn["despatch_number"])
-    return send_from_directory(db_location.SIGNATURES_DIR, dn["signature_filename"], mimetype="image/png")
+    return send_file(
+        BytesIO(blob_data.body),
+        mimetype="image/png",
+        as_attachment=False,
+        download_name=f"{dn['despatch_number']}-signature.png"
+    )
 
 
 @app.route("/api/despatch-notes/<int:did>", methods=["DELETE"])
 @permission_required("all")
 def delete_despatch_note(did):
     db = get_db()
-    dn = db.execute("SELECT signature_filename FROM despatch_notes WHERE despatch_note_id=?", (did,)).fetchone()
-    db.execute("DELETE FROM despatch_notes WHERE despatch_note_id=?", (did,))
-    db.commit()
-    if dn and dn["signature_filename"]:
+    dn = globals.query_db(db, "SELECT signature_filename FROM despatch_notes WHERE despatch_note_id=?", (did,), one=True)
+    globals.query_db(db, "DELETE FROM despatch_note_lines WHERE despatch_note_id=?", (did,), commit=False)
+    globals.query_db(db, "DELETE FROM despatch_notes WHERE despatch_note_id=?", (did,), commit=True)
+    
+    sig_url = dn.get("signature_filename") if dn else None
+    if sig_url and sig_url.startswith("https://"):
         try:
-            os.remove(_despatch_signature_path(dn["signature_filename"]))
-        except OSError:
+            blob.delete_blob(sig_url)
+        except Exception:
             pass
     return jsonify({"ok": True})
 
@@ -4064,10 +4103,15 @@ def reset_job_data():
     db.commit()
 
     for stored_name in doc_files:
-        try:
-            os.remove(_goods_in_doc_path(stored_name))
-        except OSError:
-            pass
+        if stored_name and stored_name.startswith("https://"):
+            try:
+                blob.delete_blob(stored_name)
+            except Exception:
+                pass
+        # try:
+        #     os.remove(_goods_in_doc_path(stored_name))
+        # except OSError:
+        #     pass
 
     return jsonify({"ok": True, "deleted": counts})
 
