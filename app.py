@@ -2996,7 +2996,7 @@ def dashboard():
     due_month_keys = [f"{y:04d}-{m:02d}" for y, m in target_months]
 
     stock_row = globals.query_db(db, 
-        """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0)
+        """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0) AS total
             FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", one=False)
     total_stock_value = stock_row['total'] if stock_row else 0
 
