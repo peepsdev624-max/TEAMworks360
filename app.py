@@ -1713,7 +1713,7 @@ def save_purchase_order_lines(db, pid, lines):
 @login_required
 def list_purchase_orders():
     db = get_db()
-    rows = globals.query_db(db, 
+    rows = globals.query_db(db,
         """SELECT po.*, s.supplier_name, wo.job_number, wo.job_name, sta.label AS ship_to_label,
                   COALESCE((SELECT SUM(invoice_amount) FROM supplier_invoices si
                             WHERE si.purchase_order_id = po.purchase_order_id AND si.status != 'Cancelled'), 0) AS invoiced_total
@@ -1722,12 +1722,19 @@ def list_purchase_orders():
            LEFT JOIN works_orders wo ON wo.works_order_id = po.works_order_id
            LEFT JOIN ship_to_addresses sta ON sta.ship_to_id = po.ship_to_id
            ORDER BY po.order_date DESC""", one=False)
+
+    # Fetch ALL purchase order lines in ONE query instead of one per PO
+    all_lines = globals.query_db(db,
+        "SELECT * FROM purchase_order_lines ORDER BY purchase_order_id, line_id", one=False)
+    lines_by_po = {}
+    for ln in all_lines:
+        lines_by_po.setdefault(ln["purchase_order_id"], []).append(ln)
+
     # Highest PO number at the top (PO-3302 above PO-3301).
     rows = sorted(rows, key=lambda r: (number_sort_key(r["po_number"]), r["purchase_order_id"]), reverse=True)
-    result = rows_to_list(rows)
-    for r in result:
-        r["lines"] = purchase_order_lines(db, r["purchase_order_id"])
-    return jsonify(result)
+    for r in rows:
+        r["lines"] = lines_by_po.get(r["purchase_order_id"], [])
+    return jsonify(rows)
 
 
 @app.route("/api/purchase-orders/next-number")
@@ -2094,6 +2101,8 @@ MAX_SIGNATURE_BYTES = 2 * 1024 * 1024
 
 @app.route("/api/despatch-notes", methods=["GET"])
 @login_required
+@app.route("/api/despatch-notes", methods=["GET"])
+@login_required
 def list_despatch_notes():
     db = get_db()
     result = globals.query_db(db,
@@ -2102,8 +2111,16 @@ def list_despatch_notes():
            JOIN works_orders wo ON wo.works_order_id = dn.works_order_id
            JOIN customers c ON c.customer_id = wo.customer_id
            ORDER BY dn.despatch_date DESC, dn.despatch_note_id DESC""", one=False)
+
+    # Fetch ALL despatch note lines in ONE query instead of one per note
+    all_lines = globals.query_db(db,
+        "SELECT * FROM despatch_note_lines ORDER BY despatch_note_id, line_id", one=False)
+    lines_by_dn = {}
+    for ln in all_lines:
+        lines_by_dn.setdefault(ln["despatch_note_id"], []).append(ln)
+
     for r in result:
-        r["lines"] = despatch_note_lines(db, r["despatch_note_id"])
+        r["lines"] = lines_by_dn.get(r["despatch_note_id"], [])
     return jsonify(result)
 
 
@@ -2374,31 +2391,35 @@ def move_stock(db, stock_item_id, quantity, from_ship_to_id, from_works_order_id
         (stock_item_id, quantity, from_ship_to_id, from_works_order_id, to_ship_to_id, to_works_order_id, moved_by, notes), commit=False)
 
 
-def stock_item_with_allocations(db, item_row):
-    item = dict(item_row)
-    allocations = globals.query_db(db, 
-        """SELECT sa.*, sta.label AS ship_to_label, wo.job_number, wo.job_name
-           FROM stock_allocations sa
-           LEFT JOIN ship_to_addresses sta ON sta.ship_to_id = sa.ship_to_id
-           LEFT JOIN works_orders wo ON wo.works_order_id = sa.works_order_id
-           WHERE sa.stock_item_id=? ORDER BY sa.allocated_date DESC""",
-        (item["stock_item_id"],), one=False)
-    item["allocations"] = rows_to_list(allocations)
-    item["total_quantity"] = sum(a["quantity"] for a in item["allocations"])
-    item["total_value"] = round(item["total_quantity"] * item["purchase_cost"], 2)
-    item["total_sale_value"] = round(item["total_quantity"] * item["sale_price"], 2)
-    return item
-
-
 @app.route("/api/stock-items", methods=["GET"])
 @login_required
 def list_stock_items():
     db = get_db()
-    rows = globals.query_db(db, 
+    rows = globals.query_db(db,
         """SELECT si.*, s.supplier_name FROM stock_items si
            LEFT JOIN suppliers s ON s.supplier_id = si.supplier_id
            ORDER BY si.part_number""", one=False)
-    return jsonify([stock_item_with_allocations(db, r) for r in rows])
+
+    # Fetch ALL stock allocations in ONE query instead of one per item
+    all_allocs = globals.query_db(db,
+        """SELECT sa.*, sta.label AS ship_to_label, wo.job_number, wo.job_name
+           FROM stock_allocations sa
+           LEFT JOIN ship_to_addresses sta ON sta.ship_to_id = sa.ship_to_id
+           LEFT JOIN works_orders wo ON wo.works_order_id = sa.works_order_id
+           ORDER BY sa.allocated_date DESC""", one=False)
+    allocs_by_item = {}
+    for a in all_allocs:
+        allocs_by_item.setdefault(a["stock_item_id"], []).append(a)
+
+    result = []
+    for r in rows:
+        item = dict(r)
+        item["allocations"] = allocs_by_item.get(item["stock_item_id"], [])
+        item["total_quantity"] = sum(a["quantity"] for a in item["allocations"])
+        item["total_value"] = round(item["total_quantity"] * item["purchase_cost"], 2)
+        item["total_sale_value"] = round(item["total_quantity"] * item["sale_price"], 2)
+        result.append(item)
+    return jsonify(result)
 
 
 @app.route("/api/stock-items/<int:item_id>", methods=["GET"])
