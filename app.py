@@ -2101,8 +2101,6 @@ MAX_SIGNATURE_BYTES = 2 * 1024 * 1024
 
 @app.route("/api/despatch-notes", methods=["GET"])
 @login_required
-@app.route("/api/despatch-notes", methods=["GET"])
-@login_required
 def list_despatch_notes():
     db = get_db()
     result = globals.query_db(db,
