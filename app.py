@@ -2997,8 +2997,8 @@ def dashboard():
 
     stock_row = globals.query_db(db, 
         """SELECT COALESCE(SUM(sa.quantity * si.purchase_cost), 0) AS total
-            FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", one=False)
-    total_stock_value = stock_row['total'] if stock_row else 0
+        FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id""", one=True)
+    total_stock_value = stock_row["total"] if stock_row else 0
 
     # --- Dashboard chart area: deliberately always "this year to date," never
     # a user-adjustable range. A dashboard is a snapshot of how things stand
