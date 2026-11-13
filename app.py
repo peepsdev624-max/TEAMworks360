@@ -2812,10 +2812,11 @@ def compute_all_alerts(db, jobs=None, include_accepted=False):
     redo that work. Jobs that are already Completed, Closed or Cancelled are
     left out - there is nothing left to do about them."""
     if jobs is None:
-        rows = globals.query_db(db,
-            f"""SELECT wo.*, c.customer_name FROM works_orders wo
-            JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", one=False)
-        jobs = [works_order_with_metrics(db, r) for r in rows]
+        # rows = globals.query_db(db,
+        #     f"""SELECT wo.*, c.customer_name FROM works_orders wo
+        #     JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", one=False)
+        # jobs = [works_order_with_metrics(db, r) for r in rows]
+        jobs = load_all_jobs_with_metrics(db)
 
     accepted = {r["alert_key"] for r in globals.query_db(db, "SELECT alert_key FROM alert_acceptances", one=False)}
 
@@ -2906,14 +2907,140 @@ def get_alerts():
     return jsonify({"alerts": alerts, "count": len(alerts)})
 
 
+def load_all_jobs_with_metrics(db):
+    """Fetches all non-placeholder Works Orders and computes their financial
+    metrics in 6 total queries instead of 5 queries per job (eliminating
+    the N+1 cloud latency bottleneck on Turso)."""
+    rows = globals.query_db(db,
+        f"""SELECT wo.*, c.customer_name FROM works_orders wo
+            JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", one=False)
+
+    rev_map = {
+        r["works_order_id"]: r["total"]
+        for r in globals.query_db(db,
+            "SELECT works_order_id, COALESCE(SUM(invoice_amount), 0) AS total "
+            "FROM customer_invoices WHERE status != 'Cancelled' GROUP BY works_order_id",one=False)
+    }
+    sup_map = {
+        r["works_order_id"]: r["total"]
+        for r in globals.query_db(db,
+            "SELECT works_order_id, COALESCE(SUM(invoice_amount), 0) AS total "
+            "FROM supplier_invoices WHERE status != 'Cancelled' GROUP BY works_order_id", one=False)
+    }
+    lab_map = {
+        r["works_order_id"]: r["total"]
+        for r in globals.query_db(db,
+            "SELECT works_order_id, COALESCE(SUM(labour_cost), 0) AS total "
+            "FROM labour_entries GROUP BY works_order_id", one=False)
+    }
+    stk_map = {
+        r["works_order_id"]: r["total"]
+        for r in globals.query_db(db,
+            "SELECT sa.works_order_id, COALESCE(SUM(sa.quantity * si.purchase_cost), 0) AS total "
+            "FROM stock_allocations sa JOIN stock_items si ON si.stock_item_id = sa.stock_item_id "
+            "WHERE sa.works_order_id IS NOT NULL GROUP BY sa.works_order_id", one=False)
+    }
+    po_map = {
+        r["works_order_id"]: r["total"]
+        for r in globals.query_db(db,
+            "SELECT works_order_id, COALESCE(SUM(po_value), 0) AS total "
+            "FROM purchase_orders WHERE is_historic = 0 AND status != 'Cancelled' GROUP BY works_order_id", one=False)
+    }
+
+    # Over-invoiced POs across all live POs in one query
+    over_invoiced_wos = {
+        r["works_order_id"]
+        for r in globals.query_db(db,
+            """SELECT po.works_order_id
+               FROM purchase_orders po
+               JOIN (
+                   SELECT purchase_order_id, SUM(invoice_amount) AS inv_total
+                   FROM supplier_invoices WHERE status != 'Cancelled' AND purchase_order_id IS NOT NULL
+                   GROUP BY purchase_order_id
+               ) si ON si.purchase_order_id = po.purchase_order_id
+               WHERE po.is_historic = 0 AND po.status != 'Cancelled' AND si.inv_total > po.po_value + 0.01""", one=False)
+    }
+
+    jobs = []
+    for wo in rows:
+        wid = wo["works_order_id"]
+        revenue = rev_map.get(wid, 0.0)
+        sup_cost = sup_map.get(wid, 0.0)
+        lab_cost = lab_map.get(wid, 0.0)
+        stk_cost = stk_map.get(wid, 0.0)
+        actual_cost = sup_cost + lab_cost + stk_cost
+        po_total = po_map.get(wid, 0.0)
+        outstanding = max(0.0, po_total - sup_cost)
+        forecast_cost = actual_cost + outstanding
+        profit = revenue - actual_cost
+        forecast_profit = revenue - forecast_cost
+        margin_pct = (profit / revenue * 100.0) if revenue else 0.0
+        forecast_margin_pct = (forecast_profit / revenue * 100.0) if revenue else 0.0
+
+        margin_target = get_margin_target(db, wo.get("contract_code"))
+        budget = wo.get("budget_cost") or 0.0
+        budget_confirmed = bool(wo.get("budget_confirmed"))
+
+        alerts = []
+        if budget > 0 and actual_cost > budget:
+            if budget_confirmed:
+                alerts.append({
+                    "level": "red", "type": "Budget Exceeded",
+                    "message": f"Actual cost £{actual_cost:,.2f} exceeds confirmed budget £{budget:,.2f}"
+                })
+            else:
+                alerts.append({
+                    "level": "amber", "type": "Cost Above Estimated Target",
+                    "message": f"Actual cost £{actual_cost:,.2f} exceeds estimated target £{budget:,.2f}"
+                })
+        if revenue > 0 and margin_pct < margin_target:
+            alerts.append({
+                "level": "amber", "type": "Margin Risk",
+                "message": f"Margin {margin_pct:.1f}% is below target {margin_target:.1f}%"
+            })
+        if wid in over_invoiced_wos:
+            alerts.append({
+                "level": "amber", "type": "Over-Invoiced PO",
+                "message": "Supplier invoices exceed Purchase Order value"
+            })
+
+        if profit < 0:
+            status_light = "red"
+        elif margin_pct < margin_target:
+            status_light = "amber"
+        else:
+            status_light = "green"
+
+        jobs.append({
+            **wo,
+            "revenue": round(revenue, 2),
+            "supplier_invoice_total": round(sup_cost, 2),
+            "labour_total": round(lab_cost, 2),
+            "stock_cost": round(stk_cost, 2),
+            "actual_cost": round(actual_cost, 2),
+            "po_total": round(po_total, 2),
+            "outstanding_commitment": round(outstanding, 2),
+            "forecast_cost": round(forecast_cost, 2),
+            "profit": round(profit, 2),
+            "forecast_profit": round(forecast_profit, 2),
+            "margin_pct": round(margin_pct, 2),
+            "forecast_margin_pct": round(forecast_margin_pct, 2),
+            "margin_target": margin_target,
+            "status_light": status_light,
+            "alerts": alerts,
+        })
+    return jobs
+
+
 @app.route("/api/dashboard")
 @login_required
 def dashboard():
     db = get_db()
-    rows = globals.query_db(db,
-        f"""SELECT wo.*, c.customer_name FROM works_orders wo
-            JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", one=False)
-    jobs = [works_order_with_metrics(db, r) for r in rows]
+    # rows = globals.query_db(db,
+    #     f"""SELECT wo.*, c.customer_name FROM works_orders wo
+    #         JOIN customers c ON c.customer_id = wo.customer_id WHERE {PLACEHOLDER_JOB_SQL}""", one=False)
+    # jobs = [works_order_with_metrics(db, r) for r in rows]
+    jobs = load_all_jobs_with_metrics(db)
 
     total_revenue = sum(j["revenue"] for j in jobs)
     total_cost = sum(j["actual_cost"] for j in jobs)
