@@ -71,6 +71,9 @@ async function api(path, opts = {}) {
     showLogin();
     throw new Error("Session expired - please sign in again");
   }
+  if (res.status === 413) {
+    throw new Error("The uploaded file is too large (maximum 4 MB per upload). Please compress or resize the image and try again.");
+  }
   if (!res.ok) throw new Error(data.error || "Request failed");
   return data;
 }
@@ -1617,6 +1620,19 @@ async function renderGoodsIn() {
 // convenience filter in the OS file picker, never a security control, so
 // the real enforcement is still the server-side check.
 const GOODS_IN_ACCEPTED_FILE_TYPES = ".pdf,.jpg,.jpeg,.png,.heic,.heif,.tif,.tiff,.doc,.docx";
+const GOODS_IN_MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // 4 MB limit (safely under Vercel's 4.5 MB edge cap)
+
+function validateUploadSize(fileList) {
+    let totalBytes = 0;
+    for (const file of fileList) {
+        totalBytes += file.size;
+    }
+    if (totalBytes > GOODS_IN_MAX_UPLOAD_BYTES) {
+        const sizeMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        return `Selected files total ${sizeMB} MB, which exceeds the 4 MB maximum upload size. Please compress or resize the image and try again.`;
+    }
+    return null;
+}
 
 function renderGoodsInDocumentsListHtml(documents) {
   if (!documents.length) {
@@ -1703,6 +1719,12 @@ async function openGoodsInForm(gi = null) {
     submitLabel: "Save",
     onSubmit: async (fd) => {
       const newFiles = document.getElementById("gi-documents-input").files;
+      const sizeError = validateUploadSize(newFiles);
+      if (sizeError) {
+        alert(sizeError); // Or pass sizeError to your modal's error banner element if there is one right above/below
+        return;
+      }
+
       if (gi) {
         const payload = Object.fromEntries(fd.entries());
         delete payload.documents;
@@ -1715,12 +1737,6 @@ async function openGoodsInForm(gi = null) {
           await api(`/api/goods-in/${gi.goods_in_id}/documents`, { method: "POST", body: docFd });
         }
       } else {
-        // fd is the modal's own FormData, built straight from this <form> -
-        // it already carries every field above (purchase_order_id,
-        // destination_type, ... and the required "documents" file(s)), so
-        // it can go to the API as multipart/form-data exactly as-is. That
-        // way the record and its required document are created together,
-        // in one request, atomically on the server (see create_goods_in).
         await api("/api/goods-in", { method: "POST", body: fd });
       }
       closeModal();

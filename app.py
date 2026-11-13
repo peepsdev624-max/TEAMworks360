@@ -130,6 +130,7 @@ DEFAULT_MARGIN_TARGET = 15.0  # percent - only used as a last-resort fallback if
 # storage.
 GOODS_IN_ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".heic", ".heif", ".tif", ".tiff", ".doc", ".docx"}
 GOODS_IN_MAX_FILES_PER_UPLOAD = 5
+GOODS_IN_MAX_UPLOAD_BYTES = 4 * 1024 * 1024  # 4 MB combined cap per upload
 
 # The exact phrase an Administrator must type to confirm a go-live reset -
 # see reset_job_data() below. Deliberately not a simple yes/no click,
@@ -1900,15 +1901,25 @@ def save_goods_in_documents(db, goods_in_id, files):
             return (f"'{f.filename}' isn't an accepted file type. Allowed: "
                     f"{', '.join(sorted(GOODS_IN_ALLOWED_EXTENSIONS))}.", 400)
 
+    # Read bytes and validate combined upload size before uploading anything
+    prepared_files = []
+    total_bytes = 0
+    for f in files:
+        file_bytes = f.read()
+        size = len(file_bytes)
+        total_bytes += size
+        if total_bytes > GOODS_IN_MAX_UPLOAD_BYTES:
+            size_mb = total_bytes / (1024 * 1024)
+            return (f"Selected files total {size_mb:.1f} MB, which exceeds the 4 MB maximum per upload. "
+                    "Please compress the images or upload them one at a time.", 413)
+        prepared_files.append((f, file_bytes, size))
+
     uploaded_urls = []
     try:
-        for f in files:
+        for f, file_bytes, size in prepared_files:
             original_name = secure_filename(f.filename) or "document"
             ext = os.path.splitext(original_name)[1].lower()
             blob_pathname = f"goods-in/{secrets.token_hex(16)}{ext}"
-            
-            file_bytes = f.read()
-            size = len(file_bytes)
             
             # Upload to Private Vercel Blob store
             result = blob.put_blob(
