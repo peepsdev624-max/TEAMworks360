@@ -235,9 +235,9 @@ function showApp() {
 // afterLogin() itself, so a login that needs two steps (e.g. a brand new
 // account: change password, then set up 2FA) walks through both in order.
 async function proceedAfterAuth() {
-  if (state.user.must_change_password) { showForcePasswordScreen(); } //return; }
-  if (state.user.must_setup_2fa) { showForce2faSetupScreen(); } // return; }
-  if (state.user.must_verify_2fa) { showForce2faVerifyScreen(); } // return; }
+  if (state.user.must_change_password) { showForcePasswordScreen(); return; }
+  if (state.user.must_setup_2fa) { showForce2faSetupScreen(); return; }
+  if (state.user.must_verify_2fa) { showForce2faVerifyScreen(); return; }
   await afterLogin();
 }
 
