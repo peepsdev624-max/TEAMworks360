@@ -102,6 +102,8 @@ def build_plan(row):
             "contract_value": round(invoice_value, 2),
             "contract_code": imp.normalise_contract_code(imp.clean_text(row["contract_code"])),
             "location": imp.clean_text(row["location"]),
+            "required_by": imp.to_date(row["delivery_req"]),
+            "delivered_date": imp.to_date(row["delivered_on"]),
         },
         "budget_cost": round(round(invoice_value, 2) * 0.35, 2),
         "supplier": supplier1,
@@ -204,10 +206,11 @@ class Updater:
         self.cur.execute(
             """INSERT INTO works_orders
                (job_number, job_name, customer_id, project_manager, status, start_date, end_date,
-                contract_value, budget_cost, budget_is_estimated, contract_code, location)
-               VALUES (?,?,?,?,?,?,?,?,?,1,?,?)""",
+                contract_value, budget_cost, budget_is_estimated, contract_code, location, required_by, delivered_date)
+               VALUES (?,?,?,?,?,?,?,?,?,1,?,?,?,?)""",
             (job, w["job_name"], cid, w["project_manager"], w["status"], w["start_date"], w["end_date"],
-             w["contract_value"], plan["budget_cost"], w["contract_code"], w["location"]),
+             w["contract_value"], plan["budget_cost"], w["contract_code"], w["location"],
+             w["required_by"], w["delivered_date"]),
         )
         wo_id = self.cur.lastrowid
         self.counts["jobs_added"] += 1
@@ -239,8 +242,13 @@ class Updater:
         self.counts["supplier_records_changed"] += 1
         self.changes.append((job, "supplier cost", "added bought-out PO + invoice", "", f"{plan['supplier']} £{plan['bought_out']:,.2f}"))
 
+    def labour_switched_off(self):
+        # clear_hours.py sets this so a refresh does not recreate the calculated labour lines.
+        row = self.cur.execute("SELECT value FROM settings WHERE key='order_book_labour'").fetchone()
+        return bool(row and row[0] == "off")
+
     def insert_labour(self, wo_id, plan):
-        if plan["labour"] <= 0:
+        if plan["labour"] <= 0 or self.labour_switched_off():
             return
         w = plan["wo"]
         self.cur.execute(
@@ -268,6 +276,11 @@ class Updater:
         # Created or edited by a person in the app: the app copy is the more
         # trustworthy one, so leave it entirely alone and flag it.
         if wo["created_by"] or wo["updated_by"]:
+            # Even so, fill in the two delivery dates if they are still blank - nothing already there is touched.
+            fill = [(f, plan["wo"][f]) for f in ("required_by", "delivered_date") if not wo[f] and plan["wo"][f]]
+            for f, v in fill:
+                self.cur.execute(f"UPDATE works_orders SET {f}=? WHERE works_order_id=?", (v, wo["works_order_id"]))
+                self.changes.append((job, "works order", f.replace("_", " ") + " (filled in)", "", v))
             self.counts["jobs_left_alone"] += 1
             self.review.append((job, "created/edited in the app - left exactly as it was"))
             return
@@ -280,6 +293,10 @@ class Updater:
         sets, args = [], []
         for field, new in w.items():
             old = wo[field]
+            # The app may have refined the Order Book's code (plain "FS" -> "FS - L" / "FS - M" / "FS - H"):
+            # that refinement is kept, not reverted to the Order Book's wording.
+            if field == "contract_code" and old and new and old.upper().startswith(new.upper() + " - "):
+                continue
             differs = money_differs(old, new) if field == "contract_value" else ((old or None) != (new or None))
             if differs:
                 sets.append(f"{field}=?")
@@ -402,6 +419,8 @@ class Updater:
         return row[0] if row else sid
 
     def refresh_labour(self, wo_id, plan):
+        if self.labour_switched_off():
+            return
         job = plan["job_number"]
         rows = self.generated("labour_entries", wo_id)
         w = plan["wo"]
@@ -452,6 +471,16 @@ def main():
     conn = sqlite3.connect(db_location.DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    tbl_sql = (conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='works_orders'").fetchone() or [""])[0]
+    needs_schema = "required_by" not in tbl_sql or "On Hold" not in tbl_sql
+    if needs_schema:
+        if apply_changes:
+            # Same one-off, safe schema updates the app does when it starts (new columns, On Hold status).
+            migrations.run_migrations(conn, str(BASE_DIR))
+            conn.commit()
+        else:
+            sys.exit("This database needs the new TEAMworks360 version's one-off update first. Start TEAMworks360 once "
+                     "(it does that by itself), close it, then run this preview again.")
     existing = {r["job_number"]: r for r in conn.execute("SELECT * FROM works_orders")}
     up = Updater(conn)
     try:

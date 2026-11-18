@@ -985,6 +985,36 @@ class TestTwoFactorAuth(ProfitabilityTestCase):
         self.assertEqual(resp.content_type, "image/png")
         self.assertTrue(resp.data.startswith(b"\x89PNG\r\n\x1a\n"))  # PNG file signature
 
+    def test_new_account_can_change_its_password_before_setting_up_2fa(self):
+        # A brand-new account created by an Administrator has BOTH flags: it must change the temporary
+        # password first and then set up 2FA. The password change used to be refused with
+        # "Two-factor authentication setup required", so the person could never get past the first screen.
+        self.make_user("craig", "temp12345")
+        self.conn.execute("UPDATE users SET must_change_password=1 WHERE username='craig'")
+        self.conn.commit()
+        client = appmod.app.test_client()
+        body = self.raw_login(client, "craig", "temp12345").get_json()
+        self.assertTrue(body["must_change_password"] and body["must_setup_2fa"])
+        resp = client.post("/api/auth/change-password", json={"current_password": "temp12345", "new_password": "NewSecret123"},
+                           headers=self.csrf_headers(client))
+        self.assertEqual(resp.status_code, 200, resp.get_data(as_text=True))
+        # ...and then the 2FA setup works, and the app opens
+        self.assertIn("manual_entry_key", client.get("/api/auth/2fa/setup").get_json())
+        _complete_pending_2fa_setup(client)
+        self.assertEqual(client.get("/api/reference").status_code, 200)
+
+    def test_qr_failure_gives_a_plain_message_not_a_crash(self):
+        from unittest import mock
+        self.make_user("admin", "secret123")
+        client = appmod.app.test_client()
+        self.raw_login(client, "admin", "secret123")
+        with mock.patch.object(appmod.qr_png, "render_png", side_effect=RuntimeError("boom")):
+            resp = client.get("/api/auth/2fa/setup/qr.png")
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("setup key", resp.get_data(as_text=True))
+        # the setup key itself is unaffected
+        self.assertIn("manual_entry_key", client.get("/api/auth/2fa/setup").get_json())
+
     def test_qr_setup_endpoint_requires_login(self):
         client = appmod.app.test_client()
         resp = client.get("/api/auth/2fa/setup/qr.png")
@@ -1350,6 +1380,24 @@ class TestDocumentAccessLog(ProfitabilityTestCase):
         self.assertEqual(rows[0]["document_type"], "Quote PDF")
         self.assertEqual(rows[0]["reference"], "TMQ-9001")
         self.assertEqual(rows[0]["username"], "admin")
+
+    def test_pdf_preview_opens_inline_and_is_logged(self):
+        self.make_user("admin", "secret123")
+        client = appmod.app.test_client()
+        self.login(client, "admin", "secret123")
+        qid = self.make_quote()
+        down = client.get(f"/api/quotes/{qid}/pdf")
+        self.assertTrue(down.headers["Content-Disposition"].startswith("attachment"))
+        prev = client.get(f"/api/quotes/{qid}/pdf?preview=1")
+        self.assertEqual(prev.status_code, 200)
+        self.assertTrue(prev.headers["Content-Disposition"].startswith("inline"))
+        self.assertTrue(prev.data.startswith(b"%PDF"))
+        # No page-style policy on a PDF: it makes Firefox's viewer show a blank tab (v1.13.1)
+        self.assertNotIn("Content-Security-Policy", prev.headers)
+        self.assertNotIn("Content-Security-Policy", down.headers)
+        self.assertIn("Content-Security-Policy", client.get("/api/version").headers)
+        types = [r[0] for r in self.conn.execute("SELECT document_type FROM document_access_log ORDER BY 1")]
+        self.assertEqual(types, ["Quote PDF", "Quote PDF (preview)"])
 
     def test_reporting_csv_export_is_logged(self):
         self.make_user("admin", "secret123")
@@ -3721,3 +3769,1106 @@ class TestScreenSummaries(RoleTestBase):
         csv = self.admin.get(f"/api/reporting/hours-booked/export?year={self.year}")
         self.assertEqual(csv.status_code, 200)
         self.assertIn("Total hours", csv.get_data(as_text=True))
+
+
+class TestOnHoldStatusAndClearHours(RoleTestBase):
+    """Works Orders can be 'On Hold' (the Order Book's "H" code); clear_hours.py
+    empties booked hours and stops the Order Book recreating them."""
+
+    def setUp(self):
+        super().setUp()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def test_on_hold_is_a_valid_status_and_not_active_or_late(self):
+        cust = self.make_customer()
+        held = self.make_works_order("TM-1", cust, status="On Hold")
+        live = self.make_works_order("TM-2", cust, status="In Progress")
+        self.conn.execute("UPDATE works_orders SET end_date='2020-01-01'")
+        self.conn.commit()
+        held_rows = self.admin.get("/api/works-orders?status=On Hold").get_json()
+        self.assertEqual([r["job_number"] for r in held_rows], ["TM-1"])
+        active = self.admin.get("/api/works-orders?status=Active").get_json()
+        self.assertEqual([r["job_number"] for r in active], ["TM-2"])
+        late = self.admin.get("/api/works-orders?late=1").get_json()
+        self.assertEqual([r["job_number"] for r in late], ["TM-2"])
+
+    def test_order_book_h_code_is_on_hold(self):
+        import import_team_order_book as imp
+        self.assertEqual(imp.map_status("H"), "On Hold")
+        self.assertEqual(imp.map_status("h"), "On Hold")
+
+    def test_migration_adds_on_hold_and_keeps_everything(self):
+        import sqlite3
+        schema = open(os.path.join(os.path.dirname(appmod.__file__), "schema.sql")).read()
+        old = schema.replace("'In Progress','On Hold','Completed','Closed','Cancelled')),\n    start_date",
+                             "'In Progress','Completed','Closed','Cancelled')),\n    start_date")
+        self.assertNotEqual(old, schema)
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(old)
+        conn.execute("INSERT INTO customers (customer_name) VALUES ('C')")
+        conn.execute("INSERT INTO works_orders (job_number, job_name, customer_id, status) VALUES ('TM-1','J',1,'Open')")
+        conn.execute("INSERT INTO labour_entries (works_order_id, employee_name, hours_worked, hourly_rate, labour_cost) VALUES (1,'x',2,10,20)")
+        conn.commit()
+        with self.assertRaises(sqlite3.IntegrityError):
+            conn.execute("UPDATE works_orders SET status='On Hold'")
+        appmod.migrations.widen_works_order_statuses(conn)
+        appmod.migrations.widen_works_order_statuses(conn)      # safe to repeat
+        conn.execute("UPDATE works_orders SET status='On Hold'")
+        self.assertEqual(conn.execute("SELECT job_number, status FROM works_orders").fetchall(), [("TM-1", "On Hold")])
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM labour_entries").fetchone()[0], 1)
+        self.assertEqual(conn.execute("PRAGMA foreign_key_check").fetchall(), [])
+        conn.execute("INSERT INTO works_orders (job_number, job_name, customer_id) VALUES ('TM-2','K',1)")
+        self.assertEqual(conn.execute("SELECT works_order_id FROM works_orders WHERE job_number='TM-2'").fetchone()[0], 2)
+
+    def test_clear_hours_tool(self):
+        import sqlite3, subprocess, sys, tempfile
+        folder = tempfile.mkdtemp()
+        db = os.path.join(folder, "jpm.db")
+        conn = sqlite3.connect(db)
+        conn.executescript(open(os.path.join(os.path.dirname(appmod.__file__), "schema.sql")).read())
+        conn.execute("INSERT INTO customers (customer_name) VALUES ('C')")
+        conn.execute("INSERT INTO works_orders (job_number, job_name, customer_id) VALUES ('TM-1','J',1)")
+        conn.execute("INSERT INTO labour_entries (works_order_id, employee_name, hours_worked, hourly_rate, labour_cost) VALUES (1,'x',2,10,20)")
+        conn.commit()
+        conn.close()
+        env = dict(os.environ, TEAMWORKS360_DATA_DIR=folder)
+        script = os.path.join(os.path.dirname(appmod.__file__), "clear_hours.py")
+        out = subprocess.run([sys.executable, script], env=env, capture_output=True, text=True).stdout
+        self.assertIn("PREVIEW", out)
+        self.assertEqual(sqlite3.connect(db).execute("SELECT COUNT(*) FROM labour_entries").fetchone()[0], 1)   # preview changes nothing
+        subprocess.run([sys.executable, script, "--apply"], env=env, capture_output=True, text=True, check=True)
+        c = sqlite3.connect(db)
+        self.assertEqual(c.execute("SELECT COUNT(*) FROM labour_entries").fetchone()[0], 0)
+        self.assertEqual(c.execute("SELECT COUNT(*) FROM works_orders").fetchone()[0], 1)
+        self.assertEqual(c.execute("SELECT value FROM settings WHERE key='order_book_labour'").fetchone()[0], "off")
+        self.assertTrue(os.listdir(os.path.join(folder, "backups")))
+
+    def test_order_book_refresh_respects_the_labour_switch(self):
+        import update_order_book as uob
+        conn = self.conn
+        cust = self.make_customer()
+        wo = self.make_works_order("TM-1", cust)
+        plan = {"labour": 500.0, "job_number": "TM-1",
+                "wo": {"project_manager": "PM", "end_date": "2026-01-01", "start_date": "2026-01-01"}}
+        up = uob.Updater(conn)
+        up.insert_labour(wo, plan)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM labour_entries").fetchone()[0], 1)
+        conn.execute("DELETE FROM labour_entries")
+        conn.execute("INSERT INTO settings (key, value) VALUES ('order_book_labour','off')")
+        conn.commit()
+        up.insert_labour(wo, plan)
+        up.refresh_labour(wo, plan)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM labour_entries").fetchone()[0], 0)
+
+
+class TestBulkStatusAndOnHoldNumbers(RoleTestBase):
+    """Mass status change on Works Orders, and On Hold on the dashboard."""
+
+    def setUp(self):
+        super().setUp()
+        cust = self.make_customer()
+        self.ids = [self.make_works_order(f"TM-{i}", cust, status="In Progress", contract_value=100 * i) for i in (1, 2, 3)]
+        self.held = self.make_works_order("TM-9", cust, status="On Hold", contract_value=700)
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def status_of(self, wid):
+        return self.conn.execute("SELECT status FROM works_orders WHERE works_order_id=?", (wid,)).fetchone()[0]
+
+    def test_bulk_change_status_with_history(self):
+        r = self.admin.post("/api/works-orders/bulk-status", json={"ids": self.ids[:2] + [self.held], "status": "Completed"},
+                            headers=self.csrf(self.admin))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.get_json()["updated"], 3)
+        self.assertEqual([self.status_of(i) for i in self.ids], ["Completed", "Completed", "In Progress"])
+        self.assertEqual(self.status_of(self.held), "Completed")
+        hist = self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE table_name='works_orders' AND field_name='status' AND new_value='Completed'").fetchone()[0]
+        self.assertEqual(hist, 3)
+        again = self.admin.post("/api/works-orders/bulk-status", json={"ids": self.ids[:2], "status": "Completed"},
+                                headers=self.csrf(self.admin)).get_json()
+        self.assertEqual((again["updated"], again["unchanged"]), (0, 2))
+
+    def test_bulk_rejects_bad_input(self):
+        h = self.csrf(self.admin)
+        self.assertEqual(self.admin.post("/api/works-orders/bulk-status", json={"ids": self.ids, "status": "Bogus"}, headers=h).status_code, 400)
+        self.assertEqual(self.admin.post("/api/works-orders/bulk-status", json={"ids": [], "status": "Completed"}, headers=h).status_code, 400)
+        self.assertEqual(self.admin.post("/api/works-orders/bulk-status", json={"ids": ["x"], "status": "Completed"}, headers=h).status_code, 400)
+        self.assertEqual([self.status_of(i) for i in self.ids], ["In Progress"] * 3)
+
+    def test_roles_without_write_access_cannot_bulk_change(self):
+        self.make_user("exec", "secret123", "Executive")
+        c = appmod.app.test_client()
+        r = c.post("/api/auth/login", json={"username": "exec", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(c)
+        resp = c.post("/api/works-orders/bulk-status", json={"ids": self.ids, "status": "Completed"}, headers=self.csrf(c))
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual([self.status_of(i) for i in self.ids], ["In Progress"] * 3)
+
+    def test_service_engineer_can_bulk_change(self):
+        eng = self.engineer_client()
+        r = eng.post("/api/works-orders/bulk-status", json={"ids": self.ids, "status": "On Hold"}, headers=self.csrf(eng))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual({self.status_of(i) for i in self.ids}, {"On Hold"})
+
+    def test_on_hold_numbers_on_dashboard_and_panel(self):
+        d = self.admin.get("/api/dashboard").get_json()
+        self.assertEqual(d["on_hold_works_orders"], 1)
+        self.assertEqual(d["on_hold_value"], 700)
+        s = self.admin.get("/api/screen-summaries").get_json()["works_orders"]
+        self.assertEqual((s["on_hold_count"], s["on_hold_value"]), (1, 700))
+        self.assertEqual(s["open_count"], 3)       # On Hold is not counted as open
+
+
+class TestAwaitingInvoicingReport(RoleTestBase):
+    """Completed jobs waiting to be invoiced, filterable by site (customer) and location."""
+
+    def setUp(self):
+        super().setUp()
+        from datetime import date, timedelta
+        iso = lambda n: (date.today() + timedelta(days=n)).isoformat()
+        derby = self.make_customer("Rolls Royce - Derby")
+        wash = self.make_customer("Rolls Royce - WMF")
+        q = self.conn.execute
+        self.waiting_old = self.make_works_order("TM-1", derby, status="Completed", contract_value=1000)
+        self.waiting_new = self.make_works_order("TM-2", wash, status="Completed", contract_value=500)
+        self.imported_sent = self.make_works_order("TM-3", derby, status="Completed", contract_value=300)   # Order Book 'delivered, not invoiced'
+        self.paid = self.make_works_order("TM-4", derby, status="Completed", contract_value=700)
+        self.sent_in_app = self.make_works_order("TM-5", derby, status="Completed", contract_value=800)
+        self.draft_only = self.make_works_order("TM-6", derby, status="Completed", contract_value=200)
+        self.zero_value = self.make_works_order("TM-7", derby, status="Completed", contract_value=0)
+        self.in_progress = self.make_works_order("TM-8", derby, status="In Progress", contract_value=900)
+        q("UPDATE works_orders SET end_date=?, location='Midlands' WHERE works_order_id=?", (iso(-50), self.waiting_old))
+        q("UPDATE works_orders SET end_date=?, location='North' WHERE works_order_id=?", (iso(-5), self.waiting_new))
+        self.conn.commit()
+        self.make_customer_invoice(self.imported_sent, 300, status="Sent", invoice_number="INV-3")   # no created_by = from the import
+        self.make_customer_invoice(self.paid, 700, status="Paid", invoice_number="INV-4")
+        self.make_customer_invoice(self.sent_in_app, 800, status="Sent", invoice_number="INV-5")
+        q("UPDATE customer_invoices SET created_by='Someone' WHERE invoice_number='INV-5'")
+        self.make_customer_invoice(self.draft_only, 200, status="Draft", invoice_number="INV-6")
+        self.conn.commit()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def jobs(self, qs=""):
+        d = self.admin.get("/api/reporting/awaiting-invoicing" + qs).get_json()
+        return [r["job_number"] for r in d["rows"]], d
+
+    def test_who_is_waiting(self):
+        jobs, d = self.jobs()
+        self.assertEqual(set(jobs), {"TM-1", "TM-2", "TM-3", "TM-6"})
+        self.assertEqual(jobs[0], "TM-1")                       # longest waiting first
+        self.assertEqual(d["totals"]["jobs"], 4)
+        self.assertEqual(d["totals"]["value"], 2000)
+        self.assertEqual(d["totals"]["over_30"], 1)
+        self.assertEqual(d["totals"]["oldest_days"], 50)
+
+    def test_filters_by_site_and_location(self):
+        self.assertEqual(set(self.jobs("?customer=Rolls Royce - WMF")[0]), {"TM-2"})
+        self.assertEqual(set(self.jobs("?location=Midlands")[0]), {"TM-1"})
+        jobs, d = self.jobs("?customer=Rolls Royce - WMF")
+        self.assertIn("Rolls Royce - Derby", d["customers"])      # one filter doesn't shrink another's choices
+
+    def test_export_and_profitability_toggle_agree(self):
+        csv = self.admin.get("/api/reporting/awaiting-invoicing/export?customer=Rolls Royce - WMF")
+        self.assertEqual(csv.status_code, 200)
+        self.assertIn("TM-2", csv.get_data(as_text=True))
+        self.assertNotIn("TM-1", csv.get_data(as_text=True))
+        rep = {r["job_number"]: r["invoiced"] for r in self.admin.get("/api/reporting").get_json()}
+        self.assertFalse(rep["TM-3"])
+        self.assertTrue(rep["TM-4"])
+        self.assertTrue(rep["TM-5"])
+
+    def test_service_engineer_cannot_open_it(self):
+        self.assertEqual(self.engineer_client().get("/api/reporting/awaiting-invoicing").status_code, 403)
+
+
+class TestPaymentTermsAndDebtors(RoleTestBase):
+    """Due dates (Rolls Royce = Friday on or after day 75), Unpaid Invoices and Overdue Deliveries reports."""
+
+    def setUp(self):
+        super().setUp()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def test_due_date_friday_on_or_after_day_75(self):
+        from datetime import date
+        # Sun 1 Mar 2026 + 75 days = Fri 15 May (already a Friday); Tue 3 Mar + 75 = Sun 17 May -> Fri 22 May
+        self.assertEqual(appmod.compute_due_date("2026-03-01", 75, True), date(2026, 5, 15))
+        self.assertEqual(appmod.compute_due_date("2026-03-03", 75, True), date(2026, 5, 22))
+        self.assertEqual(appmod.compute_due_date("2026-03-04", 75, True), date(2026, 5, 22))
+        self.assertEqual(appmod.compute_due_date("2026-03-04", 30, False), date(2026, 4, 3))
+        self.assertIsNone(appmod.compute_due_date("2026-03-04", None, False))
+        self.assertIsNone(appmod.compute_due_date("junk", 30, False))
+
+    def test_terms_saved_and_rolls_royce_default(self):
+        r = self.admin.post("/api/customers", json={"customer_name": "Acme", "payment_terms_days": "60"}, headers=self.csrf(self.admin))
+        self.assertIn(r.status_code, (200, 201), r.get_data(as_text=True))
+        cid = self.conn.execute("SELECT customer_id FROM customers WHERE customer_name='Acme'").fetchone()[0]
+        row = self.conn.execute("SELECT payment_terms_days, payment_terms_eow FROM customers WHERE customer_id=?", (cid,)).fetchone()
+        self.assertEqual((row[0], row[1]), (60, 0))
+        self.admin.put(f"/api/customers/{cid}", json={"customer_name": "Acme", "payment_terms_days": 30, "payment_terms_eow": True}, headers=self.csrf(self.admin))
+        row = self.conn.execute("SELECT payment_terms_days, payment_terms_eow FROM customers WHERE customer_id=?", (cid,)).fetchone()
+        self.assertEqual((row[0], row[1]), (30, 1))
+        self.assertEqual(appmod.customer_terms("Rolls Royce - Derby", None, 0), (75, True))
+        self.assertEqual(appmod.customer_terms("Acme", None, 0), (None, False))
+
+    def test_seed_migration_fills_only_unset_rolls_royce(self):
+        import migrations
+        rr = self.make_customer("Rolls Royce - Derby")
+        mine = self.make_customer("Rolls Royce - Hand Set")
+        other = self.make_customer("Other Ltd")
+        self.conn.execute("UPDATE customers SET payment_terms_days=45 WHERE customer_id=?", (mine,))
+        self.conn.execute("DELETE FROM settings WHERE key='migration_rr_payment_terms_v1'")
+        self.conn.commit()
+        migrations.seed_rolls_royce_payment_terms(self.conn)
+        get = lambda i: tuple(self.conn.execute("SELECT payment_terms_days, payment_terms_eow FROM customers WHERE customer_id=?", (i,)).fetchone())
+        self.assertEqual(get(rr), (75, 1))
+        self.assertEqual(get(mine), (45, 0))
+        self.assertEqual(get(other), (None, 0))
+
+    def test_unpaid_invoices_report(self):
+        from datetime import date, timedelta
+        iso = lambda n: (date.today() + timedelta(days=n)).isoformat()
+        rr = self.make_customer("Rolls Royce - Derby")
+        other = self.make_customer("No Terms Ltd")
+        a = self.make_works_order("TM-1", rr, status="Completed")
+        b = self.make_works_order("TM-2", rr, status="Completed")
+        c = self.make_works_order("TM-3", other, status="Completed")
+        d = self.make_works_order("TM-4", rr, status="Completed")
+        e = self.make_works_order("TM-5", rr, status="Completed")
+        self.make_customer_invoice(a, 1000, status="Sent", invoice_number="A", invoice_date=iso(-100))   # past 75d+Friday -> overdue
+        self.make_customer_invoice(b, 500, status="Sent", invoice_number="B", invoice_date=iso(-10))     # not yet due
+        self.make_customer_invoice(c, 200, status="Overdue", invoice_number="C", invoice_date=iso(-70))  # no terms, over 60
+        self.make_customer_invoice(d, 900, status="Paid", invoice_number="D", invoice_date=iso(-90))
+        self.make_customer_invoice(e, 300, status="Sent", invoice_number="E", invoice_date=iso(-100))    # import placeholder
+        self.conn.execute("UPDATE customer_invoices SET created_by='Someone' WHERE invoice_number IN ('A','B','C')")
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/unpaid-invoices").get_json()
+        nums = {x["invoice_number"]: x for x in d["invoices"]}
+        self.assertEqual(set(nums), {"A", "B", "C"})
+        self.assertTrue(nums["A"]["overdue"]); self.assertFalse(nums["B"]["overdue"]); self.assertFalse(nums["C"]["overdue"])
+        self.assertEqual(nums["A"]["band"], "over-60"); self.assertEqual(nums["B"]["band"], "0-30")
+        self.assertEqual(nums["A"]["due_date"][5:] != "", True)
+        self.assertEqual(__import__("datetime").date.fromisoformat(nums["A"]["due_date"]).weekday(), 4)   # a Friday
+        self.assertFalse(nums["C"]["terms_set"])
+        t = d["totals"]
+        self.assertEqual((t["total"], t["overdue"], t["not_yet_due"], t["over_60"], t["terms_not_set"]), (1700, 1000, 700, 1200, 1))
+        only = self.admin.get("/api/reporting/unpaid-invoices?customer=No%20Terms%20Ltd").get_json()
+        self.assertEqual([x["invoice_number"] for x in only["invoices"]], ["C"])
+        csvr = self.admin.get("/api/reporting/unpaid-invoices/export")
+        self.assertEqual(csvr.status_code, 200); self.assertIn("A", csvr.get_data(as_text=True))
+        # a hand-entered due date wins over the terms
+        self.conn.execute("UPDATE customer_invoices SET due_date=? WHERE invoice_number='A'", (iso(5),)); self.conn.commit()
+        d = self.admin.get("/api/reporting/unpaid-invoices").get_json()
+        self.assertFalse({x["invoice_number"]: x for x in d["invoices"]}["A"]["overdue"])
+
+    def test_overdue_deliveries_and_performance(self):
+        from datetime import date, timedelta
+        iso = lambda n: (date.today() + timedelta(days=n)).isoformat()
+        cust = self.make_customer("Cust")
+        wo = self.make_works_order("TM-1", cust)
+        s1 = self.make_supplier("Late Ltd"); s2 = self.make_supplier("Good Ltd")
+        q = self.conn.execute
+        def po(num, sup, req, status="Issued", historic=0):
+            cur = q("INSERT INTO purchase_orders (po_number, works_order_id, supplier_id, po_value, status, date_required, is_historic) VALUES (?,?,?,?,?,?,?)",
+                    (num, wo, sup, 100, status, req, historic))
+            return cur.lastrowid
+        def receive(pid, day, qty="Full"):
+            q("INSERT INTO goods_in (purchase_order_id, destination_type, received_date, quantity_status, received_by) VALUES (?,?,?,?,?)",
+              (pid, "Works Order", day, qty, "Bob"))
+        late = po("P-LATE", s1, iso(-20))
+        part = po("P-PART", s1, iso(-3)); receive(part, iso(-2), "Partial")
+        po("P-FUTURE", s1, iso(10))
+        po("P-DRAFT", s1, iso(-9), status="Draft")
+        po("P-HIST", s1, iso(-9), historic=1)
+        ontime = po("P-OK", s2, iso(-10)); receive(ontime, iso(-12))
+        lateok = po("P-LATEOK", s1, iso(-10)); receive(lateok, iso(-7))
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/overdue-deliveries").get_json()
+        self.assertEqual([x["po_number"] for x in d["overdue"]], ["P-LATE", "P-PART"])
+        self.assertTrue(d["overdue"][1]["part_received"])
+        self.assertEqual((d["totals"]["count"], d["totals"]["value"], d["totals"]["over_14"], d["totals"]["suppliers"]), (2, 200, 1, 1))
+        perf = {p["supplier_name"]: p for p in d["performance"]}
+        self.assertEqual((perf["Good Ltd"]["received"], perf["Good Ltd"]["on_time_pct"]), (1, 100))
+        self.assertEqual((perf["Late Ltd"]["received"], perf["Late Ltd"]["on_time"], perf["Late Ltd"]["avg_days_late"]), (1, 0, 3))
+        self.assertEqual(len(self.admin.get("/api/reporting/overdue-deliveries?supplier=Good%20Ltd").get_json()["overdue"]), 0)
+        self.assertEqual(self.admin.get("/api/reporting/overdue-deliveries/export").status_code, 200)
+
+    def test_service_engineer_blocked(self):
+        eng = self.engineer_client()
+        self.assertEqual(eng.get("/api/reporting/unpaid-invoices").status_code, 403)
+        self.assertEqual(eng.get("/api/reporting/overdue-deliveries").status_code, 403)
+
+
+class TestMoreReports(RoleTestBase):
+    """Quote follow-up, Workload by Owner, Supplier Invoices by Age, Work in Progress."""
+
+    def setUp(self):
+        super().setUp()
+        from datetime import date, timedelta
+        self.iso = lambda n: (date.today() + timedelta(days=n)).isoformat()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def test_quote_followup(self):
+        c = self.make_customer("Cust")
+        q = self.conn.execute
+        def quote(n, status, val, days_ago, owner="Ann"):
+            q("INSERT INTO quotes (quote_number, customer_id, status, estimated_value, quote_date, owner) VALUES (?,?,?,?,?,?)",
+              (n, c, status, val, self.iso(-days_ago), owner))
+        quote("TMQ-1", "Sent", 1000, 45); quote("TMQ-2", "Sent", 500, 5); quote("TMQ-3", "Won", 3000, 60)
+        quote("TMQ-4", "Lost", 1000, 60); quote("TMQ-5", "Expired", 1000, 70, owner="Bob"); quote("TMQ-6", "Draft", 99, 80)
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/quote-followup").get_json()
+        self.assertEqual([x["quote_number"] for x in d["chase"]], ["TMQ-1"])
+        t = d["totals"]
+        self.assertEqual((t["open"], t["open_value"], t["won"], t["lost"], t["win_pct"], t["win_value_pct"]), (2, 1500, 1, 2, 33, 60))
+        owners = {o["name"]: o for o in d["by_owner"]}
+        self.assertEqual(owners["Bob"]["lost"], 1)
+        self.assertEqual(len(self.admin.get("/api/reporting/quote-followup?owner=Bob").get_json()["chase"]), 0)
+        self.assertEqual(self.admin.get("/api/reporting/quote-followup/export").status_code, 200)
+
+    def test_workload(self):
+        c = self.make_customer("Cust")
+        a = self.make_works_order("TM-1", c, status="In Progress", contract_value=100)
+        b = self.make_works_order("TM-2", c, status="Open", contract_value=200)
+        h = self.make_works_order("TM-3", c, status="On Hold", contract_value=400)
+        done = self.make_works_order("TM-4", c, status="Completed", contract_value=800)
+        self.conn.execute("UPDATE works_orders SET project_manager='Ann'")
+        self.conn.execute("UPDATE works_orders SET end_date=? WHERE works_order_id IN (?,?)", (self.iso(-10), a, h))
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/workload").get_json()
+        o = d["rows"][0]
+        self.assertEqual((o["owner"], o["open"], o["in_progress"], o["on_hold"], o["late"], o["active_value"], o["late_value"], o["on_hold_value"]),
+                         ("Ann", 1, 1, 1, 1, 300, 100, 400))
+        self.assertEqual(d["totals"]["live"], 2)
+        self.assertEqual(self.admin.get("/api/reporting/workload/export").status_code, 200)
+
+    def test_supplier_ageing(self):
+        c = self.make_customer("Cust"); wo = self.make_works_order("TM-1", c)
+        s = self.make_supplier("Sup")
+        po = self.make_purchase_order(wo, s, 5000)
+        def inv(n, status, amt, days):
+            self.conn.execute("INSERT INTO supplier_invoices (invoice_number, purchase_order_id, works_order_id, supplier_id, invoice_date, invoice_amount, status) VALUES (?,?,?,?,?,?,?)",
+                              (n, po, wo, s, self.iso(-days), amt, status))
+        inv("A", "Pending", 100, 10); inv("B", "Approved", 200, 45); inv("C", "Disputed", 300, 90)
+        inv("D", "Paid", 999, 90); inv("E", "Cancelled", 999, 90)
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/supplier-ageing").get_json()
+        self.assertEqual({x["invoice_number"] for x in d["invoices"]}, {"A", "B", "C"})
+        t = d["totals"]
+        self.assertEqual((t["total"], t["pending"], t["approved"], t["disputed"], t["over_60"]), (600, 100, 200, 300, 300))
+        row = d["suppliers"][0]
+        self.assertEqual((row["b0_30"], row["b31_60"], row["over_60"]), (100, 200, 300))
+        self.assertEqual(len(self.admin.get("/api/reporting/supplier-ageing?status=Approved").get_json()["invoices"]), 1)
+        self.assertEqual(self.admin.get("/api/reporting/supplier-ageing/export").status_code, 200)
+
+    def test_wip(self):
+        c = self.make_customer("Cust"); s = self.make_supplier("Sup")
+        live = self.make_works_order("TM-1", c, status="In Progress", contract_value=5000)
+        self.make_works_order("TM-2", c, status="Completed", contract_value=5000)
+        po = self.make_purchase_order(live, s, 1000)
+        q = self.conn.execute
+        q("INSERT INTO supplier_invoices (invoice_number, purchase_order_id, works_order_id, supplier_id, invoice_amount, status) VALUES ('S1',?,?,?,400,'Approved')", (po, live, s))
+        q("INSERT INTO labour_entries (works_order_id, employee_name, hours_worked, hourly_rate, labour_cost) VALUES (?, 'Joe', 10, 30, 300)", (live,))
+        self.conn.commit()
+        self.make_customer_invoice(live, 250, status="Sent", invoice_number="I1")           # import placeholder: not really invoiced
+        self.make_customer_invoice(live, 100, status="Paid", invoice_number="I2")
+        d = self.admin.get("/api/reporting/wip").get_json()
+        self.assertEqual(len(d["rows"]), 1)
+        r = d["rows"][0]
+        self.assertEqual((r["purchases"], r["hours"], r["cost"], r["invoiced"], r["tied_up"], r["committed"]), (400, 300, 700, 100, 600, 600))
+        self.assertEqual(d["totals"]["tied_up"], 600)
+        self.assertEqual(self.admin.get("/api/reporting/wip/export").status_code, 200)
+
+    def test_service_engineer_blocked(self):
+        eng = self.engineer_client()
+        for p in ("quote-followup", "workload", "supplier-ageing", "wip"):
+            self.assertEqual(eng.get("/api/reporting/" + p).status_code, 403, p)
+
+
+class TestOnTimeAndOnHold(RoleTestBase):
+    """Required By date, On-time Delivery report and Jobs On Hold report."""
+
+    def setUp(self):
+        super().setUp()
+        from datetime import date, timedelta
+        self.iso = lambda n: (date.today() + timedelta(days=n)).isoformat()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+
+    def test_required_by_saved_and_logged(self):
+        c = self.make_customer("Cust")
+        h = self.csrf(self.admin)
+        r = self.admin.post("/api/works-orders", json={"job_name": "J", "customer_id": c, "required_by": "2026-12-01"}, headers=h)
+        wid = r.get_json()["works_order_id"]
+        self.assertEqual(self.conn.execute("SELECT required_by FROM works_orders WHERE works_order_id=?", (wid,)).fetchone()[0], "2026-12-01")
+        self.admin.put(f"/api/works-orders/{wid}", json={"job_name": "J", "customer_id": c, "status": "Draft", "required_by": "2026-12-15"}, headers=h)
+        self.assertEqual(self.conn.execute("SELECT required_by FROM works_orders WHERE works_order_id=?", (wid,)).fetchone()[0], "2026-12-15")
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE record_id=? AND field_name='required_by'", (wid,)).fetchone()[0], 1)
+
+    def test_on_time_delivery(self):
+        c = self.make_customer("Cust")
+        q = self.conn.execute
+        def job(n, status, req, delivered=None, despatch=None):
+            w = self.make_works_order(n, c, status=status)
+            q("UPDATE works_orders SET required_by=?, delivered_date=?, project_manager='Ann' WHERE works_order_id=?", (req, delivered, w))
+            if despatch:
+                q("INSERT INTO despatch_notes (despatch_number, works_order_id, despatch_date, status) VALUES (?,?,?, 'Despatched')", (f"D-{n}", w, despatch))
+            return w
+        job("TM-1", "Completed", self.iso(-20), delivered=self.iso(-25))      # on time (Order Book date)
+        job("TM-2", "Completed", self.iso(-20), despatch=self.iso(-15))       # 5 days late (despatch note)
+        job("TM-3", "In Progress", self.iso(-10))                             # overdue, not delivered
+        job("TM-4", "In Progress", self.iso(10))                              # not due yet
+        job("TM-5", "Completed", self.iso(-20))                               # finished, no delivery date
+        job("TM-6", "Completed", self.iso(-20), delivered=self.iso(-500))     # date typo
+        job("TM-7", "Draft", self.iso(-20))                                   # draft ignored
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/on-time-delivery").get_json()
+        t = d["totals"]
+        self.assertEqual((t["delivered"], t["on_time"], t["late"], t["overdue"], t["waiting"], t["on_time_pct"], t["avg_days_late"]),
+                         (2, 1, 1, 1, 1, 33, 5))
+        self.assertEqual((d["suspect_dates"], d["no_delivery_date"]), (1, 1))
+        self.assertEqual([x["job_number"] for x in d["listing"]], ["TM-3", "TM-2"])
+        self.assertEqual(self.admin.get("/api/reporting/on-time-delivery/export").status_code, 200)
+        self.assertEqual(len(self.admin.get("/api/reporting/on-time-delivery?owner=Nobody").get_json()["listing"]), 0)
+
+    def test_on_hold_since(self):
+        c = self.make_customer("Cust")
+        a = self.make_works_order("TM-1", c, status="In Progress", contract_value=500)
+        b = self.make_works_order("TM-2", c, status="On Hold", contract_value=300)      # on hold with no recorded start (e.g. imported)
+        self.make_works_order("TM-3", c, status="In Progress")
+        self.assertEqual(self.admin.post("/api/works-orders/bulk-status", json={"ids": [a], "status": "On Hold"}, headers=self.csrf(self.admin)).status_code, 200)
+        self.conn.execute("UPDATE audit_log SET changed_date=? WHERE record_id=? AND new_value='On Hold'", (self.iso(-40) + " 09:00:00", a))
+        self.conn.commit()
+        d = self.admin.get("/api/reporting/on-hold").get_json()
+        rows = {r["job_number"]: r for r in d["rows"]}
+        self.assertEqual(set(rows), {"TM-1", "TM-2"})
+        self.assertEqual(rows["TM-1"]["days_on_hold"], 40)
+        self.assertEqual(rows["TM-1"]["held_by"], "boss")
+        self.assertIsNone(rows["TM-2"]["days_on_hold"])
+        self.assertEqual((d["totals"]["jobs"], d["totals"]["value"], d["totals"]["over_30"], d["totals"]["unknown"]), (2, 800, 1, 1))
+        self.assertEqual(d["rows"][0]["job_number"], "TM-1")          # known ages first, longest first
+        self.assertEqual(self.admin.get("/api/reporting/on-hold/export").status_code, 200)
+
+    def test_service_engineer_blocked(self):
+        eng = self.engineer_client()
+        for p in ("on-time-delivery", "on-hold"):
+            self.assertEqual(eng.get("/api/reporting/" + p).status_code, 403, p)
+
+
+class TestShareCustomersSuppliers(unittest.TestCase):
+    """Export customers/suppliers from one database and add the missing ones to another."""
+
+    def make_db(self):
+        c = sqlite3.connect(":memory:")
+        c.executescript(open(os.path.join(os.path.dirname(appmod.__file__), "schema.sql")).read())
+        return c
+
+    def test_export_and_import_adds_only_missing(self):
+        import share_customers_suppliers as sh
+        a, b = self.make_db(), self.make_db()
+        a.execute("INSERT INTO customers (customer_name, address, payment_terms_days, payment_terms_eow) VALUES ('Rolls Royce - Derby','Derby',75,1)")
+        a.execute("INSERT INTO customers (customer_name, email) VALUES ('Acme Ltd','a@acme.test')")
+        a.execute("INSERT INTO suppliers (supplier_name, vat_number, contact_name) VALUES ('Fife Engineering','GB123','Sam')")
+        a.execute("INSERT INTO suppliers (supplier_name) VALUES ('Cromwell')")
+        b.execute("INSERT INTO customers (customer_name, address) VALUES ('  acme   LTD ','mine')")
+        b.execute("INSERT INTO suppliers (supplier_name) VALUES ('Cromwell')")
+        data = sh.export_data(a)
+        self.assertEqual((len(data["customers"]), len(data["suppliers"])), (2, 2))
+        self.assertNotIn("created_by", data["customers"][0])
+        plan = sh.plan_import(b, data)
+        self.assertEqual([r["customer_name"] for r in plan["customers"]["new"]], ["Rolls Royce - Derby"])
+        self.assertEqual(plan["customers"]["already_there"], 1)
+        self.assertEqual([r["supplier_name"] for r in plan["suppliers"]["new"]], ["Fife Engineering"])
+        added = sh.apply_import(b, plan)
+        self.assertEqual(added, {"customers": 1, "suppliers": 1})
+        self.assertEqual(b.execute("SELECT payment_terms_days, payment_terms_eow, address FROM customers WHERE customer_name='Rolls Royce - Derby'").fetchone(), (75, 1, "Derby"))
+        self.assertEqual(b.execute("SELECT vat_number FROM suppliers WHERE supplier_name='Fife Engineering'").fetchone()[0], "GB123")
+        self.assertEqual(b.execute("SELECT address FROM customers WHERE customer_name LIKE '%acme%'").fetchone()[0], "mine")   # existing untouched
+        again = sh.plan_import(b, data)
+        self.assertEqual((len(again["customers"]["new"]), len(again["suppliers"]["new"])), (0, 0))
+
+
+class TestFixedYearlyCustomerPOs(RoleTestBase):
+    """Fixed Yearly Customer PO's: grid, pull-through to works orders, backfill rule, history."""
+
+    def setUp(self):
+        super().setUp()
+        import migrations
+        self.migrations = migrations
+        for name in ("Rolls Royce - DCDD", "Rolls Royce - WMF"):
+            self.make_customer(name)
+        self.other = self.make_customer("Acme Ltd")
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+        self.cid = lambda n: self.conn.execute("SELECT customer_id FROM customers WHERE customer_name=?", (n,)).fetchone()[0]
+
+    def put(self, client, **kw):
+        return client.put("/api/fixed-pos", json=kw, headers=self.csrf(client))
+
+    def test_missing_sites_are_created_once(self):
+        self.migrations.seed_fixed_po_customers(self.conn)
+        self.conn.commit()
+        names = [r[0] for r in self.conn.execute("SELECT customer_name FROM customers")]
+        for n in self.migrations.FIXED_PO_SITES:
+            self.assertEqual(names.count(n), 1, n)
+        self.assertIn("Rolls Royce - 3BSM", names)
+        self.assertEqual(len(names), len(self.migrations.FIXED_PO_SITES) + 1)      # + Acme
+        self.migrations.seed_fixed_po_customers(self.conn)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0], len(names))
+
+    def test_save_update_clear_and_history(self):
+        d, w = self.cid("Rolls Royce - DCDD"), self.cid("Rolls Royce - WMF")
+        self.assertEqual(self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="1400-00888999", line_number="2").status_code, 200)
+        self.put(self.admin, customer_id=w, contract_code="FS-L", year=2026, po_number="1400-00911111", line_number="3")
+        g = self.admin.get("/api/fixed-pos?year=2026").get_json()
+        self.assertEqual(g["cells"][f"{d}|FS - L"]["po_number"], "1400-00888999")
+        self.assertEqual(g["cells"][f"{w}|FS - L"]["line_number"], "3")
+        self.assertIn(2026, g["years"]); self.assertIn(2027, g["years"])
+        self.assertEqual(self.admin.get("/api/fixed-pos?year=2027").get_json()["cells"], {})   # a new year starts blank, 2026 is kept
+        self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="1400-00999999", line_number="5")
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM fixed_customer_pos").fetchone()[0], 2)
+        self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="", line_number="")
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM fixed_customer_pos").fetchone()[0], 1)
+        hist = self.admin.get("/api/fixed-pos/history").get_json()
+        text = " ".join(f"{h['field_name']} {h['old_value']} {h['new_value']}" for h in hist)
+        self.assertIn("1400-00888999", text); self.assertIn("1400-00999999", text)
+        self.assertEqual(hist[0]["changed_by"] in ("boss", "Test User") or bool(hist[0]["changed_by"]), True)
+
+    def test_validation_and_permissions(self):
+        d = self.cid("Rolls Royce - DCDD")
+        self.assertEqual(self.put(self.admin, customer_id=d, contract_code="FS - HQ", year=2026, po_number="X").status_code, 400)
+        self.assertEqual(self.put(self.admin, customer_id=self.other, contract_code="FS - L", year=2026, po_number="X").status_code, 400)
+        self.assertEqual(self.put(self.admin, customer_id=d, contract_code="FS - L", year=1999, po_number="X").status_code, 400)
+        eng = self.engineer_client()
+        self.assertEqual(self.put(eng, customer_id=d, contract_code="FS - L", year=2026, po_number="X").status_code, 403)
+        self.assertEqual(eng.get("/api/fixed-pos").status_code, 403)
+
+    def test_new_job_pulls_through_by_start_year(self):
+        d = self.cid("Rolls Royce - DCDD")
+        self.put(self.admin, customer_id=d, contract_code="FS - M", year=2026, po_number="P-26", line_number="1")
+        self.put(self.admin, customer_id=d, contract_code="FS - M", year=2027, po_number="P-27", line_number="9")
+        h = self.csrf(self.admin)
+        def make(start, **extra):
+            r = self.admin.post("/api/works-orders", json={"job_name": "J", "customer_id": d, "contract_code": "FS - M", "start_date": start, **extra}, headers=h)
+            return self.conn.execute("SELECT customer_po, customer_po_line FROM works_orders WHERE works_order_id=?", (r.get_json()["works_order_id"],)).fetchone()
+        self.assertEqual(tuple(make("2026-03-01")), ("P-26", "1"))
+        self.assertEqual(tuple(make("2027-01-05")), ("P-27", "9"))
+        self.assertEqual(tuple(make("2026-03-01", customer_po="HAND", customer_po_line="7")), ("HAND", "7"))
+        look = self.admin.get(f"/api/works-orders/fixed-po-lookup?customer_id={d}&contract_code=FS%20-%20M&start_date=2027-06-01").get_json()
+        self.assertEqual(look["po_number"], "P-27")
+        self.assertEqual(self.admin.get(f"/api/works-orders/fixed-po-lookup?customer_id={d}&contract_code=FS%20-%20H&start_date=2027-06-01").get_json(), {})
+        # service engineers can use the lookup when raising a job
+        self.assertEqual(self.engineer_client().get(f"/api/works-orders/fixed-po-lookup?customer_id={d}&contract_code=FS%20-%20M").status_code, 200)
+
+    def test_existing_fs_l_m_h_jobs_are_filled_but_not_others(self):
+        d = self.cid("Rolls Royce - DCDD")
+        mk = lambda n, code, start, po=None: self.conn.execute(
+            "UPDATE works_orders SET contract_code=?, start_date=?, customer_po=? WHERE works_order_id=?",
+            (code, start, po, self.make_works_order(n, d))) and None
+        mk("TM-1", "FS - L", "2026-02-01"); mk("TM-2", "FS - L", "2025-02-01"); mk("TM-3", "FS - L", "2026-02-01", "KEEP")
+        mk("TM-4", "FS", "2026-02-01"); mk("TM-5", "FR/TL", "2026-02-01")
+        self.conn.commit()
+        r = self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="NEW", line_number="4").get_json()
+        self.assertEqual(r["applied_to_existing_jobs"], 1)
+        po = lambda n: self.conn.execute("SELECT customer_po FROM works_orders WHERE job_number=?", (n,)).fetchone()[0]
+        self.assertEqual((po("TM-1"), po("TM-2"), po("TM-3"), po("TM-4"), po("TM-5")), ("NEW", None, "KEEP", None, None))
+        self.assertEqual(self.put(self.admin, customer_id=d, contract_code="FR/TL", year=2026, po_number="FR-1").get_json()["applied_to_existing_jobs"], 0)
+        self.assertIsNone(po("TM-5"))
+        # changing the cell later does not rewrite a job that already carries the old number
+        self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="CHANGED", line_number="4")
+        self.assertEqual(po("TM-1"), "NEW")
+
+    def test_edit_keeps_po_unless_changed_and_logs_it(self):
+        d = self.cid("Rolls Royce - DCDD")
+        wo = self.make_works_order("TM-9", d)
+        self.conn.execute("UPDATE works_orders SET customer_po='ORIG', customer_po_line='1' WHERE works_order_id=?", (wo,)); self.conn.commit()
+        h = self.csrf(self.admin)
+        self.admin.put(f"/api/works-orders/{wo}", json={"job_name": "J", "customer_id": d, "status": "Open"}, headers=h)   # fields not sent
+        self.assertEqual(self.conn.execute("SELECT customer_po FROM works_orders WHERE works_order_id=?", (wo,)).fetchone()[0], "ORIG")
+        self.admin.put(f"/api/works-orders/{wo}", json={"job_name": "J", "customer_id": d, "status": "Open", "customer_po": "NEWER", "customer_po_line": "2"}, headers=h)
+        self.assertEqual(self.conn.execute("SELECT customer_po FROM works_orders WHERE works_order_id=?", (wo,)).fetchone()[0], "NEWER")
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE record_id=? AND field_name='customer_po'", (wo,)).fetchone()[0], 1)
+
+
+class TestBulkContractCode(TestFixedYearlyCustomerPOs):
+    """v1.10.0: change the contract code of a batch of jobs (plain FS -> FS - L / M / H)."""
+
+    def bulk(self, client, ids, code):
+        return client.post("/api/works-orders/bulk-contract-code", json={"ids": ids, "contract_code": code}, headers=self.csrf(client))
+
+    def test_change_code_logs_history_and_fills_fixed_po(self):
+        d = self.cid("Rolls Royce - DCDD")
+        a, b, c = (self.make_works_order(n, d) for n in ("BC-1", "BC-2", "BC-3"))
+        self.conn.execute("UPDATE works_orders SET contract_code='FS', start_date='2026-03-01' WHERE works_order_id IN (?,?,?)", (a, b, c))
+        self.conn.execute("UPDATE works_orders SET customer_po='KEEP' WHERE works_order_id=?", (b,))
+        self.conn.execute("UPDATE works_orders SET start_date='2025-03-01' WHERE works_order_id=?", (c,))
+        self.conn.commit()
+        self.put(self.admin, customer_id=d, contract_code="FS - L", year=2026, po_number="PO-26", line_number="2")
+        r = self.bulk(self.admin, [a, b, c], "fs-l")
+        self.assertEqual(r.status_code, 200)
+        j = r.get_json()
+        self.assertEqual((j["updated"], j["contract_code"], j["po_filled"], j["po_missing"]), (3, "FS - L", 1, 1))
+        row = lambda w: tuple(self.conn.execute("SELECT contract_code, customer_po FROM works_orders WHERE works_order_id=?", (w,)).fetchone())
+        self.assertEqual(row(a), ("FS - L", "PO-26")); self.assertEqual(row(b), ("FS - L", "KEEP")); self.assertEqual(row(c), ("FS - L", None))
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE field_name='contract_code' AND new_value='FS - L'").fetchone()[0], 3)
+        again = self.bulk(self.admin, [a, b, c], "FS - L").get_json()
+        self.assertEqual((again["updated"], again["unchanged"]), (0, 3))
+
+    def test_validation_permissions_and_history_jobs(self):
+        d = self.cid("Rolls Royce - DCDD")
+        a = self.make_works_order("BC-9", d)
+        h = self.make_works_order("HIST-PO-1", d)
+        self.assertEqual(self.bulk(self.admin, [], "FS - L").status_code, 400)
+        self.assertEqual(self.bulk(self.admin, [a], "").status_code, 400)
+        self.assertEqual(self.bulk(self.admin, [a], "NOT A CODE").status_code, 400)
+        self.assertEqual(self.bulk(self.engineer_client(), [a], "FS - L").status_code, 403)
+        j = self.bulk(self.admin, [h], "FS - L").get_json()
+        self.assertEqual(j["updated"], 0)
+
+    def test_order_book_refresh_keeps_refined_code(self):
+        import update_order_book as uob, inspect
+        self.assertIn("startswith(new.upper() + \" - \")", inspect.getsource(uob))
+
+
+class TestMarginTargetBoundary(ProfitabilityTestCase):
+    """A job sitting on its margin target (shown as e.g. 20.0%) must not be flagged as below it."""
+
+    def _job(self, code, revenue, cost, n):
+        cust = self.make_customer(f"Cust {n}")
+        wo = self.make_works_order(f"TM-B{n}", cust, contract_value=revenue, contract_code=code)
+        self.make_customer_invoice(wo, revenue, invoice_number=f"INV-B{n}")
+        self.make_labour_entry(wo, hours=1, rate=cost)
+        return self.metrics_for(wo)
+
+    def test_exactly_on_target_is_not_flagged(self):
+        # 20% target codes: use a default-target code set to 20 via settings
+        self.conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('default_margin_target','20')")
+        self.conn.commit()
+        for i, (rev, cost) in enumerate([(1000, 800), (179.79, 143.832), (309.12, 247.296), (579.60, 463.68), (1234.57, 987.656), (0.1 + 0.2, 0.24)]):
+            m = self._job(None, rev, cost, i)
+            self.assertNotIn("Margin Risk", self.alert_types(m), (rev, cost, m["forecast_margin_pct"]))
+            self.assertEqual(m["status_light"], "green", (rev, cost, m["margin_pct"]))
+
+    def test_rounds_up_to_target_is_not_flagged_but_visibly_below_is(self):
+        self.conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('default_margin_target','20')")
+        self.conn.commit()
+        near = self._job(None, 179.79, 143.84, 20)      # 19.9955% - displays as 20.0%
+        self.assertNotIn("Margin Risk", self.alert_types(near))
+        self.assertEqual(near["status_light"], "green")
+        below = self._job(None, 1000, 801, 21)          # 19.9% - genuinely below
+        self.assertIn("Margin Risk", self.alert_types(below))
+        self.assertEqual(below["status_light"], "amber")
+
+
+class TestQualityFeatures(RoleTestBase):
+    """v1.11.0: supplier approval, NCRs, goods-in traceability, contract review."""
+
+    def setUp(self):
+        super().setUp()
+        self.make_user("boss", "secret123", "Administrator")
+        self.make_user("proc", "secret123", "Procurement")
+        self.make_user("exec", "secret123", "Executive")
+        self.clients = {}
+        for u in ("boss", "proc", "exec"):
+            c = appmod.app.test_client()
+            r = c.post("/api/auth/login", json={"username": u, "password": "secret123"})
+            if r.get_json().get("must_setup_2fa"):
+                _complete_pending_2fa_setup(c)
+            self.clients[u] = c
+        self.admin, self.proc, self.exec_ = self.clients["boss"], self.clients["proc"], self.clients["exec"]
+        self.cust = self.make_customer("Rolls Royce - DCDD")
+        self.sup = self.make_supplier("Northern Plating Co") if hasattr(self, "make_supplier") else None
+
+    def post(self, c, url, **kw): return c.post(url, json=kw, headers=self.csrf(c))
+    def put(self, c, url, **kw): return c.put(url, json=kw, headers=self.csrf(c))
+
+    # ---- supplier approval ----
+    def test_supplier_defaults_to_not_assessed_and_approval_is_saved_with_history(self):
+        row = next(r for r in self.admin.get("/api/suppliers/quality").get_json() if r["supplier_id"] == self.sup)
+        self.assertEqual(row["approval_status"], "Not assessed")
+        r = self.post(self.proc, f"/api/suppliers/{self.sup}/approval", approval_status="Conditional", approved_for="Plating",
+                      next_review_date="2027-01-01", approval_condition="Renew cert", notes="Late deliveries")
+        self.assertEqual(r.status_code, 200)
+        d = self.admin.get(f"/api/suppliers/{self.sup}/quality").get_json()
+        self.assertEqual(d["supplier"]["approval_status"], "Conditional")
+        self.assertEqual(d["evaluations"][0]["outcome"], "Conditional")
+        self.assertGreaterEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE table_name='suppliers' AND field_name='approval_status'").fetchone()[0], 1)
+        self.assertEqual(self.post(self.proc, f"/api/suppliers/{self.sup}/approval", approval_status="Nonsense").status_code, 400)
+        self.assertEqual(self.post(self.exec_, f"/api/suppliers/{self.sup}/approval", approval_status="Approved").status_code, 403)
+
+    def test_certificates_state_and_dates(self):
+        from datetime import date, timedelta
+        soon, past = (date.today() + timedelta(days=20)).isoformat(), (date.today() - timedelta(days=3)).isoformat()
+        self.assertEqual(self.post(self.proc, f"/api/suppliers/{self.sup}/certificates", cert_type="ISO 9001", expiry_date=soon).status_code, 201)
+        self.assertEqual(self.post(self.proc, f"/api/suppliers/{self.sup}/certificates", cert_type="").status_code, 400)
+        self.assertEqual(self.post(self.proc, f"/api/suppliers/{self.sup}/certificates", cert_type="X", expiry_date="not a date").status_code, 400)
+        row = next(r for r in self.admin.get("/api/suppliers/quality").get_json() if r["supplier_id"] == self.sup)
+        self.assertEqual(row["cert_state"], "due")
+        cid = self.post(self.proc, f"/api/suppliers/{self.sup}/certificates", cert_type="Nadcap", expiry_date=past).get_json()["certificate_id"]
+        row = next(r for r in self.admin.get("/api/suppliers/quality").get_json() if r["supplier_id"] == self.sup)
+        self.assertEqual(row["cert_state"], "expired")
+        self.assertEqual(self.proc.delete(f"/api/supplier-certificates/{cid}", headers=self.csrf(self.proc)).status_code, 200)
+
+    def test_suspended_supplier_blocks_po_unless_admin_gives_reason(self):
+        wo = self.make_works_order("TM-Q1", self.cust)
+        self.conn.execute("UPDATE suppliers SET approval_status='Suspended' WHERE supplier_id=?", (self.sup,)); self.conn.commit()
+        body = dict(works_order_id=wo, supplier_id=self.sup, description="x", po_value=10, status="Draft")
+        r = self.post(self.proc, "/api/purchase-orders", **body)
+        self.assertEqual(r.status_code, 400); self.assertIn("suspended", r.get_json()["error"])
+        r = self.post(self.admin, "/api/purchase-orders", **body)
+        self.assertEqual(r.status_code, 400); self.assertTrue(r.get_json().get("needs_override_reason"))
+        r = self.post(self.admin, "/api/purchase-orders", suspended_override_reason="Only source of this plating", **body)
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE field_name='ordered from suspended supplier'").fetchone()[0], 1)
+        # a supplier that is merely Not assessed or Conditional is never blocked
+        self.conn.execute("UPDATE suppliers SET approval_status='Conditional' WHERE supplier_id=?", (self.sup,)); self.conn.commit()
+        self.assertEqual(self.post(self.proc, "/api/purchase-orders", **body).status_code, 201)
+
+    # ---- NCR ----
+    def test_ncr_lifecycle_numbering_and_closing_rules(self):
+        wo = self.make_works_order("TM-Q2", self.cust)
+        r = self.post(self.proc, "/api/non-conformances", source="Supplier delivery", description="Oversize", works_order_id=wo, supplier_id=self.sup)
+        self.assertEqual(r.status_code, 201); self.assertEqual(r.get_json()["ncr_number"], "NCR-0001")
+        nid = r.get_json()["ncr_id"]
+        self.assertEqual(self.post(self.proc, "/api/non-conformances", source="Internal", description="Rework").get_json()["ncr_number"], "NCR-0002")
+        self.assertEqual(self.post(self.proc, "/api/non-conformances", source="Bogus", description="x").status_code, 400)
+        self.assertEqual(self.post(self.proc, "/api/non-conformances", source="Internal", description="").status_code, 400)
+        r = self.put(self.proc, f"/api/non-conformances/{nid}", status="Closed")
+        self.assertEqual(r.status_code, 400); self.assertIn("root cause", r.get_json()["error"])
+        r = self.put(self.proc, f"/api/non-conformances/{nid}", status="Closed", root_cause="Tool wear", corrective_action="Replace tool",
+                     effectiveness_result="3 clean deliveries")
+        self.assertEqual(r.status_code, 200)
+        row = [n for n in self.admin.get("/api/non-conformances").get_json() if n["ncr_id"] == nid][0]
+        self.assertEqual((row["status"], row["job_number"], row["supplier_name"]), ("Closed", "TM-Q2", "Northern Plating Co"))
+        self.assertTrue(row["closed_date"])
+        self.assertGreaterEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE table_name='non_conformances' AND record_id=?", (nid,)).fetchone()[0], 1)
+        self.assertEqual(self.post(self.exec_, "/api/non-conformances", source="Internal", description="x").status_code, 403)
+        self.assertEqual(self.engineer_client().get("/api/non-conformances").status_code, 403)
+        self.assertEqual(self.proc.delete(f"/api/non-conformances/{nid}", headers=self.csrf(self.proc)).status_code, 403)
+
+    def test_ncr_from_goods_in_fills_po_supplier_job_and_counts_against_supplier(self):
+        wo = self.make_works_order("TM-Q3", self.cust)
+        po = self.make_purchase_order(wo, self.sup, 100)
+        gid = self.conn.execute("INSERT INTO goods_in (purchase_order_id, destination_type, received_date, quantity_status, received_by) VALUES (?,?,?,?,?)",
+                                (po, "Works Order", "2026-10-20", "Full", "Craig")).lastrowid; self.conn.commit()
+        r = self.post(self.proc, "/api/non-conformances", source="Supplier delivery", description="Out of tolerance", goods_in_id=gid)
+        nid = r.get_json()["ncr_id"]
+        n = self.conn.execute("SELECT * FROM non_conformances WHERE ncr_id=?", (nid,)).fetchone()
+        self.assertEqual((n["purchase_order_id"], n["supplier_id"], n["works_order_id"]), (po, self.sup, wo))
+        row = next(r for r in self.admin.get("/api/suppliers/quality").get_json() if r["supplier_id"] == self.sup)
+        self.assertEqual(row["ncrs_12m"], 1)
+
+    # ---- goods in traceability ----
+    def test_goods_in_trace_fields_validation_and_trace_search(self):
+        wo = self.make_works_order("TM-Q4", self.cust)
+        po = self.make_purchase_order(wo, self.sup, 100)
+        base = dict(purchase_order_id=po, destination_type="Works Order", received_date="2026-10-20", quantity_status="Full", received_by="Craig")
+        files = {"documents": (io.BytesIO(b"%PDF-1.4 x"), "dn.pdf")}
+        r = self.admin.post("/api/goods-in", data={**base, "batch_number": "LOT-4418", "heat_number": "H-93021", "cert_status": "Received",
+                            "inspection_result": "Accepted", **files}, headers=self.csrf(self.admin), content_type="multipart/form-data")
+        self.assertEqual(r.status_code, 201, r.get_json())
+        gid = r.get_json()["goods_in_id"]
+        bad = self.admin.post("/api/goods-in", data={**base, "cert_status": "Maybe", "documents": (io.BytesIO(b"x"), "d.pdf")},
+                              headers=self.csrf(self.admin), content_type="multipart/form-data")
+        self.assertEqual(bad.status_code, 400)
+        self.assertEqual(self.put(self.admin, f"/api/goods-in/{gid}", **base, inspection_result="Rejected", batch_number="LOT-4418").status_code, 200)
+        self.post(self.proc, "/api/non-conformances", source="Supplier delivery", description="Rejected", goods_in_id=gid)
+        t = self.admin.get("/api/trace?q=lot-44").get_json()
+        self.assertEqual(len(t), 1)
+        self.assertEqual((t[0]["job_number"], t[0]["supplier_name"], t[0]["inspection_result"]), ("TM-Q4", "Northern Plating Co", "Rejected"))
+        self.assertEqual(t[0]["ncrs"][0]["ncr_number"], "NCR-0001")
+        self.assertEqual(self.admin.get("/api/trace?q=zzzz").get_json(), [])
+        self.assertEqual(self.admin.get("/api/trace?q=a").status_code, 400)
+        self.assertEqual(self.engineer_client().get("/api/trace?q=lot").status_code, 403)
+
+    # ---- contract review ----
+    def test_new_jobs_start_not_reviewed_but_existing_jobs_stay_blank(self):
+        old = self.make_works_order("TM-Q5", self.cust)
+        self.assertIsNone(self.conn.execute("SELECT review_status FROM works_orders WHERE works_order_id=?", (old,)).fetchone()[0])
+        r = self.post(self.admin, "/api/works-orders", job_name="New", customer_id=self.cust, status="Open")
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(self.conn.execute("SELECT review_status FROM works_orders WHERE works_order_id=?", (r.get_json()["works_order_id"],)).fetchone()[0], "Not reviewed")
+
+    def test_contract_review_save_query_signoff_and_rules(self):
+        wid = self.post(self.admin, "/api/works-orders", job_name="J", customer_id=self.cust, status="Open", contract_value=4200).get_json()["works_order_id"]
+        qid = self.conn.execute("INSERT INTO quotes (quote_number, customer_id, estimated_value, works_order_id) VALUES ('TMQ-9999', ?, 4000, ?)", (self.cust, wid)).lastrowid
+        self.conn.commit()
+        d = self.admin.get(f"/api/works-orders/{wid}/contract-review").get_json()
+        price = next(c for c in d["comparison"] if c["item"] == "Price")
+        self.assertEqual((price["quote"], price["order"], price["match"]), (4000, 4200, False))
+        self.assertEqual(len(d["checks"]), 8)
+        answers = {c["key"]: {"result": "Yes", "comment": ""} for c in d["checks"]}
+        # query saved -> Query open
+        r = self.put(self.proc, f"/api/works-orders/{wid}/contract-review", checks={**answers, "delivery": {"result": "No", "comment": "Too soon"}},
+                     outcome="Query raised with customer", reviewed_by="Craig")
+        self.assertEqual(r.get_json()["review_status"], "Query open")
+        # can't sign off a query, or with unanswered checks
+        self.assertEqual(self.put(self.proc, f"/api/works-orders/{wid}/contract-review", checks=answers, outcome="Query raised with customer", sign_off=True).status_code, 400)
+        partial = {**answers, "price": {"result": "", "comment": ""}}
+        r = self.put(self.proc, f"/api/works-orders/{wid}/contract-review", checks=partial, outcome="Accepted as ordered", sign_off=True)
+        self.assertEqual(r.status_code, 400); self.assertIn("Answer every check", r.get_json()["error"])
+        r = self.put(self.proc, f"/api/works-orders/{wid}/contract-review", checks=answers, outcome="Accepted as ordered", sign_off=True, reviewed_by="Craig")
+        self.assertEqual(r.get_json()["review_status"], "Signed off")
+        self.assertEqual(self.conn.execute("SELECT review_status FROM works_orders WHERE works_order_id=?", (wid,)).fetchone()[0], "Signed off")
+        self.assertTrue(self.admin.get(f"/api/works-orders/{wid}/contract-review").get_json()["signed_off"])
+        # re-saving without sign-off reopens it; the audit trail records each change
+        self.assertEqual(self.put(self.proc, f"/api/works-orders/{wid}/contract-review", checks=answers, outcome="Accepted as ordered").get_json()["review_status"], "Not reviewed")
+        self.assertGreaterEqual(self.conn.execute("SELECT COUNT(*) FROM audit_log WHERE table_name='works_orders' AND field_name='review_status' AND record_id=?", (wid,)).fetchone()[0], 3)
+        # permissions: executives read-only, service engineers shut out (no money)
+        self.assertEqual(self.put(self.exec_, f"/api/works-orders/{wid}/contract-review", checks=answers).status_code, 403)
+        self.assertEqual(self.exec_.get(f"/api/works-orders/{wid}/contract-review").status_code, 200)
+        self.assertEqual(self.engineer_client().get(f"/api/works-orders/{wid}/contract-review").status_code, 403)
+
+    def test_older_database_is_upgraded(self):
+        import migrations, sqlite3 as sq
+        c = sq.connect(":memory:"); c.row_factory = sq.Row
+        c.execute("CREATE TABLE suppliers (supplier_id INTEGER PRIMARY KEY, supplier_name TEXT)")
+        c.execute("CREATE TABLE goods_in (goods_in_id INTEGER PRIMARY KEY, purchase_order_id INTEGER)")
+        c.execute("CREATE TABLE works_orders (works_order_id INTEGER PRIMARY KEY, job_number TEXT)")
+        migrations.ensure_schema_current(c)
+        cols = lambda t: {r[1] for r in c.execute(f"PRAGMA table_info({t})")}
+        self.assertIn("approval_status", cols("suppliers")); self.assertIn("batch_number", cols("goods_in")); self.assertIn("review_status", cols("works_orders"))
+        for t in ("non_conformances", "contract_reviews", "supplier_certificates", "supplier_evaluations"):
+            self.assertTrue(cols(t), t)
+
+
+class TestDeliveriesDueReport(RoleTestBase):
+    """v1.12.0: Reporting > Deliveries Due (next months, income / cost / profit)."""
+
+    def setUp(self):
+        super().setUp()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+        self.cust = self.make_customer("Rolls Royce - DCDD")
+        self.other = self.make_customer("Acme Ltd")
+        self.sup = self.make_supplier("Steel Co")
+        from datetime import date, timedelta
+        self.today = date.today()
+        m = lambda n: (self.today.replace(day=1) + timedelta(days=32 * n)).replace(day=1)   # first day of month +n
+        self.m = m
+
+    def job(self, num, due=None, value=1000, status="Open", cust=None, end=None, delivered=None, owner=None):
+        wo = self.make_works_order(num, cust or self.cust, contract_value=value, status=status)
+        self.conn.execute("UPDATE works_orders SET required_by=?, end_date=?, delivered_date=?, project_manager=? WHERE works_order_id=?",
+                          (due.isoformat() if due else None, end.isoformat() if end else None, delivered, owner, wo))
+        self.conn.commit()
+        return wo
+
+    def get(self, **q):
+        from urllib.parse import urlencode
+        return self.admin.get("/api/reporting/deliveries-due?" + urlencode(q)).get_json()
+
+    def test_groups_by_month_with_income_cost_and_profit(self):
+        a = self.job("TM-D1", self.m(1) + __import__("datetime").timedelta(days=4), 1000)
+        self.make_labour_entry(a, hours=10, rate=30)                    # £300 cost so far
+        self.make_purchase_order(a, self.sup, 200)                      # £200 still to be invoiced
+        self.job("TM-D2", self.m(2) + __import__("datetime").timedelta(days=9), 500)
+        self.job("TM-D3", self.m(4) + __import__("datetime").timedelta(days=2), 999)   # outside 3 months
+        d = self.get()
+        keys = [g["key"] for g in d["groups"]]
+        self.assertEqual(keys[0], "overdue"); self.assertEqual(len(keys), 4)
+        nxt = next(g for g in d["groups"] if g["key"] == self.m(1).strftime("%Y-%m"))
+        row = nxt["rows"][0]
+        self.assertEqual((row["job_number"], row["income"], row["actual_cost"], row["forecast_cost"], row["profit"]), ("TM-D1", 1000, 300, 500, 500))
+        self.assertEqual(row["margin_pct"], 50.0)
+        self.assertEqual(d["window_totals"]["jobs"], 2)
+        self.assertEqual(d["window_totals"]["income"], 1500)
+        self.assertNotIn("TM-D3", [x["job_number"] for g in d["groups"] for x in g["rows"]])
+        self.assertEqual(len(self.get(months=6)["months"]), 6)
+        self.assertEqual(self.get(months=6)["window_totals"]["jobs"], 3)
+
+    def test_end_date_fallback_overdue_exclusions_and_no_date(self):
+        td = __import__("datetime").timedelta
+        self.job("TM-E1", None, end=self.m(1) + td(days=3))                      # no Required By: End Date is used
+        self.job("TM-E2", self.today - td(days=5), 400)                          # overdue and still open
+        self.job("TM-E3", self.m(1), status="Completed")                         # finished: excluded
+        self.job("TM-E4", self.m(1), delivered="2026-01-01")                     # already delivered: excluded
+        self.job("TM-E5", self.m(1), status="Cancelled")
+        self.job("TM-E6", None)                                                  # no date at all
+        d = self.get()
+        by = {x["job_number"]: (g["key"], x) for g in d["groups"] for x in g["rows"]}
+        self.assertEqual(by["TM-E1"][1]["date_source"], "End Date")
+        self.assertEqual(by["TM-E2"][0], "overdue"); self.assertEqual(by["TM-E2"][1]["days_late"], 5)
+        for gone in ("TM-E3", "TM-E4", "TM-E5", "TM-E6"):
+            self.assertNotIn(gone, by)
+        self.assertEqual(d["no_date"], 1)
+        self.assertEqual(d["overdue_totals"]["income"], 400)
+        self.assertEqual(d["window_totals"]["jobs"], 1)          # overdue jobs are not in the window totals
+
+    def test_filters_single_month_and_export(self):
+        td = __import__("datetime").timedelta
+        self.job("TM-F1", self.m(1) + td(days=1), 100, owner="Craig")
+        self.job("TM-F2", self.m(2) + td(days=1), 200, cust=self.other, owner="Simon")
+        self.assertEqual(self.get(customer="Acme Ltd")["window_totals"]["jobs"], 1)
+        self.assertEqual(self.get(owner="Craig")["window_totals"]["income"], 100)
+        one = self.get(month=self.m(2).strftime("%Y-%m"))
+        self.assertEqual([g["key"] for g in one["groups"]], [self.m(2).strftime("%Y-%m")])
+        r = self.admin.get("/api/reporting/deliveries-due/export")
+        self.assertEqual(r.status_code, 200)
+        text = r.data.decode()
+        self.assertIn("TM-F1", text); self.assertIn("Forecast Profit", text); self.assertIn("total", text)
+        self.assertGreaterEqual(self.conn.execute("SELECT COUNT(*) FROM document_access_log WHERE reference LIKE 'Deliveries Due%'").fetchone()[0], 1)
+
+    def test_closed_to_service_engineers(self):
+        eng = self.engineer_client()
+        self.assertEqual(eng.get("/api/reporting/deliveries-due").status_code, 403)
+        self.assertEqual(eng.get("/api/reporting/deliveries-due/export").status_code, 403)
+
+
+class TestEnquiries(RoleTestBase):
+    """v1.13.0: Enquiries (sales pipeline) feeding into quotes."""
+
+    def setUp(self):
+        super().setUp()
+        self.make_user("boss", "secret123", "Administrator")
+        self.admin = appmod.app.test_client()
+        r = self.admin.post("/api/auth/login", json={"username": "boss", "password": "secret123"})
+        if r.get_json().get("must_setup_2fa"):
+            _complete_pending_2fa_setup(self.admin)
+        self.cust = self.make_customer("Rolls Royce - DCDD")
+        from datetime import date, timedelta
+        self.today = date.today()
+        self.day = lambda n: (self.today + timedelta(days=n)).isoformat()
+
+    def post(self, url, body=None, client=None):
+        c = client or self.admin
+        return c.post(url, json=body or {}, headers=self.csrf(c))
+
+    def put(self, url, body, client=None):
+        c = client or self.admin
+        return c.put(url, json=body, headers=self.csrf(c))
+
+    def new(self, **kw):
+        body = {"prospect_name": "Newco Ltd", "description": "Gearbox repair", "estimated_value": 10000,
+                "next_follow_up": self.day(3)}
+        body.update(kw)
+        r = self.post("/api/enquiries", body)
+        self.assertEqual(r.status_code, 201, r.get_json())
+        return r.get_json()["enquiry_id"]
+
+    def test_create_numbers_and_validation(self):
+        a = self.new(); b = self.new(customer_id=self.cust, prospect_name=None)
+        got = self.admin.get("/api/enquiries").get_json()["enquiries"]
+        self.assertEqual(sorted(e["enquiry_number"] for e in got), ["ENQ-0001", "ENQ-0002"])
+        self.assertEqual(next(e for e in got if e["enquiry_id"] == b)["display_name"], "Rolls Royce - DCDD")
+        self.assertEqual(self.post("/api/enquiries", {"description": "x"}).status_code, 400)
+        self.assertEqual(self.post("/api/enquiries", {"prospect_name": "x"}).status_code, 400)
+
+    def test_summary_and_weighting(self):
+        self.new(stage="New", estimated_value=1000)
+        self.new(stage="Ready to quote", estimated_value=1000, next_follow_up=self.day(-2))
+        d = self.admin.get("/api/enquiries").get_json()
+        s = d["summary"]
+        self.assertEqual((s["open_count"], s["overdue_count"], s["estimated_value"]), (2, 1, 2000))
+        self.assertEqual(s["weighted_value"], 100 + 700)
+        self.assertEqual(self.put("/api/settings/enquiry-weights", {"weights": {"New": 20, "Contacted": 25, "Info / visit needed": 40, "Ready to quote": 50}}).status_code, 200)
+        self.assertEqual(self.admin.get("/api/enquiries").get_json()["summary"]["weighted_value"], 200 + 500)
+        self.assertEqual(self.put("/api/settings/enquiry-weights", {"weights": {"New": 200}}).status_code, 400)
+
+    def test_move_stage_and_audit(self):
+        e = self.new()
+        self.assertEqual(self.put(f"/api/enquiries/{e}", {"stage": "Contacted"}).status_code, 200)
+        self.assertEqual(self.put(f"/api/enquiries/{e}", {"stage": "Lost"}).status_code, 400)
+        hist = self.admin.get(f"/api/audit-log/enquiries/{e}").get_json()
+        self.assertTrue(any(h["field_name"] == "stage" and h["new_value"] == "Contacted" for h in hist))
+
+    def test_activity_log_and_redate(self):
+        e = self.new()
+        self.assertEqual(self.post(f"/api/enquiries/{e}/activity", {"note": " "}).status_code, 400)
+        r = self.post(f"/api/enquiries/{e}/activity", {"note": "Rang, wants drawings", "method": "Phone", "next_follow_up": self.day(10), "next_action": "Send drawings"})
+        self.assertEqual(r.status_code, 201)
+        d = self.admin.get(f"/api/enquiries/{e}").get_json()
+        self.assertEqual(len(d["activity"]), 1)
+        self.assertEqual((d["next_follow_up"], d["next_action"]), (self.day(10), "Send drawings"))
+
+    def test_lose_needs_reason_and_locks(self):
+        e = self.new()
+        self.assertEqual(self.post(f"/api/enquiries/{e}/lose", {"reason": ""}).status_code, 400)
+        self.assertEqual(self.post(f"/api/enquiries/{e}/lose", {"reason": "Went to competitor"}).status_code, 200)
+        self.assertEqual(self.put(f"/api/enquiries/{e}", {"description": "changed"}).status_code, 400)
+        self.assertEqual(self.admin.get("/api/enquiries").get_json()["summary"]["open_count"], 0)
+        self.assertEqual(len(self.admin.get("/api/enquiries?status=closed").get_json()["enquiries"]), 1)
+
+    def test_convert_prospect_creates_customer_and_draft_quote(self):
+        e = self.new(prospect_name="Newco Ltd", contact_name="Sam")
+        r = self.post(f"/api/enquiries/{e}/convert")
+        self.assertEqual(r.status_code, 201, r.get_json())
+        j = r.get_json()
+        q = self.conn.execute("SELECT * FROM quotes WHERE quote_id=?", (j["quote_id"],)).fetchone()
+        self.assertEqual((q["status"], q["estimated_value"], q["description"]), ("Draft", 10000, "Gearbox repair"))
+        c = self.conn.execute("SELECT customer_name FROM customers WHERE customer_id=?", (q["customer_id"],)).fetchone()
+        self.assertEqual(c["customer_name"], "Newco Ltd")
+        d = self.admin.get(f"/api/enquiries/{e}").get_json()
+        self.assertEqual((d["stage"], d["quote_number"]), ("Quoted", j["quote_number"]))
+        self.assertEqual(self.post(f"/api/enquiries/{e}/convert").status_code, 400)
+
+    def test_convert_existing_customer_reuses_it(self):
+        e = self.new(customer_id=self.cust, prospect_name=None)
+        before = self.conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
+        self.assertEqual(self.post(f"/api/enquiries/{e}/convert").status_code, 201)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0], before)
+
+    def test_overdue_followup_raises_alert_and_dashboard_panel(self):
+        e = self.new(next_follow_up=self.day(-3))
+        self.new(next_follow_up=self.day(5))
+        alerts = [a for a in self.admin.get("/api/alerts").get_json()["alerts"] if a["type"] == "Enquiry Follow-up"]
+        self.assertEqual(len(alerts), 1)
+        self.assertEqual(alerts[0]["enquiry_id"], e)
+        d = self.admin.get("/api/dashboard").get_json()
+        self.assertEqual(d["enquiry_chase_count"], 1)
+        self.post(f"/api/enquiries/{e}/lose", {"reason": "gone"})
+        self.assertEqual(self.admin.get("/api/dashboard").get_json()["enquiry_chase_count"], 0)
+
+    def test_roles(self):
+        self.make_user("pm", "secret123", "Project Manager")
+        self.make_user("fin", "secret123", "Finance")
+        pm = appmod.app.test_client(); fin = appmod.app.test_client()
+        for c, u in ((pm, "pm"), (fin, "fin")):
+            r = c.post("/api/auth/login", json={"username": u, "password": "secret123"})
+            if r.get_json().get("must_setup_2fa"):
+                _complete_pending_2fa_setup(c)
+        self.assertEqual(self.post("/api/enquiries", {"prospect_name": "A", "description": "b"}, pm).status_code, 201)
+        self.assertEqual(self.post("/api/enquiries", {"prospect_name": "A", "description": "b"}, fin).status_code, 403)
+        self.assertEqual(fin.get("/api/enquiries").status_code, 200)
+        self.assertEqual(pm.delete("/api/enquiries/1", headers=self.csrf(pm)).status_code, 403)
+        self.assertEqual(self.put("/api/settings/enquiry-weights", {"weights": {}}, pm).status_code, 403)
+
+    def test_closed_to_service_engineers(self):
+        eng = self.engineer_client()
+        self.assertEqual(eng.get("/api/enquiries").status_code, 403)
+        self.assertEqual(eng.post("/api/enquiries", json={}, headers=self.csrf(eng)).status_code, 403)
+
+    def test_migration_creates_tables_on_old_db(self):
+        self.conn.execute("DROP TABLE enquiry_activity"); self.conn.execute("DROP TABLE enquiries"); self.conn.commit()
+        import migrations
+        migrations.ensure_schema_current(self.conn)
+        self.assertTrue(self.conn.execute("SELECT name FROM sqlite_master WHERE name='enquiries'").fetchone())
+        self.assertTrue(self.conn.execute("SELECT name FROM sqlite_master WHERE name='enquiry_activity'").fetchone())

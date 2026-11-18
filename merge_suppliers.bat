@@ -1,44 +1,25 @@
-@echo off
-REM Merges duplicate suppliers (misspellings and name variants) into one record each.
-REM Shows you a preview first and takes a backup before changing anything. Close TEAMworks360 before running this.
-cd /d "%~dp0"
+#!/bin/bash
+# Merges duplicate suppliers (misspellings and name variants) into one record each.
+# Shows you a preview first and takes a backup before changing anything. Close TEAMworks360 before running this.
+set -e
+cd "$(dirname "$0")"
 
-where python >nul 2>nul
-if %errorlevel%==0 (
-    set PY=python
-) else (
-    where py >nul 2>nul
-    if %errorlevel%==0 (
-        set PY=py
-    ) else (
-        echo Python was not found. Install Python 3 from https://www.python.org/downloads/
-        pause
-        exit /b 1
-    )
-)
+PYTHON=python3
+command -v python3 >/dev/null 2>&1 || PYTHON=python
 
-%PY% -c "import flask, reportlab, PIL, openpyxl, dateutil" >nul 2>nul
-if not %errorlevel%==0 (
-    echo Installing dependencies ^(first run only^)...
-    %PY% -m pip install -r requirements.txt
-)
+if ! "$PYTHON" -c "import flask, reportlab, PIL, openpyxl, dateutil" >/dev/null 2>&1; then
+    echo "Installing dependencies (first run only)..."
+    "$PYTHON" -m pip install -r requirements.txt
+fi
 
-echo.
-echo ===== PREVIEW - nothing is changed yet =====
-%PY% merge_suppliers.py
-if not %errorlevel%==0 (
-    echo.
-    echo Nothing was changed.
-    pause
-    exit /b 1
-)
+echo
+echo "===== PREVIEW - nothing is changed yet ====="
+"$PYTHON" merge_suppliers.py
 
-echo.
-set /p GO="Type YES to apply these changes (a backup is taken first): "
-if /i not "%GO%"=="YES" (
-    echo Cancelled - nothing was changed.
-    pause
-    exit /b 0
-)
-%PY% merge_suppliers.py --apply
-pause
+echo
+read -r -p "Type YES to apply these changes (a backup is taken first): " GO
+if [ "$GO" != "YES" ]; then
+    echo "Cancelled - nothing was changed."
+    exit 0
+fi
+"$PYTHON" merge_suppliers.py --apply

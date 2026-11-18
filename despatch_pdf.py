@@ -9,6 +9,7 @@ the building, not a financial document - so unlike po_pdf.py this has no
 VAT/subtotal/total section.
 """
 import io
+from io import BytesIO
 
 from PIL import Image as PILImage
 from reportlab.lib.pagesizes import A4
@@ -167,15 +168,18 @@ def build_despatch_pdf(dn, lines, signature_path=None):
         # while preserving its aspect ratio, rather than stretching it to a
         # fixed size - a wide, short signature and a narrow, tall one both
         # end up legible instead of distorted.
+        sig_source = io.BytesIO(signature_path) if isinstance(signature_path, (bytes, bytearray)) else signature_path
         try:
-            with PILImage.open(signature_path) as im:
+            with PILImage.open(sig_source) as im:
                 img_w, img_h = im.size
         except (OSError, ValueError):
             img_w, img_h = None, None
 
         if img_w and img_h:
+            if hasattr(sig_source, "seek"):
+                sig_source.seek(0)
             scale = min(SIGNATURE_MAX_W / img_w, SIGNATURE_MAX_H / img_h, 1)
-            story.append(RLImage(signature_path, width=img_w * scale, height=img_h * scale))
+            story.append(RLImage(sig_source, width=img_w * scale, height=img_h * scale))
         else:
             story.append(Paragraph("<i>Signature image could not be loaded</i>", small_label))
         story.append(Spacer(1, 2))

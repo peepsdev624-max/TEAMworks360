@@ -8,6 +8,7 @@ const state = {
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "&#9673;" },
+  { id: "enquiries", label: "Enquiries", icon: "&#128172;" },
   { id: "quotes", label: "Quotes", icon: "&#128221;" },
   { id: "works-orders", label: "Works Orders", icon: "&#128193;" },
   { id: "purchase-orders", label: "Purchase Orders", icon: "&#128230;" },
@@ -18,7 +19,9 @@ const NAV = [
   { id: "supplier-invoices", label: "Supplier Invoices", icon: "&#128209;" },
   { id: "customer-invoices", label: "Customer Invoices", icon: "&#128179;" },
   { id: "customers", label: "Customers", icon: "&#127970;" },
+  { id: "fixed-pos", label: "Fixed Yearly Customer PO's", icon: "&#128278;" },
   { id: "suppliers", label: "Suppliers", icon: "&#128666;" },
+  { id: "non-conformances", label: "Non-conformances", icon: "&#9888;" },
   { id: "reporting", label: "Reporting", icon: "&#128200;" },
   { id: "users", label: "Users", icon: "&#128100;", adminOnly: true },
   { id: "settings", label: "Settings", icon: "&#9881;", adminOnly: true },
@@ -166,7 +169,7 @@ function sharepointLink(url) {
 }
 function marginBadge(pct, target = 15) {
   if (pct < 0) return lightBadge("red", fmtPct(pct));
-  if (pct < target) return lightBadge("amber", fmtPct(pct));
+  if (Math.round(pct * 10) < Math.round(target * 10)) return lightBadge("amber", fmtPct(pct));   // compared as displayed (1 dp)
   return lightBadge("green", fmtPct(pct));
 }
 
@@ -174,9 +177,9 @@ function marginBadge(pct, target = 15) {
 /* Permissions (mirrors server-side ROLE_PERMISSIONS)                     */
 /* ---------------------------------------------------------------------- */
 const ROLE_WRITE = {
-  "Project Manager": ["works_orders", "labour_entries", "quotes", "despatch_notes"],
-  "Procurement": ["purchase_orders", "inventory"],
-  "Finance": ["supplier_invoices", "customer_invoices"],
+  "Project Manager": ["works_orders", "labour_entries", "quotes", "despatch_notes", "fixed_pos", "quality", "enquiries"],
+  "Procurement": ["purchase_orders", "inventory", "fixed_pos", "quality", "enquiries"],
+  "Finance": ["supplier_invoices", "customer_invoices", "fixed_pos"],
   "Executive": [],
   "Service Engineer": ["works_orders", "purchase_orders", "goods_in", "despatch_notes", "inventory", "labour_entries"],
 };
@@ -335,6 +338,9 @@ function wireAlertRows(container, alerts, rerender) {
       goToJob(a.job_number);
       if (alreadyThere) route();
       viewWorksOrder(a.works_order_id);
+    } else if (a.enquiry_id) {
+      if (location.hash !== "#/enquiries") location.hash = "#/enquiries"; else route();
+      setTimeout(() => openEnquiry(a.enquiry_id), 300);
     } else if (a.quote_id) {
       const alreadyThere = location.hash === "#/quotes";
       quoteState.search = a.job_number;
@@ -413,8 +419,12 @@ document.getElementById("force-password-form").addEventListener("submit", async 
     return;
   }
   try {
-    await api("/api/auth/change-password", { method: "POST", body: { current_password, new_password } });
+    const res = await api("/api/auth/change-password", {
+      method: "POST",
+      body: { current_password, new_password }
+    });
     state.user.must_change_password = false;
+    state.user.must_setup_2fa = Boolean(res && res.must_setup_2fa);
     document.getElementById("force-password-form").reset();
     await proceedAfterAuth();
   } catch (err) {
@@ -449,7 +459,9 @@ async function renderTfaSetupCard() {
       either scan the QR code below or choose "Enter a setup key" (or "Enter code manually") and
       type in the key instead.</p>
     <div class="tfa-qr-box">
-      <img src="/api/auth/2fa/setup/qr.png" alt="QR code for two-factor authentication setup" width="180" height="180">
+      <img id="tfa-qr-img" src="/api/auth/2fa/setup/qr.png" alt="QR code for two-factor authentication setup" width="180" height="180">
+      <p class="hint" id="tfa-qr-failed" style="display:none;">The QR code could not be shown on this computer. That's fine: in your
+        authenticator app choose "Enter a setup key" (or "Enter code manually") and type the setup key below.</p>
     </div>
     <label>Setup Key</label>
     <div class="tfa-key-box" id="tfa-key-box">${esc(setup.manual_entry_key)}</div>
@@ -461,6 +473,10 @@ async function renderTfaSetupCard() {
       <div class="login-error" id="tfa-confirm-error"></div>
     </form>
   `;
+  document.getElementById("tfa-qr-img").addEventListener("error", (e) => {
+    e.target.style.display = "none";
+    document.getElementById("tfa-qr-failed").style.display = "block";
+  });
   document.getElementById("tfa-confirm-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const code = document.getElementById("tfa-confirm-code").value.trim();
@@ -582,6 +598,7 @@ function renderNav() {
 
 const ROUTES = {
   "dashboard": renderDashboard,
+  "enquiries": renderEnquiries,
   "quotes": renderQuotes,
   "works-orders": renderWorksOrders,
   "purchase-orders": renderPurchaseOrders,
@@ -592,7 +609,9 @@ const ROUTES = {
   "supplier-invoices": renderSupplierInvoices,
   "customer-invoices": renderCustomerInvoices,
   "customers": renderCustomers,
+  "fixed-pos": renderFixedPos,
   "suppliers": renderSuppliers,
+  "non-conformances": renderNonConformances,
   "reporting": renderReporting,
   "users": renderUsers,
   "settings": renderSettings,
@@ -696,13 +715,15 @@ async function renderDashboard() {
       ${kpi("Loss-Making Jobs", d.loss_making_jobs, d.loss_making_jobs > 0 ? "red" : "green")}
     </div>
     <h3 style="margin-top:6px;font-size:13px;color:var(--navy);">Works Orders &amp; Stock</h3>
-    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+    <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);">
       ${kpi("Live Works Orders", d.live_works_orders, "", d.live_works_orders > 0 ? "dash-kpi-live-wo" : null)}
+      ${kpi("On Hold", d.on_hold_works_orders, "", d.on_hold_works_orders > 0 ? "dash-kpi-on-hold" : null)}
       ${kpi("Due — " + d.due_month_labels[0], d.due_this_month, "", d.due_this_month > 0 ? "dash-kpi-due-0" : null)}
       ${kpi("Due — " + d.due_month_labels[1], d.due_next_month, "", d.due_next_month > 0 ? "dash-kpi-due-1" : null)}
       ${kpi("Due — " + d.due_month_labels[2], d.due_month_after, "", d.due_month_after > 0 ? "dash-kpi-due-2" : null)}
       ${kpi("Total Stock Held", fmtMoney(d.total_stock_value), "", "dash-kpi-stock")}
     </div>
+    ${enquiryChasePanelHtml(d)}
     ${lateWorksOrdersPanelHtml(d)}
     <div class="chart-grid">
       <div class="panel">
@@ -767,8 +788,19 @@ async function renderDashboard() {
     location.hash = "#/works-orders";
   };
   document.getElementById("dash-late-count")?.addEventListener("click", () => goToLate());
+  root.querySelectorAll("a.dash-enq").forEach(a => a.addEventListener("click", e => {
+    e.preventDefault();
+    location.hash = "#/enquiries";
+    setTimeout(() => openEnquiry(Number(a.dataset.id)), 300);
+  }));
+  document.getElementById("dash-enq-all")?.addEventListener("click", e => { e.preventDefault(); location.hash = "#/enquiries"; });
   document.getElementById("dash-late-all")?.addEventListener("click", e => { e.preventDefault(); goToLate(); });
   root.querySelectorAll("a.dash-late-job").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToLate(a.dataset.job); }));
+  document.getElementById("dash-kpi-on-hold")?.addEventListener("click", () => {
+    woState.late = false; woState.endYear = ""; woState.dueMonth = ""; woState.dueMonthLabel = "";
+    woState.status = "On Hold"; woState.search = ""; woState.page = 1;
+    location.hash = "#/works-orders";
+  });
   document.getElementById("dash-kpi-stock")?.addEventListener("click", () => { location.hash = "#/inventory"; });
   wireAlertRows(root.querySelector(".alerts-panel"), d.alerts.slice(0, 100), renderDashboard);
   document.getElementById("dash-show-accepted")?.addEventListener("click", (e) => { e.preventDefault(); showAcceptedAlerts(); });
@@ -797,6 +829,26 @@ async function renderDashboard() {
 // "Late Works Orders" dashboard panel: live jobs past their End Date, with the
 // customer PO value and what has been spent so far (purchases, hours, stock).
 // Amber up to 30 days late, red beyond that.
+function enquiryChasePanelHtml(d) {
+  if (d.enquiry_chase === undefined || !(canWrite("enquiries") || isAdmin() || (state.user && state.user.role === "Executive"))) return "";
+  const n = d.enquiry_chase_count;
+  return `
+    <div class="panel late-panel">
+      <div class="late-head"><h3>Enquiries to chase</h3><span class="hint">Follow-up date is today or has passed</span></div>
+      ${n === 0 ? `<div class="hint">Nothing to chase today.</div>` : `
+      <div class="table-wrap"><table class="data-table late-table">
+        <thead><tr><th>Enquiry</th><th>Customer / prospect</th><th>What</th><th>Owner</th><th>Stage</th><th>Follow-up</th><th>Next action</th></tr></thead>
+        <tbody>${d.enquiry_chase.map(e => `<tr>
+          <td><a href="#" class="dash-enq" data-id="${e.enquiry_id}">${esc(e.enquiry_number)}</a></td>
+          <td>${esc(e.display_name || "")}</td><td>${esc((e.description || "").slice(0, 60))}</td><td>${esc(e.owner || "")}</td>
+          <td>${esc(e.stage)}</td>
+          <td>${e.follow_up_state === "overdue" ? `<span class="late-pill late-red">${e.days_overdue}d overdue</span>` : `<span class="late-pill late-amber">Today</span>`}</td>
+          <td>${esc(e.next_action || "")}</td></tr>`).join("")}</tbody>
+      </table></div>
+      <div style="margin-top:8px;"><a href="#" id="dash-enq-all">Open the enquiries board${n > d.enquiry_chase.length ? ` (${n} to chase, latest ${d.enquiry_chase.length} shown)` : ""}</a></div>`}
+    </div>`;
+}
+
 function lateWorksOrdersPanelHtml(d) {
   if (d.late_po_value === undefined) return "";   // money not sent to this role
   const n = d.late_count;
@@ -843,17 +895,23 @@ function drawChart(canvasId, type, labels, datasets, { onLabelClick } = {}) {
   const el = document.getElementById(canvasId);
   if (!el) return;
   if (state.charts[canvasId]) state.charts[canvasId].destroy();
+  el.parentElement.style.height = "260px";   // before the chart exists, so it never draws at the wrong size
   state.charts[canvasId] = new Chart(el.getContext("2d"), {
     type, data: { labels, datasets },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { display: datasets.length > 1 } },
       scales: { y: { beginAtZero: true } },
       onClick: onLabelClick ? (evt, elements) => { if (elements.length) onLabelClick(elements[0].index); } : undefined,
       onHover: onLabelClick ? (evt, elements) => { evt.native.target.style.cursor = elements.length ? "pointer" : "default"; } : undefined,
     },
   });
-  el.parentElement.style.height = "260px";
+    chartRepaint(canvasId);
+}
+
+// Firefox can leave a freshly drawn chart blank until the mouse moves over it; a resize on the next frame forces the paint.
+function chartRepaint(canvasId) {
+  requestAnimationFrame(() => { try { state.charts[canvasId] && state.charts[canvasId].resize(); } catch (e) { /* chart gone */ } });
 }
 
 // Profit vs Margin %, one bubble per job active this year, sized by Revenue
@@ -869,6 +927,7 @@ function drawScatterChart(canvasId, jobs) {
   const el = document.getElementById(canvasId);
   if (!el) return;
   if (state.charts[canvasId]) state.charts[canvasId].destroy();
+  el.parentElement.style.height = "260px";
 
   const maxRevenue = Math.max(1, ...jobs.map(j => j.revenue));
   const MIN_R = 4, MAX_R = 20;
@@ -908,13 +967,13 @@ function drawScatterChart(canvasId, jobs) {
       onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? "pointer" : "default"; },
     },
   });
-  el.parentElement.style.height = "260px";
+  chartRepaint(canvasId);
 }
 
 /* ======================================================================
    WORKS ORDERS
    ====================================================================== */
-let woState = { search: "", status: "", dueMonth: "", dueMonthLabel: "", late: false, endYear: "", contractCode: "", location: "", customer: "", owner: "", sortKey: "job_number", sortDir: -1, page: 1 };
+let woState = { search: "", status: "", dueMonth: "", dueMonthLabel: "", late: false, endYear: "", selected: new Set(), selSig: "", contractCode: "", location: "", customer: "", owner: "", valueFrom: "", valueTo: "", costFrom: "", costTo: "", sortKey: "job_number", sortDir: -1, page: 1 };
 const PAGE_SIZE = 50;
 
 async function renderWorksOrders() {
@@ -944,6 +1003,14 @@ async function renderWorksOrders() {
   // profitability calculation there too.
   if (woState.customer) allRows = allRows.filter(r => r.customer_name === woState.customer);
   if (woState.owner) allRows = allRows.filter(r => (r.project_manager || "") === woState.owner);
+  // Purchase Order Value / Cost ranges (money is never sent to Service Engineers, so these only apply to roles that see it).
+  const inRange = (v, from, to) => (from === "" || v >= Number(from)) && (to === "" || v <= Number(to));
+  if (canSeeJobMoney()) {
+    if (woState.valueFrom !== "" || woState.valueTo !== "") allRows = allRows.filter(r => inRange(r.contract_value || 0, woState.valueFrom, woState.valueTo));
+    if (woState.costFrom !== "" || woState.costTo !== "") allRows = allRows.filter(r => inRange(r.actual_cost || 0, woState.costFrom, woState.costTo));
+  }
+  const tierPrices = ["FS - L", "FS - M", "FS - H"].map(c => ({ code: c, t: (state.ref.contract_code_targets || []).find(x => x.contract_code === c) }))
+                      .filter(x => x.t && x.t.standard_value != null);
   allRows.sort((a, b) => {
     const av = a[woState.sortKey], bv = b[woState.sortKey];
     const cmp = typeof av === "number" ? av - bv : String(av ?? "").localeCompare(String(bv ?? ""), undefined, { numeric: true });
@@ -954,7 +1021,18 @@ async function renderWorksOrders() {
   woState.page = Math.min(Math.max(1, woState.page), totalPages);
   const rows = allRows.slice((woState.page - 1) * PAGE_SIZE, woState.page * PAGE_SIZE);
 
-  const statusOptions = ["Draft", "Open", "In Progress", "Completed", "Closed", "Cancelled"];
+  const statusOptions = ["Draft", "Open", "In Progress", "On Hold", "Completed", "Closed", "Cancelled"];
+
+  // Ticked jobs only make sense for the list they were ticked in: change a filter or the
+  // search and the ticks are cleared, so a hidden job can never be changed by accident.
+  const sig = JSON.stringify([woState.search, woState.status, woState.dueMonth, woState.late, woState.endYear,
+                              woState.contractCode, woState.location, woState.customer, woState.owner,
+                              woState.valueFrom, woState.valueTo, woState.costFrom, woState.costTo]);
+  if (sig !== woState.selSig) { woState.selected = new Set(); woState.selSig = sig; }
+  const canBulk = canWrite("works_orders");
+  const pageIds = rows.map(r => r.works_order_id);
+  const allPageTicked = pageIds.length > 0 && pageIds.every(id => woState.selected.has(id));
+  const nSel = woState.selected.size;
 
   root.innerHTML = worksOrdersSummaryHtml(sm) + `
     <div class="toolbar">
@@ -984,13 +1062,41 @@ async function renderWorksOrders() {
       </div>
       ${canWrite("works_orders") ? `<button class="btn" id="wo-new">+ New Works Order</button>` : ""}
     </div>
+    ${canSeeJobMoney() ? `
+    <div class="toolbar"><div class="filters">
+      <label class="hint" style="margin:0;">Purchase Order Value £</label>
+      <input type="number" step="0.01" id="wo-vfrom" placeholder="from" style="width:90px;" value="${esc(woState.valueFrom)}">
+      <input type="number" step="0.01" id="wo-vto" placeholder="to" style="width:90px;" value="${esc(woState.valueTo)}">
+      <label class="hint" style="margin:0 0 0 8px;">Cost £</label>
+      <input type="number" step="0.01" id="wo-cfrom" placeholder="from" style="width:90px;" value="${esc(woState.costFrom)}">
+      <input type="number" step="0.01" id="wo-cto" placeholder="to" style="width:90px;" value="${esc(woState.costTo)}">
+      ${(woState.valueFrom !== "" || woState.valueTo !== "" || woState.costFrom !== "" || woState.costTo !== "") ? `<a href="#" id="wo-clear-ranges">clear</a>` : ""}
+      ${tierPrices.length ? `<span class="hint" style="margin:0 0 0 8px;">Quick pick (FS jobs):</span>${tierPrices.map(x => `<a href="#" class="wo-tier" data-code="${esc(x.code)}" data-v="${x.t.standard_value}">${esc(x.code)} price £${Number(x.t.standard_value).toFixed(2)}</a>`).join(" · ")}` : ""}
+    </div></div>` : ""}
     <div class="hint">${allRows.length.toLocaleString()} works order${allRows.length === 1 ? "" : "s"}${woState.dueMonth ? ` · due in ${esc(woState.dueMonthLabel)} <a href="#" id="wo-clear-due-month">clear</a>` : ""}${woState.late ? ` · late (End Date passed) <a href="#" id="wo-clear-late">clear</a>` : ""}${woState.endYear ? ` · End Date in ${esc(woState.endYear)} <a href="#" id="wo-clear-endyear">clear</a>` : ""}${woState.contractCode ? ` · ${esc(contractCodeInfo(woState.contractCode).display)}` : ""}${woState.location ? ` · ${esc(woState.location)}` : ""}${woState.customer ? ` · ${esc(woState.customer)}` : ""}${woState.owner ? ` · ${esc(woState.owner)}` : ""}</div>
+    ${canBulk ? `
+    <div class="bulk-bar" id="wo-bulk-bar">
+      <span><b id="wo-sel-count">${nSel.toLocaleString()}</b> selected</span>
+      ${allRows.length > rows.length && nSel < allRows.length ? `<a href="#" id="wo-sel-all">Select all ${allRows.length.toLocaleString()} matching these filters</a>` : ""}
+      ${nSel ? `<a href="#" id="wo-sel-none">Clear selection</a>` : ""}
+      <span class="bulk-spacer"></span>
+      <label for="wo-bulk-status">Change status to</label>
+      <select id="wo-bulk-status"><option value="">Choose…</option>${statusOptions.map(s => `<option value="${s}">${s}</option>`).join("")}</select>
+      <button class="btn small" id="wo-bulk-apply" type="button">Apply to selected</button>
+      ${canSeeJobMoney() ? `
+      <span class="bulk-spacer"></span>
+      <label for="wo-bulk-code">Change contract code to</label>
+      <select id="wo-bulk-code"><option value="">Choose…</option>${Object.values(CONTRACT_CODE_INFO).map(c => `<option value="${esc(c.display)}">${esc(c.display)}${c.label ? ` — ${esc(c.label)}` : ""}</option>`).join("")}</select>
+      <button class="btn small" id="wo-bulk-code-apply" type="button">Apply to selected</button>` : ""}
+    </div>` : ""}
     <div class="table-wrap"><table class="data-table">
       <thead><tr>
+        ${canBulk ? `<th style="width:28px;"><input type="checkbox" id="wo-tick-page" title="Tick every job on this page" ${allPageTicked ? "checked" : ""}></th>` : ""}
         <th data-key="job_number">Job Number</th>
         <th data-key="job_name">Job Name</th>
         <th data-key="customer_name">Customer</th>
         <th data-key="contract_code">Code</th>
+        <th data-key="customer_po">Customer PO / line</th>
         <th data-key="project_manager">Owner</th>
         ${canSeeJobMoney() ? `
         <th data-key="contract_value" class="num">Purchase Order Value</th>
@@ -999,15 +1105,18 @@ async function renderWorksOrders() {
         <th data-key="profit" class="num">Profit</th>
         <th data-key="margin_pct" class="num">Margin %</th>` : ""}
         <th data-key="status">Status</th>
+        ${canSeeJobMoney() ? `<th data-key="review_status">Review</th>` : ""}
         <th></th>
       </tr></thead>
       <tbody>
         ${rows.length ? rows.map(r => `
           <tr>
+            ${canBulk ? `<td><input type="checkbox" class="wo-tick" data-id="${r.works_order_id}" ${woState.selected.has(r.works_order_id) ? "checked" : ""}></td>` : ""}
             <td><b>${esc(r.job_number)}</b>${sharepointLink(r.sharepoint_url)}</td>
             <td>${esc(r.job_name)}</td>
             <td>${esc(r.customer_name)}</td>
             <td>${r.contract_code ? esc(contractCodeInfo(r.contract_code).display) : "—"}</td>
+            <td>${r.customer_po ? esc(r.customer_po) + (r.customer_po_line ? ` · line ${esc(r.customer_po_line)}` : "") : "—"}</td>
             <td>${esc(r.project_manager || "—")}</td>
             ${canSeeJobMoney() ? `
             <td class="num">${fmtMoney(r.contract_value)}</td>
@@ -1016,13 +1125,14 @@ async function renderWorksOrders() {
             <td class="num">${lightBadge(r.status_light, fmtMoney(r.profit))}</td>
             <td class="num">${fmtPct(r.margin_pct)}</td>` : ""}
             <td>${statusBadge(r.status)}</td>
+            ${canSeeJobMoney() ? `<td>${reviewBadge(r.review_status, r.works_order_id)}</td>` : ""}
             <td class="actions-cell">
               ${canSeeJobMoney() ? `<button class="btn small secondary" data-view="${r.works_order_id}">View</button>` : ""}
               <button class="btn small secondary" data-history="${r.works_order_id}">History</button>
               ${canWrite("works_orders") ? `<button class="btn small secondary" data-edit="${r.works_order_id}">Edit</button>` : ""}
               ${isAdmin() ? `<button class="btn small danger" data-del="${r.works_order_id}">Delete</button>` : ""}
             </td>
-          </tr>`).join("") : `<tr><td colspan="${canSeeJobMoney() ? 12 : 7}"><div class="empty-state">No works orders found.</div></td></tr>`}
+          </tr>`).join("") : `<tr><td colspan="${(canSeeJobMoney() ? 14 : 8) + (canBulk ? 1 : 0)}"><div class="empty-state">No works orders found.</div></td></tr>`}
       </tbody>
     </table></div>
     ${renderPager(woState.page, totalPages, "wo-page")}
@@ -1056,6 +1166,69 @@ async function renderWorksOrders() {
     renderWorksOrders();
   });
   document.getElementById("wo-new")?.addEventListener("click", () => openWorksOrderForm());
+  root.querySelectorAll(".wo-tick").forEach(cb => cb.addEventListener("change", () => {
+    const id = Number(cb.dataset.id);
+    if (cb.checked) woState.selected.add(id); else woState.selected.delete(id);
+    renderWorksOrders();
+  }));
+  document.getElementById("wo-tick-page")?.addEventListener("change", e => {
+    pageIds.forEach(id => e.target.checked ? woState.selected.add(id) : woState.selected.delete(id));
+    renderWorksOrders();
+  });
+  document.getElementById("wo-sel-all")?.addEventListener("click", e => {
+    e.preventDefault();
+    allRows.forEach(r => woState.selected.add(r.works_order_id));
+    renderWorksOrders();
+  });
+  document.getElementById("wo-sel-none")?.addEventListener("click", e => {
+    e.preventDefault();
+    woState.selected = new Set();
+    renderWorksOrders();
+  });
+  document.getElementById("wo-bulk-apply")?.addEventListener("click", async () => {
+    const status = document.getElementById("wo-bulk-status").value;
+    const ids = [...woState.selected];
+    if (!ids.length) { alert("Tick the jobs you want to change first."); return; }
+    if (!status) { alert("Choose the status to change them to."); return; }
+    if (!confirm(`Change ${ids.length.toLocaleString()} job${ids.length === 1 ? "" : "s"} to ${status}?\n\nEach change is recorded in the job's History.`)) return;
+    try {
+      const res = await api("/api/works-orders/bulk-status", { method: "POST", body: { ids, status } });
+      woState.selected = new Set();
+      state.ref = await api("/api/reference");
+      alert(`${res.updated.toLocaleString()} job${res.updated === 1 ? "" : "s"} changed to ${status}.` +
+            (res.unchanged ? ` ${res.unchanged.toLocaleString()} already ${status}.` : ""));
+      renderWorksOrders();
+    } catch (err) { alert(err.message); }
+  });
+  document.getElementById("wo-bulk-code-apply")?.addEventListener("click", async () => {
+    const code = document.getElementById("wo-bulk-code").value;
+    const ids = [...woState.selected];
+    if (!ids.length) { alert("Tick the jobs you want to change first."); return; }
+    if (!code) { alert("Choose the contract code to change them to."); return; }
+    const was = [...new Set(allRows.filter(r => woState.selected.has(r.works_order_id)).map(r => r.contract_code || "(none)"))].join(", ");
+    if (!confirm(`Change ${ids.length.toLocaleString()} job${ids.length === 1 ? "" : "s"} from ${was} to ${code}?\n\nA backup is taken first. Each change is recorded in the job's History. Jobs with no customer PO get the fixed yearly one for their site, where it has been set.`)) return;
+    try {
+      const res = await api("/api/works-orders/bulk-contract-code", { method: "POST", body: { ids, contract_code: code } });
+      woState.selected = new Set();
+      state.ref = await api("/api/reference");
+      alert(`${res.updated.toLocaleString()} job${res.updated === 1 ? "" : "s"} changed to ${res.contract_code}.` +
+            (res.unchanged ? ` ${res.unchanged.toLocaleString()} already ${res.contract_code}.` : "") +
+            (res.po_filled ? ` Customer PO filled in on ${res.po_filled.toLocaleString()}.` : "") +
+            (res.po_missing ? ` ${res.po_missing.toLocaleString()} have no fixed yearly PO set for their site and year yet - add it on the Fixed Yearly Customer PO's screen and save it, and they will be filled in.` : ""));
+      renderWorksOrders();
+    } catch (err) { alert(err.message); }
+  });
+  const rangeBind = (id, key) => document.getElementById(id)?.addEventListener("change", e => { woState[key] = e.target.value; woState.page = 1; renderWorksOrders(); });
+  rangeBind("wo-vfrom", "valueFrom"); rangeBind("wo-vto", "valueTo"); rangeBind("wo-cfrom", "costFrom"); rangeBind("wo-cto", "costTo");
+  document.getElementById("wo-clear-ranges")?.addEventListener("click", e => {
+    e.preventDefault(); woState.valueFrom = woState.valueTo = woState.costFrom = woState.costTo = ""; woState.page = 1; renderWorksOrders();
+  });
+  root.querySelectorAll("a.wo-tier").forEach(a => a.addEventListener("click", e => {
+    e.preventDefault();
+    const v = Number(a.dataset.v);
+    woState.contractCode = "FS"; woState.valueFrom = String(Math.round((v - 0.5) * 100) / 100); woState.valueTo = String(Math.round((v + 0.5) * 100) / 100);
+    woState.costFrom = woState.costTo = ""; woState.page = 1; renderWorksOrders();
+  }));
   wirePager("wo-page", woState.page, totalPages, p => { woState.page = p; renderWorksOrders(); });
   root.querySelectorAll("th[data-key]").forEach(th => th.addEventListener("click", () => {
     const key = th.dataset.key;
@@ -1069,6 +1242,7 @@ async function renderWorksOrders() {
     const wo = allRows.find(r => String(r.works_order_id) === b.dataset.edit);
     openWorksOrderForm(wo);
   }));
+  root.querySelectorAll("[data-review]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); openContractReview(Number(b.dataset.review)); }));
   root.querySelectorAll("[data-history]").forEach(b => b.addEventListener("click", () => {
     const wo = allRows.find(r => String(r.works_order_id) === b.dataset.history);
     showAuditHistory("works_orders", wo.works_order_id, wo.job_number);
@@ -1149,7 +1323,7 @@ async function openWorksOrderForm(wo = null) {
       <div class="form-row"><label>Job Number</label><input value="${esc(nextJobNumber)}" disabled>
         ${!wo ? `<div class="hint" style="margin:6px 0 0;">Assigned automatically when saved — the next available number.</div>` : ""}</div>
       <div class="form-row"><label>Status</label>
-        <select name="status">${["Draft", "Open", "In Progress", "Completed", "Closed", "Cancelled"].map(s => `<option ${wo?.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <select name="status">${["Draft", "Open", "In Progress", "On Hold", "Completed", "Closed", "Cancelled"].map(s => `<option ${wo?.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>
       </div>
     </div>
     <div class="form-row"><label>Job Name</label><input name="job_name" value="${esc(wo?.job_name || "")}" required></div>
@@ -1163,6 +1337,13 @@ async function openWorksOrderForm(wo = null) {
       <div class="form-row"><label>Start Date</label><input type="date" name="start_date" value="${fmtDateInput(wo?.start_date)}"></div>
       <div class="form-row"><label>End Date</label><input type="date" name="end_date" value="${fmtDateInput(wo?.end_date)}"></div>
     </div>
+    <div class="form-row"><label>Required By (customer's delivery date)</label><input type="date" name="required_by" value="${fmtDateInput(wo?.required_by)}">
+      <div class="hint">The date the customer needs the work delivered. Used for the On-time Delivery report.</div></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Customer PO</label><input name="customer_po" id="wo-cust-po" value="${esc(wo?.customer_po || "")}" placeholder="e.g. 1400-00888999"></div>
+      <div class="form-row"><label>Line number</label><input name="customer_po_line" id="wo-cust-line" value="${esc(wo?.customer_po_line || "")}" placeholder="e.g. 2"></div>
+    </div>
+    <div class="hint" id="wo-fixed-po-hint" style="margin:-4px 0 8px;"></div>
     <div class="form-row"><label>Contract Code</label>
       <select name="contract_code" id="wo-contract-code">
         <option value="">—</option>
@@ -1210,6 +1391,35 @@ async function openWorksOrderForm(wo = null) {
     updateRecipeHint(e.target.value);
   });
   updateRecipeHint(wo?.contract_code);
+  wireFixedPoPullThrough(wo);
+}
+
+// Fills Customer PO + line from Fixed Yearly Customer PO's when the site, contract code or start date changes.
+// Only ever overwrites what it filled in itself (or an empty box) - never something typed by hand.
+function wireFixedPoPullThrough(wo) {
+  const q = n => document.querySelector(`[name="${n}"]`);
+  const po = document.getElementById("wo-cust-po"), line = document.getElementById("wo-cust-line");
+  const hint = document.getElementById("wo-fixed-po-hint");
+  if (!po || !line) return;
+  let auto = false;
+  po.addEventListener("input", () => { auto = false; });
+  line.addEventListener("input", () => { auto = false; });
+  async function look() {
+    const params = new URLSearchParams({ customer_id: q("customer_id").value, contract_code: q("contract_code").value, start_date: q("start_date").value });
+    let found = {};
+    try { found = await api("/api/works-orders/fixed-po-lookup?" + params.toString()); } catch (e) { return; }
+    const year = (q("start_date").value || "").slice(0, 4) || String(new Date().getFullYear());
+    if (found.po_number) {
+      if (!po.value || auto) {
+        po.value = found.po_number; line.value = found.line_number || ""; auto = true;
+        hint.textContent = `Filled in from Fixed Yearly Customer PO's (${year}). You can type over it for this one job.`;
+      }
+    } else if (auto) {
+      po.value = ""; line.value = ""; auto = false; hint.textContent = "";
+    }
+  }
+  ["customer_id", "contract_code", "start_date"].forEach(n => q(n).addEventListener("change", look));
+  look();
 }
 function updateRecipeHint(code) {
   const el = document.getElementById("wo-recipe-hint");
@@ -1240,8 +1450,8 @@ async function viewWorksOrder(id) {
       <div class="kpi-card"><div class="label">Quoted</div><div class="value">${fmtMoney(wo.forecast_cost)}</div></div>
       <div class="kpi-card ${wo.profit >= 0 ? 'green' : 'red'}"><div class="label">Profit</div><div class="value">${fmtMoney(wo.profit)}</div></div>
       <div class="kpi-card"><div class="label">Forecast Profit</div><div class="value">${fmtMoney(wo.forecast_profit)}</div></div>
-      <div class="kpi-card ${wo.margin_pct < wo.margin_target ? 'amber' : 'green'}"><div class="label">Margin % (target ${fmtPct(wo.margin_target)})</div><div class="value">${fmtPct(wo.margin_pct)}</div></div>
-      <div class="kpi-card ${wo.forecast_margin_pct < wo.margin_target ? 'amber' : 'green'}"><div class="label">Forecast Margin %</div><div class="value">${fmtPct(wo.forecast_margin_pct)}</div></div>
+      <div class="kpi-card ${Math.round(wo.margin_pct * 10) < Math.round(wo.margin_target * 10) ? 'amber' : 'green'}"><div class="label">Margin % (target ${fmtPct(wo.margin_target)})</div><div class="value">${fmtPct(wo.margin_pct)}</div></div>
+      <div class="kpi-card ${Math.round(wo.forecast_margin_pct * 10) < Math.round(wo.margin_target * 10) ? 'amber' : 'green'}"><div class="label">Forecast Margin %</div><div class="value">${fmtPct(wo.forecast_margin_pct)}</div></div>
     </div>
     ${costParts.length ? `<div class="hint" style="margin-top:8px;">Actual Cost breakdown — ${costParts.join(" · ")}</div>` : ""}
     <h3 style="margin-top:16px;font-size:13.5px;color:var(--navy)">Alerts</h3>
@@ -1348,6 +1558,7 @@ async function renderPurchaseOrders() {
             <td class="num">${r.invoiced_total > r.po_value ? lightBadge("red", fmtMoney(r.invoiced_total)) : fmtMoney(r.invoiced_total)}</td>
             <td>${statusBadge(r.status)}${r.is_historic ? ` <span class="badge grey" title="Imported from the old PO register - for reference only, not counted in job costs">Historic</span>` : ""}</td>
             <td class="actions-cell">
+              <a class="btn small secondary" href="/api/purchase-orders/${r.purchase_order_id}/pdf?preview=1" target="_blank" rel="noopener" title="Preview the PO PDF in a new tab">Preview</a>
               <a class="btn small secondary" href="/api/purchase-orders/${r.purchase_order_id}/pdf" title="Download PO PDF">PDF</a>
               <button class="btn small secondary" data-history="${r.purchase_order_id}">History</button>
               ${canWrite("purchase_orders") ? `
@@ -1411,7 +1622,8 @@ async function openPurchaseOrderForm(po = null) {
       <select name="works_order_id" ${po?.is_historic ? "" : "required"}>${po?.is_historic ? `<option value="">— none (history only) —</option>` : ""}${wos.map(w => `<option value="${w.works_order_id}" ${po?.works_order_id === w.works_order_id ? "selected" : ""}>${esc(w.job_number)} — ${esc(w.job_name)}</option>`).join("")}</select>
     </div>
     <div class="form-row"><label>Supplier</label>
-      <select name="supplier_id" required>${suppliers.map(s => `<option value="${s.supplier_id}" ${po?.supplier_id === s.supplier_id ? "selected" : ""}>${esc(s.supplier_name)}</option>`).join("")}</select>
+      <select name="supplier_id" id="po-supplier-select" required>${suppliers.map(s => `<option value="${s.supplier_id}" ${po?.supplier_id === s.supplier_id ? "selected" : ""}>${esc(s.supplier_name)}</option>`).join("")}</select>
+      <div id="po-supplier-note"></div>
     </div>
     <div class="form-row"><label>Ship To</label>
       <select name="ship_to_id">
@@ -1423,7 +1635,7 @@ async function openPurchaseOrderForm(po = null) {
     <div class="form-row"><label>Description</label><input name="description" value="${esc(po?.description || "")}"></div>
     <div class="form-grid-2">
       <div class="form-row"><label>Order Date</label><input type="date" name="order_date" value="${fmtDateInput(po?.order_date)}"></div>
-      <div class="form-row"><label>Date Required</label><input type="date" name="date_required" value="${fmtDateInput(po?.date_required)}"></div>
+      <div class="form-row"><label>Date Required</label><input type="date" name="date_required" value="${fmtDateInput(po?.date_required)}" required></div>
     </div>
     <div class="form-grid-2">
       <div class="form-row"><label>Account No.</label><input name="account_number" value="${esc(po?.account_number || "")}"></div>
@@ -1455,6 +1667,12 @@ async function openPurchaseOrderForm(po = null) {
       payload.supplier_id = Number(payload.supplier_id);
       payload.ship_to_id = payload.ship_to_id ? Number(payload.ship_to_id) : null;
       payload.lines = poFormLines.filter(l => (Number(l.qty) || 0) > 0 || l.description || l.part_number);
+      const chosenSupplier = suppliers.find(s => s.supplier_id === payload.supplier_id);
+      if (chosenSupplier?.approval_status === "Suspended" && (!po || po.supplier_id !== payload.supplier_id) && isAdmin()) {
+        const why = prompt(`${chosenSupplier.supplier_name} is a suspended supplier.\n\nWhy is this order being placed anyway? (This is recorded.)`);
+        if (!why || !why.trim()) return;
+        payload.suspended_override_reason = why.trim();
+      }
       if (po) await api("/api/purchase-orders/" + po.purchase_order_id, { method: "PUT", body: payload });
       else await api("/api/purchase-orders", { method: "POST", body: payload });
       state.ref = await api("/api/reference");
@@ -1463,6 +1681,28 @@ async function openPurchaseOrderForm(po = null) {
     },
   });
   renderPoLinesUI();
+  const showSupplierNote = () => {
+    const s = suppliers.find(x => String(x.supplier_id) === document.getElementById("po-supplier-select").value);
+    document.getElementById("po-supplier-note").innerHTML = supplierApprovalNoteHtml(s);
+  };
+  document.getElementById("po-supplier-select").addEventListener("change", showSupplierNote);
+  showSupplierNote();
+}
+
+// One-line approval warning shown under the Supplier box on the Purchase Order form (soft: it never blocks, except Suspended).
+function supplierApprovalNoteHtml(s) {
+  if (!s) return "";
+  const today = new Date().toISOString().slice(0, 10);
+  const days = s.next_cert_expiry ? Math.round((new Date(s.next_cert_expiry) - new Date(today)) / 86400000) : null;
+  const certNote = days === null ? "" : (days < 0 ? " Certificate expired." : (days <= 60 ? ` Certificate expires in ${days} day${days === 1 ? "" : "s"}.` : ""));
+  const msg = {
+    "Not assessed": "This supplier hasn't been assessed yet. Set its approval on the Suppliers screen when you can.",
+    "Conditional": "Conditionally approved supplier. Check the condition on the Suppliers screen.",
+    "Suspended": isAdmin() ? "Suspended supplier. You'll be asked for a reason to order from them." : "Suspended supplier. An Administrator has to place this order.",
+  }[s.approval_status];
+  if (!msg && !certNote) return "";
+  const bad = s.approval_status === "Suspended" || days < 0;
+  return `<div class="${bad ? "form-warning" : "hint"}" style="margin-top:6px;">${esc((msg || "") + certNote)}</div>`;
 }
 
 function renderPoLinesUI() {
@@ -1576,9 +1816,14 @@ async function renderGoodsIn() {
       </div>
       <button class="btn" id="gi-new">+ New Goods In</button>
     </div>
+    ${canSeeJobMoney() ? `
+    <div class="toolbar" style="margin-top:0;"><div class="filters">
+      <input type="text" id="gi-trace-q" placeholder="Trace a batch, serial or heat number…" style="min-width:260px;">
+      <button class="btn small secondary" id="gi-trace-go" type="button">Trace</button>
+    </div></div>` : ""}
     <div class="hint">Acknowledge a delivery against a Purchase Order. Open to everyone — whoever's there to sign for it can log it. Every new record needs a goods received document (delivery note, packing slip, or photo) attached for audit. · ${rows.length.toLocaleString()} record${rows.length === 1 ? "" : "s"}</div>
     <div class="table-wrap"><table class="data-table">
-      <thead><tr><th>PO Number</th><th>Supplier</th><th>Destination</th><th>Date</th><th>Quantity</th><th>Received By</th><th>Document</th><th>Comment</th><th></th></tr></thead>
+      <thead><tr><th>PO Number</th><th>Supplier</th><th>Destination</th><th>Date</th><th>Quantity</th><th>Received By</th><th>Batch / heat</th><th>Cert</th><th>Inspection</th><th>Document</th><th>Comment</th><th></th></tr></thead>
       <tbody>
         ${rows.length ? rows.map(r => `
           <tr>
@@ -1588,17 +1833,26 @@ async function renderGoodsIn() {
             <td>${fmtDate(r.received_date)}</td>
             <td>${statusBadge(r.quantity_status)}${r.quantity_received != null ? ` (${r.quantity_received})` : ""}</td>
             <td>${esc(r.received_by)}</td>
+            <td>${esc([r.batch_number, r.heat_number].filter(Boolean).join(" / ") || "—")}</td>
+            <td>${r.cert_status ? lightBadge(r.cert_status === "Received" ? "green" : (r.cert_status === "Not required" ? "grey" : "amber"), r.cert_status) : "—"}</td>
+            <td>${r.inspection_result ? lightBadge(r.inspection_result === "Accepted" ? "green" : "red", r.inspection_result) : "—"}</td>
             <td>${r.document_count > 0 ? `📄 ${r.document_count} file${r.document_count === 1 ? "" : "s"}` : `<span class="hint" style="color:#b3261e;">None on file</span>`}</td>
             <td>${esc(r.comment || "")}</td>
             <td class="actions-cell">
               <button class="btn small secondary" data-edit="${r.goods_in_id}">Edit</button>
               ${isAdmin() ? `<button class="btn small danger" data-del="${r.goods_in_id}">Delete</button>` : ""}
             </td>
-          </tr>`).join("") : `<tr><td colspan="9"><div class="empty-state">No goods in recorded yet.</div></td></tr>`}
+          </tr>`).join("") : `<tr><td colspan="12"><div class="empty-state">No goods in recorded yet.</div></td></tr>`}
       </tbody>
     </table></div>
   `;
 
+    const runTrace = async () => {
+    const q = document.getElementById("gi-trace-q").value.trim();
+    try { showBatchTrace(q, await api("/api/trace?q=" + encodeURIComponent(q))); } catch (err) { alert(err.message); }
+  };
+  document.getElementById("gi-trace-go")?.addEventListener("click", runTrace);
+  document.getElementById("gi-trace-q")?.addEventListener("keydown", e => { if (e.key === "Enter") runTrace(); });
   document.getElementById("gi-search").addEventListener("input", debounce(e => { giState.search = e.target.value; debouncedSearchRerender(e.target, renderGoodsIn); }, 500));
   document.getElementById("gi-wo-filter").addEventListener("change", e => { giState.workOrder = e.target.value; renderGoodsIn(); });
   document.getElementById("gi-supplier-filter").addEventListener("change", e => { giState.supplier = e.target.value; renderGoodsIn(); });
@@ -1702,6 +1956,19 @@ async function openGoodsInForm(gi = null) {
     </div>
     <div class="form-row"><label>Quantity Received (optional)</label><input type="number" step="0.01" name="quantity_received" value="${gi?.quantity_received ?? ""}" placeholder="e.g. how many, if useful to note"></div>
     <div class="form-row"><label>Received By</label><input name="received_by" value="${esc(gi?.received_by ?? (state.user?.full_name || ""))}" required></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Batch / serial number (optional)</label><input name="batch_number" value="${esc(gi?.batch_number || "")}"></div>
+      <div class="form-row"><label>Heat number (optional)</label><input name="heat_number" value="${esc(gi?.heat_number || "")}"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Certificate of conformity</label>
+        <select name="cert_status">${[["", "—"], ["Received", "Received"], ["Not received", "Not received"], ["Not required", "Not required"]].map(([v, l]) => `<option value="${v}" ${(gi?.cert_status || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+      </div>
+      <div class="form-row"><label>Inspection</label>
+        <select name="inspection_result">${[["", "—"], ["Accepted", "Accepted"], ["Rejected", "Rejected"]].map(([v, l]) => `<option value="${v}" ${(gi?.inspection_result || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div class="hint" style="margin:-4px 0 8px;">Attach the certificate with the other documents below. Not every delivery needs one.</div>
     <div class="form-row"><label>Comment</label><textarea name="comment" rows="2">${esc(gi?.comment || "")}</textarea></div>
     <div class="form-row" style="margin-top:6px;">
       <label>${gi ? "Attached Documents" : "Goods Received Document"}</label>
@@ -1725,6 +1992,15 @@ async function openGoodsInForm(gi = null) {
         return;
       }
 
+      const certChosen = fd.get("cert_status");
+      if (certChosen !== "Received" && certChosen !== "Not required") {
+        if (!confirm(certChosen === "Not received"
+          ? "The certificate of conformity is marked Not received for this delivery.\n\nSave anyway?"
+          : "No certificate of conformity has been recorded for this delivery.\n\nSave anyway?")) return;
+      }
+      const rejected = fd.get("inspection_result") === "Rejected";
+      const poForNcr = pos.find(p => String(p.purchase_order_id) === String(fd.get("purchase_order_id")));
+      let savedGiId = gi ? gi.goods_in_id : null;
       if (gi) {
         const payload = Object.fromEntries(fd.entries());
         delete payload.documents;
@@ -1737,10 +2013,20 @@ async function openGoodsInForm(gi = null) {
           await api(`/api/goods-in/${gi.goods_in_id}/documents`, { method: "POST", body: docFd });
         }
       } else {
-        await api("/api/goods-in", { method: "POST", body: fd });
+        // fd is the modal's own FormData, built straight from this <form> -
+        // it already carries every field above (purchase_order_id,
+        // destination_type, ... and the required "documents" file(s)), so
+        // it can go to the API as multipart/form-data exactly as-is. That
+        // way the record and its required document are created together,
+        // in one request, atomically on the server (see create_goods_in).
+        const created = await api("/api/goods-in", { method: "POST", body: fd });
+        savedGiId = created.goods_in_id;
       }
       closeModal();
       renderGoodsIn();
+      if (rejected && canWrite("quality") && confirm("This delivery is marked Rejected.\n\nRaise a non-conformance report for it now?")) {
+        openNcrForm(null, { goods_in_id: savedGiId, purchase_order_id: poForNcr?.purchase_order_id, source: "Supplier delivery" });
+      }
     },
   });
   document.getElementById("gi-destination-type").addEventListener("change", (e) => {
@@ -1866,6 +2152,7 @@ async function renderDespatchNotes() {
             <td>${esc(r.despatched_by || "")}</td>
             <td>${statusBadge(r.status)}</td>
             <td class="actions-cell">
+              <a class="btn small secondary" href="/api/despatch-notes/${r.despatch_note_id}/pdf?preview=1" target="_blank" rel="noopener" title="Preview the Despatch Note PDF in a new tab">Preview</a>
               <a class="btn small secondary" href="/api/despatch-notes/${r.despatch_note_id}/pdf" title="Download Despatch Note PDF">PDF</a>
               ${r.signature_filename
                 ? `<a class="btn small secondary" href="/api/despatch-notes/${r.despatch_note_id}/signature" target="_blank" rel="noopener" title="Signed by ${esc(r.signature_name || "")} on ${fmtDate(r.signature_date)}">Signed &#10003;</a>`
@@ -2960,6 +3247,8 @@ function openCustomerInvoiceForm(ci = null) {
         <select name="status">${["Draft", "Sent", "Paid", "Overdue", "Cancelled"].map(s => `<option ${ci?.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>
       </div>
     </div>
+    <div class="form-row"><label>Due Date (optional)</label><input type="date" name="due_date" value="${fmtDateInput(ci?.due_date)}">
+      <div class="hint">Leave blank and it is worked out from the customer's payment terms.</div></div>
     ${auditHint(ci)}
   `;
   openModal(ci ? "Edit Customer Invoice" : "New Customer Invoice", body, {
@@ -2986,8 +3275,7 @@ function openCustomerInvoiceForm(ci = null) {
 async function loadScreenSummary() {
   try { return await api("/api/screen-summaries"); } catch (e) { return null; }
 }
-function summaryPanelHtml(cards) {
-  const cols = Math.min(cards.length, 3);
+function summaryPanelHtml(cards, cols = Math.min(cards.length, 3)) {
   return `<div class="kpi-grid summary-panels" style="grid-template-columns:repeat(${cols},1fr);${cards.length === 1 ? "max-width:320px;" : ""}">${cards.map(c => {
     const tag = c.action ? "button" : "div";
     return `<${tag} class="kpi-card${c.action ? " clickable" : ""}"${c.action ? ` type="button" data-sum-action="${c.action}"` : ""}>
@@ -3011,6 +3299,7 @@ function worksOrdersSummaryHtml(sm) {
   const w = sm.works_orders;
   return summaryPanelHtml([
     { label: "Open works orders", value: n0(w.open_count), note: sumNote("Open and In Progress", w.open_value), action: "wo-open" },
+    { label: "On hold", value: n0(w.on_hold_count), note: sumNote("Status On Hold", w.on_hold_value), action: "wo-hold" },
     { label: "Completed year to date", value: n0(w.completed_ytd_count), note: sumNote(`End Date in ${sm.year}`, w.completed_ytd_value), action: "wo-done" },
   ]);
 }
@@ -3050,6 +3339,7 @@ document.getElementById("view-root")?.addEventListener("click", e => {
     case "quotes-sent": quoteState.status = "Sent"; quoteState.search = ""; renderQuotes(); break;
     case "quotes-won": quoteState.status = "Won"; quoteState.search = ""; renderQuotes(); break;
     case "wo-open": woState.status = "Active"; woState.late = false; woState.endYear = ""; woState.dueMonth = ""; woState.search = ""; woState.page = 1; renderWorksOrders(); break;
+    case "wo-hold": woState.status = "On Hold"; woState.late = false; woState.endYear = ""; woState.dueMonth = ""; woState.search = ""; woState.page = 1; renderWorksOrders(); break;
     case "wo-done": woState.status = "Completed"; woState.late = false; woState.endYear = String(new Date().getFullYear()); woState.dueMonth = ""; woState.search = ""; woState.page = 1; renderWorksOrders(); break;
   }
 });
@@ -3125,6 +3415,7 @@ async function renderQuotes() {
             <td class="num">${fmtMoney(r.estimated_value)}</td>
             <td>${statusBadge(r.status)}${r.is_past_validity ? " " + lightBadge("amber", "Past validity") : ""}</td>
             <td class="actions-cell">
+              <a class="btn small secondary" href="/api/quotes/${r.quote_id}/pdf?preview=1" target="_blank" rel="noopener" title="Preview the quote PDF in a new tab">Preview</a>
               <a class="btn small secondary" href="/api/quotes/${r.quote_id}/pdf" title="Download quote PDF">PDF</a>
               <button class="btn small secondary" data-breakdown="${r.quote_id}">Breakdown</button>
               <button class="btn small secondary" data-history="${r.quote_id}">History</button>
@@ -3567,15 +3858,21 @@ async function viewQuoteBreakdown(q) {
       <span>Price to Customer: <b>${fmtMoney(q.estimated_value)}</b></span>
       <span>Profit: <b>${fmtMoney(profit)} (${fmtPct(profitPct)})</b></span>
     </div>
-    <div style="margin-top:16px;"><a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf">Download Quote PDF</a></div>
+    <div style="margin-top:16px;"><a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf?preview=1" target="_blank" rel="noopener">Preview Quote PDF</a> <a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf">Download Quote PDF</a></div>
   ` : `<div class="empty-state">No cost buildup recorded for this quote — it was created without the wizard, or before this feature existed.</div>
-    <div style="margin-top:16px;"><a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf">Download Quote PDF</a></div>`;
+    <div style="margin-top:16px;"><a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf?preview=1" target="_blank" rel="noopener">Preview Quote PDF</a> <a class="btn secondary" href="/api/quotes/${q.quote_id}/pdf">Download Quote PDF</a></div>`;
   openModal(`Cost Breakdown — ${q.quote_number}`, body, { showFooter: false });
 }
 
 /* ======================================================================
    CUSTOMERS
    ====================================================================== */
+const isRollsRoyce = n => (n || "").toLowerCase().startsWith("rolls royce");
+function customerTermsText(c) {
+  if (c.payment_terms_days != null) return `${c.payment_terms_days} days${c.payment_terms_eow ? ", end of week" : ""}`;
+  return isRollsRoyce(c.customer_name) ? "75 days, end of week" : "Not set";
+}
+
 async function renderCustomers() {
   const root = document.getElementById("view-root");
   root.innerHTML = `<div class="empty-state">Loading customers…</div>`;
@@ -3586,7 +3883,7 @@ async function renderCustomers() {
       ${isAdmin() ? `<button class="btn" id="cust-new">+ New Customer</button>` : ""}
     </div>
     <div class="table-wrap"><table class="data-table">
-      <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Address</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Address</th><th>Payment terms</th><th></th></tr></thead>
       <tbody>
         ${rows.length ? rows.map(r => `
           <tr>
@@ -3595,10 +3892,11 @@ async function renderCustomers() {
             <td>${esc(r.email || "")}</td>
             <td>${esc(r.phone || "")}</td>
             <td>${esc(r.address || "")}</td>
+            <td>${customerTermsText(r) === "Not set" ? `<span class="hint">Not set</span>` : esc(customerTermsText(r))}</td>
             <td class="actions-cell">
               ${isAdmin() ? `<button class="btn small secondary" data-edit="${r.customer_id}">Edit</button><button class="btn small danger" data-del="${r.customer_id}">Delete</button>` : ""}
             </td>
-          </tr>`).join("") : `<tr><td colspan="6"><div class="empty-state">No customers found.</div></td></tr>`}
+          </tr>`).join("") : `<tr><td colspan="7"><div class="empty-state">No customers found.</div></td></tr>`}
       </tbody>
     </table></div>
   `;
@@ -3620,6 +3918,11 @@ function openCustomerForm(c = null) {
       <div class="form-row"><label>Phone</label><input name="phone" value="${esc(c?.phone || "")}"></div>
     </div>
     <div class="form-row"><label>Address</label><input name="address" value="${esc(c?.address || "")}"></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Payment terms (days)</label><input type="number" min="0" max="365" name="payment_terms_days" value="${c?.payment_terms_days ?? (isRollsRoyce(c?.customer_name) ? 75 : "")}" placeholder="e.g. 30 or 60"></div>
+      <div class="form-row"><label>&nbsp;</label><label style="font-weight:normal;"><input type="checkbox" name="payment_terms_eow" ${(c ? (c.payment_terms_days == null ? isRollsRoyce(c.customer_name) : c.payment_terms_eow) : false) ? "checked" : ""}> Paid at end of week (Friday)</label></div>
+    </div>
+    <div class="hint">Used to work out when each invoice is due. All Rolls Royce sites are 75 days, end of week.</div>
     ${auditHint(c)}
   `;
   openModal(c ? "Edit Customer" : "New Customer", body, {
@@ -3635,39 +3938,119 @@ function openCustomerForm(c = null) {
   });
 }
 
+
+/* ======================================================================
+   FIXED YEARLY CUSTOMER PO's - one purchase order + line per site, contract code and year
+   ====================================================================== */
+let fixedPoYear = null;
+async function renderFixedPos() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = `<div class="empty-state">Loading…</div>`;
+  const d = await api("/api/fixed-pos" + (fixedPoYear ? "?year=" + fixedPoYear : ""));
+  fixedPoYear = d.year;
+  const write = canWrite("fixed_pos");
+  const cell = (s, code) => {
+    const c = d.cells[`${s.customer_id}|${code}`];
+    return `<td class="${c ? "" : "muted"}" ${write ? `data-cell="${s.customer_id}|${esc(code)}" style="cursor:pointer;"` : ""}>${c
+      ? `<div style="font-family:var(--font-mono,monospace);">${esc(c.po_number)}</div><div class="hint" style="margin:0;">Line ${esc(c.line_number || "—")}</div>`
+      : `<span class="hint">${write ? "+ add" : "not set"}</span>`}</td>`;
+  };
+  root.innerHTML = `
+    <div class="toolbar">
+      <div class="toggle-group" id="fp-years">${d.years.map(y => `<button class="toggle-btn ${y === d.year ? "active" : ""}" data-year="${y}" type="button">${y}</button>`).join("")}</div>
+      <div class="filters"><button class="btn secondary" id="fp-history">History of changes</button></div>
+    </div>
+    <div class="hint">One fixed customer purchase order and line number for each site and contract code, for ${d.year}. They fill in on new works orders (and on FS - L / M / H jobs that have none yet) by the job's start date year. Earlier years are kept here, and each job keeps the number it was raised under. ${write ? "Click a cell to set or change it." : "Read only."}</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Site</th>${d.codes.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${d.sites.map(s => `<tr><td><b>${esc(s.customer_name)}</b></td>${d.codes.map(c => cell(s, c)).join("")}</tr>`).join("")}</tbody>
+    </table></div>`;
+  root.querySelectorAll("#fp-years [data-year]").forEach(b => b.addEventListener("click", () => { fixedPoYear = Number(b.dataset.year); renderFixedPos(); }));
+  document.getElementById("fp-history").addEventListener("click", showFixedPoHistory);
+  root.querySelectorAll("[data-cell]").forEach(td => td.addEventListener("click", () => {
+    const [cid, code] = td.dataset.cell.split("|");
+    const site = d.sites.find(s => String(s.customer_id) === cid);
+    openFixedPoForm(site, code, d.year, d.cells[td.dataset.cell]);
+  }));
+}
+function openFixedPoForm(site, code, year, cur) {
+  const body = `
+    <div class="hint" style="margin-bottom:8px;">${esc(site.customer_name)} · ${esc(code)} · ${year}</div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Customer PO number</label><input name="po_number" value="${esc(cur?.po_number || "")}" placeholder="e.g. 1400-00888999"></div>
+      <div class="form-row"><label>Line number</label><input name="line_number" value="${esc(cur?.line_number || "")}" placeholder="e.g. 2"></div>
+    </div>
+    <div class="hint">Jobs that already carry a number keep it. Empty the PO box and save to clear this cell. Every change is kept in the history.</div>`;
+  openModal("Fixed yearly customer PO", body, {
+    submitLabel: "Save",
+    onSubmit: async (fd) => {
+      const r = await api("/api/fixed-pos", { method: "PUT", body: { customer_id: site.customer_id, contract_code: code, year, po_number: fd.get("po_number"), line_number: fd.get("line_number") } });
+      closeModal();
+      await renderFixedPos();
+      if (r.applied_to_existing_jobs) alert(`Added to ${r.applied_to_existing_jobs} existing ${code} job(s) for ${year} that had no customer PO.`);
+    },
+  });
+}
+async function showFixedPoHistory() {
+  const rows = await api("/api/fixed-pos/history");
+  openModal("History of changes", rows.length ? `<table class="data-table"><thead><tr><th>Cell</th><th>From</th><th>To</th><th>Changed by</th><th>Date</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.field_name)}</td><td>${esc(r.old_value ?? "—")}</td><td>${esc(r.new_value ?? "—")}</td><td>${esc(r.changed_by || "")}</td><td>${esc(r.changed_date || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="empty-state">No changes yet.</div>`, { submitLabel: "Close", onSubmit: async () => closeModal() });
+}
+
 /* ======================================================================
    SUPPLIERS
    ====================================================================== */
 async function renderSuppliers() {
   const root = document.getElementById("view-root");
   root.innerHTML = `<div class="empty-state">Loading suppliers…</div>`;
-  const rows = await api("/api/suppliers");
-  root.innerHTML = totalSummaryHtml("Total suppliers", rows.length) + `
+  const all = await api("/api/suppliers/quality");
+  const rows = supState.status ? all.filter(r => r.approval_status === supState.status) : all;
+  const count = st => all.filter(r => r.approval_status === st).length;
+  const certIssues = all.filter(r => r.cert_state !== "ok").length;
+  root.innerHTML = summaryPanelHtml([
+    { label: "Total suppliers", value: n0(all.length) },
+    { label: "Approved", value: n0(count("Approved")) },
+    { label: "Conditional", value: n0(count("Conditional")) },
+    { label: "Suspended", value: n0(count("Suspended")) },
+    { label: "Not assessed", value: n0(count("Not assessed")) },
+    { label: "Certificates expired or due", value: n0(certIssues) },
+  ]) + `
     <div class="toolbar">
-      <div class="hint">${isAdmin() ? "Manage supplier records." : "Read-only — only Administrators can edit suppliers."}</div>
+      <div class="filters">
+        <select id="sup-status-filter">
+          <option value="">All approval statuses</option>
+          ${SUPPLIER_STATUSES.map(s => `<option ${supState.status === s ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+      </div>
       ${isAdmin() ? `<button class="btn" id="sup-new">+ New Supplier</button>` : ""}
     </div>
+    <div class="hint">${isAdmin() ? "Manage supplier records." : "Supplier details can only be edited by Administrators."}${canWrite("quality") ? " Use Approval to set a supplier's status, certificates and review." : ""} Suppliers not yet assessed are assessed when you next order from them: the Purchase Order form reminds you.</div>
     <div class="table-wrap"><table class="data-table">
-      <thead><tr><th>Name</th><th>Supply Of</th><th>Reason For Use</th><th>Authorised By</th><th>Contact</th><th>Email</th><th>VAT Number</th><th>Address</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th>Approval</th><th>Approved for</th><th>Cert expiry</th><th>On time</th><th>NCRs 12m</th><th>Next review</th><th>Supply Of</th><th>Contact</th><th>Email</th><th></th></tr></thead>
       <tbody>
         ${rows.length ? rows.map(r => `
           <tr>
             <td><b>${esc(r.supplier_name)}</b></td>
+            <td>${supplierStatusBadge(r.approval_status)}</td>
+            <td>${esc(r.approved_for || "—")}</td>
+            <td>${r.next_cert_expiry ? `<span ${r.cert_state === "expired" ? 'style="color:#b3261e;"' : (r.cert_state === "due" ? 'style="color:#b26a00;"' : "")}>${fmtDate(r.next_cert_expiry)}${r.cert_state === "expired" ? " (expired)" : ""}</span>` : "—"}</td>
+            <td>${r.on_time_pct == null ? "—" : r.on_time_pct + "%"}</td>
+            <td>${r.ncrs_12m || 0}</td>
+            <td>${r.next_review_date ? `<span ${r.review_overdue ? 'style="color:#b3261e;"' : ""}>${fmtDate(r.next_review_date)}${r.review_overdue ? " (overdue)" : ""}</span>` : "—"}</td>
             <td>${esc(r.supply_of || "")}</td>
-            <td>${esc(r.reason_for_use || "")}</td>
-            <td>${esc(r.authorised_by || "")}</td>
             <td>${esc(r.contact_name || "")}</td>
             <td>${esc(r.email || "")}</td>
-            <td>${esc(r.vat_number || "")}</td>
-            <td>${esc(r.address || "")}</td>
             <td class="actions-cell">
+              <button class="btn small secondary" data-quality="${r.supplier_id}">${canWrite("quality") ? "Approval" : "Quality"}</button>
               ${isAdmin() ? `<button class="btn small secondary" data-edit="${r.supplier_id}">Edit</button><button class="btn small danger" data-del="${r.supplier_id}">Delete</button>` : ""}
             </td>
-          </tr>`).join("") : `<tr><td colspan="9"><div class="empty-state">No suppliers found.</div></td></tr>`}
+          </tr>`).join("") : `<tr><td colspan="11"><div class="empty-state">No suppliers found.</div></td></tr>`}
       </tbody>
     </table></div>
   `;
+  document.getElementById("sup-status-filter").addEventListener("change", e => { supState.status = e.target.value; renderSuppliers(); });
   document.getElementById("sup-new")?.addEventListener("click", () => openSupplierForm());
+  root.querySelectorAll("[data-quality]").forEach(b => b.addEventListener("click", () => openSupplierQuality(Number(b.dataset.quality))));
   root.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => {
     openSupplierForm(rows.find(r => String(r.supplier_id) === b.dataset.edit));
   }));
@@ -3724,6 +4107,16 @@ const REPORT_VIEWS = [
   { id: "monthly", label: "Monthly Income & Spend" },
   { id: "income-by-code", label: "Income by Contract Code" },
   { id: "hours-booked", label: "Hours Booked" },
+  { id: "awaiting-invoicing", label: "Awaiting Invoicing" },
+  { id: "unpaid-invoices", label: "Unpaid Invoices" },
+  { id: "overdue-deliveries", label: "Overdue Deliveries" },
+  { id: "quote-followup", label: "Quote Follow-up" },
+  { id: "workload", label: "Workload by Owner" },
+  { id: "supplier-ageing", label: "Supplier Invoices by Age" },
+  { id: "wip", label: "Work in Progress" },
+  { id: "on-time-delivery", label: "On-time Delivery" },
+  { id: "on-hold", label: "Jobs On Hold" },
+  { id: "deliveries-due", label: "Deliveries Due" },
 ];
 function reportTypeToolbarHtml(active) {
   return `
@@ -3750,6 +4143,16 @@ async function renderReporting() {
     case "monthly": return renderMonthlyIncomeSpendReport();
     case "income-by-code": return renderIncomeByContractCodeReport();
     case "hours-booked": return renderHoursBookedReport();
+    case "awaiting-invoicing": return renderAwaitingInvoicingReport();
+    case "unpaid-invoices": return renderUnpaidInvoicesReport();
+    case "overdue-deliveries": return renderOverdueDeliveriesReport();
+    case "quote-followup": return renderQuoteFollowupReport();
+    case "workload": return renderWorkloadReport();
+    case "supplier-ageing": return renderSupplierAgeingReport();
+    case "wip": return renderWipReport();
+    case "on-time-delivery": return renderOnTimeReport();
+    case "on-hold": return renderOnHoldReport();
+    case "deliveries-due": return renderDeliveriesDueReport();
     default: return renderJobProfitabilityReport();
   }
 }
@@ -4258,6 +4661,493 @@ async function renderSpendBySupplierReport() {
     spendSupplierState.page = 1;
     renderSpendBySupplierReport();
   }));
+}
+
+/* ----------------------------------------------------------------------
+   Awaiting Invoicing: Completed jobs with a Purchase Order Value that have
+   not been invoiced yet, oldest first. "Site" is the customer (Rolls Royce
+   sites are customers of their own, e.g. "Rolls Royce - Derby"); Location is
+   the Midlands / North / Bristol grouping.
+   ---------------------------------------------------------------------- */
+let awaitingInvState = { customer: "", location: "", owner: "", contract_code: "" };
+
+function awaitingInvParams() {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(awaitingInvState)) if (v) params.set(k, v);
+  return params;
+}
+
+async function renderAwaitingInvoicingReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("awaiting-invoicing") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const data = await api("/api/reporting/awaiting-invoicing?" + awaitingInvParams().toString());
+  const kpi = (label, value, cls = "") => `<div class="kpi-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+  const sel = (id, label, options, current, shown = x => x) => `<select id="${id}"><option value="">${label}</option>${options.map(o => `<option value="${esc(o)}" ${current === o ? "selected" : ""}>${esc(shown(o))}</option>`).join("")}</select>`;
+  const pill = d => d === null ? "—" : `<span class="late-pill ${d > 30 ? "late-red" : (d > 14 ? "late-amber" : "")}">${d}</span>`;
+  const t = data.totals;
+
+  root.innerHTML = reportTypeToolbarHtml("awaiting-invoicing") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${kpi("Jobs complete, not invoiced", t.jobs.toLocaleString())}
+      ${kpi("Purchase Order Value waiting", fmtMoney(t.value))}
+      ${kpi("Waiting over 30 days", t.over_30.toLocaleString(), t.over_30 > 0 ? "red" : "green")}
+      ${kpi("Oldest (days)", t.oldest_days.toLocaleString())}
+    </div>
+    <div class="toolbar">
+      <div class="filters">
+        ${sel("ai-customer", "All sites (customers)", data.customers, awaitingInvState.customer)}
+        ${sel("ai-location", "All locations", data.locations, awaitingInvState.location)}
+        ${sel("ai-owner", "All owners", data.owners, awaitingInvState.owner)}
+        ${sel("ai-code", "All contract codes", data.contract_codes, awaitingInvState.contract_code, c => contractCodeInfo(c).display)}
+      </div>
+      <div class="filters"><button class="btn secondary" id="ai-export">Export to CSV</button></div>
+    </div>
+    <div class="hint">Completed jobs with a Purchase Order Value and no invoice raised yet, longest waiting first. Days are counted from the job's End Date.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Job</th><th>Job Name</th><th>Site / Customer</th><th>Location</th><th>Owner</th><th>Code</th><th>Customer PO / line</th><th>End Date</th><th class="num">Days waiting</th><th class="num">Purchase Order Value</th></tr></thead>
+      <tbody>
+        ${data.rows.length ? data.rows.map(r => `<tr>
+          <td><a href="#" class="ai-job" data-job="${esc(r.job_number)}"><b>${esc(r.job_number)}</b></a></td>
+          <td>${esc(r.job_name)}</td><td>${esc(r.customer_name)}</td><td>${esc(r.location || "—")}</td>
+          <td>${esc(r.project_manager || "—")}</td><td>${r.contract_code ? esc(contractCodeInfo(r.contract_code).display) : "—"}</td>
+          <td>${r.customer_po ? esc(r.customer_po) + (r.customer_po_line ? ` · line ${esc(r.customer_po_line)}` : "") : "—"}</td>
+          <td>${esc(r.end_date || "—")}</td><td class="num">${pill(r.days_waiting)}</td><td class="num">${fmtMoney(r.po_value)}</td></tr>`).join("")
+          + `<tr class="subtotal-row"><td colspan="9"><b>Total</b></td><td class="num"><b>${fmtMoney(t.value)}</b></td></tr>`
+          : `<tr><td colspan="10"><div class="empty-state">Nothing is waiting to be invoiced with these filters.</div></td></tr>`}
+      </tbody>
+    </table></div>`;
+  wireReportTypeToolbar();
+  const bind = (id, key) => document.getElementById(id).addEventListener("change", e => { awaitingInvState[key] = e.target.value; renderAwaitingInvoicingReport(); });
+  bind("ai-customer", "customer"); bind("ai-location", "location"); bind("ai-owner", "owner"); bind("ai-code", "contract_code");
+  document.getElementById("ai-export").addEventListener("click", () => {
+    window.location.href = "/api/reporting/awaiting-invoicing/export?" + awaitingInvParams().toString();
+  });
+  root.querySelectorAll("a.ai-job").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToJob(a.dataset.job); }));
+}
+
+
+/* ----------------------------------------------------------------------
+   Unpaid Invoices: customer invoices not yet paid, aged from the invoice
+   date (0-30 / 31-60 / over 60), with "overdue" worked out from each
+   customer's payment terms (Rolls Royce: 75 days, Friday of that week).
+   ---------------------------------------------------------------------- */
+let unpaidState = { customer: "", location: "", owner: "" };
+const unpaidParams = () => { const p = new URLSearchParams(); for (const [k, v] of Object.entries(unpaidState)) if (v) p.set(k, v); return p; };
+
+async function renderUnpaidInvoicesReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("unpaid-invoices") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const data = await api("/api/reporting/unpaid-invoices?" + unpaidParams().toString());
+  const kpi = (label, value, cls = "") => `<div class="kpi-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+  const sel = (id, label, options, current) => `<select id="${id}"><option value="">${label}</option>${options.map(o => `<option value="${esc(o)}" ${current === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  const t = data.totals;
+  const money = v => v ? fmtMoney(v) : "—";
+  root.innerHTML = reportTypeToolbarHtml("unpaid-invoices") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${kpi("Total unpaid", fmtMoney(t.total))}
+      ${kpi("Not yet due", fmtMoney(t.not_yet_due), "green")}
+      ${kpi("Overdue", fmtMoney(t.overdue), t.overdue > 0 ? "red" : "green")}
+      ${kpi("Over 60 days old", fmtMoney(t.over_60), t.over_60 > 0 ? "red" : "")}
+    </div>
+    <div class="toolbar">
+      <div class="filters">
+        ${sel("up-customer", "All sites (customers)", data.customer_list, unpaidState.customer)}
+        ${sel("up-location", "All locations", data.locations, unpaidState.location)}
+        ${sel("up-owner", "All owners", data.owners, unpaidState.owner)}
+      </div>
+      <div class="filters"><button class="btn secondary" id="up-export">Export to CSV</button></div>
+    </div>
+    <div class="hint">Invoices marked Sent or Overdue that were raised in the app. Age is counted from the invoice date; an invoice is overdue once its due date has passed.${t.terms_not_set ? ` <b>${t.terms_not_set} invoice(s) are for customers with no payment terms set</b> — set them on the Customers screen so these can be marked overdue.` : ""}</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Site / Customer</th><th>Terms</th><th class="num">0–30 days</th><th class="num">31–60 days</th><th class="num">Over 60</th><th class="num">Total</th><th class="num">Overdue</th></tr></thead>
+      <tbody>
+        ${data.customers.length ? data.customers.map(c => `<tr>
+          <td><a href="#" class="up-cust" data-c="${esc(c.customer_name)}"><b>${esc(c.customer_name)}</b></a></td><td>${esc(c.terms)}</td>
+          <td class="num">${money(c.b0_30)}</td><td class="num">${money(c.b31_60)}</td><td class="num">${money(c.over_60)}</td>
+          <td class="num"><b>${fmtMoney(c.total)}</b></td><td class="num">${c.overdue ? `<span class="late-pill late-red">${fmtMoney(c.overdue)}</span>` : "—"}</td></tr>`).join("")
+          : `<tr><td colspan="7"><div class="empty-state">No unpaid invoices. Invoices raised in the app and not yet marked Paid will appear here.</div></td></tr>`}
+      </tbody>
+    </table></div>
+    ${data.invoices.length ? `<h3 style="margin:18px 0 6px;">Invoices</h3>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Invoice</th><th>Job</th><th>Site / Customer</th><th>Invoice date</th><th>Due date</th><th class="num">Age (days)</th><th class="num">Days overdue</th><th class="num">Amount</th></tr></thead>
+      <tbody>${data.invoices.map(x => `<tr>
+        <td>${esc(x.invoice_number)}</td>
+        <td><a href="#" class="up-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a></td>
+        <td>${esc(x.customer_name)}</td><td>${esc(x.invoice_date || "—")}</td><td>${esc(x.due_date || "Terms not set")}</td>
+        <td class="num">${x.age_days ?? "—"}</td>
+        <td class="num">${x.overdue ? `<span class="late-pill ${x.days_overdue > 30 ? "late-red" : "late-amber"}">${x.days_overdue}</span>` : "—"}</td>
+        <td class="num">${fmtMoney(x.amount)}</td></tr>`).join("")}
+      </tbody></table></div>` : ""}`;
+  wireReportTypeToolbar();
+  const bind = (id, key) => document.getElementById(id).addEventListener("change", e => { unpaidState[key] = e.target.value; renderUnpaidInvoicesReport(); });
+  bind("up-customer", "customer"); bind("up-location", "location"); bind("up-owner", "owner");
+  document.getElementById("up-export").addEventListener("click", () => { window.location.href = "/api/reporting/unpaid-invoices/export?" + unpaidParams().toString(); });
+  root.querySelectorAll("a.up-cust").forEach(a => a.addEventListener("click", e => { e.preventDefault(); unpaidState.customer = a.dataset.c; renderUnpaidInvoicesReport(); }));
+  root.querySelectorAll("a.up-job").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToJob(a.dataset.job); }));
+}
+
+/* ----------------------------------------------------------------------
+   Overdue Deliveries: live purchase orders past their Date Required with
+   no full goods-in yet, plus how reliably each supplier has delivered.
+   ---------------------------------------------------------------------- */
+let overdueDelState = { supplier: "", job: "", raised_by: "" };
+const overdueDelParams = () => { const p = new URLSearchParams(); for (const [k, v] of Object.entries(overdueDelState)) if (v) p.set(k, v); return p; };
+
+function goToPurchaseOrder(poNumber) {
+  poState.search = poNumber; poState.workOrder = ""; poState.supplier = ""; poState.raisedBy = "";
+  poState.status = ""; poState.customer = ""; poState.contractCode = ""; poState.history = "live";
+  location.hash = "#/purchase-orders";
+}
+
+async function renderOverdueDeliveriesReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("overdue-deliveries") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const data = await api("/api/reporting/overdue-deliveries?" + overdueDelParams().toString());
+  const kpi = (label, value, cls = "") => `<div class="kpi-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+  const sel = (id, label, options, current) => `<select id="${id}"><option value="">${label}</option>${options.map(o => `<option value="${esc(o)}" ${current === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  const t = data.totals;
+  root.innerHTML = reportTypeToolbarHtml("overdue-deliveries") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${kpi("Purchase orders overdue", t.count.toLocaleString(), t.count > 0 ? "red" : "green")}
+      ${kpi("Value outstanding", fmtMoney(t.value))}
+      ${kpi("Over 14 days late", t.over_14.toLocaleString(), t.over_14 > 0 ? "red" : "green")}
+      ${kpi("Suppliers involved", t.suppliers.toLocaleString())}
+    </div>
+    <div class="toolbar">
+      <div class="filters">
+        ${sel("od-supplier", "All suppliers", data.suppliers, overdueDelState.supplier)}
+        ${sel("od-job", "All jobs", data.jobs, overdueDelState.job)}
+        ${sel("od-raised", "All raised by", data.raised_by_list, overdueDelState.raised_by)}
+      </div>
+      <div class="filters"><button class="btn secondary" id="od-export">Export to CSV</button></div>
+    </div>
+    <div class="hint">Issued or Approved purchase orders whose Date Required has passed and that have not been received in full on Goods In. Most days late first.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>PO</th><th>Supplier</th><th>Job</th><th>Description</th><th>Raised by</th><th>Date required</th><th class="num">Days late</th><th>Part received?</th><th class="num">PO value</th></tr></thead>
+      <tbody>
+        ${data.overdue.length ? data.overdue.map(x => `<tr>
+          <td><a href="#" class="od-po" data-po="${esc(x.po_number)}"><b>${esc(x.po_number)}</b></a></td>
+          <td>${esc(x.supplier_name)}</td><td>${esc(x.job_number || "—")}</td><td>${esc(x.description || "")}</td>
+          <td>${esc(x.raised_by || "—")}</td><td>${esc(x.date_required)}</td>
+          <td class="num"><span class="late-pill ${x.days_late > 14 ? "late-red" : "late-amber"}">${x.days_late}</span></td>
+          <td>${x.part_received ? "Yes" : "No"}</td><td class="num">${fmtMoney(x.po_value)}</td></tr>`).join("")
+          : `<tr><td colspan="9"><div class="empty-state">No overdue deliveries. Purchase orders only appear here when they have a Date Required.</div></td></tr>`}
+      </tbody>
+    </table></div>
+    <h3 style="margin:18px 0 6px;">Supplier delivery performance</h3>
+    <div class="hint">Purchase orders with a Date Required that were received in full. On time means the full delivery was booked in on or before that date.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Supplier</th><th class="num">POs received</th><th class="num">On time</th><th class="num">On time %</th><th class="num">Average days late (when late)</th></tr></thead>
+      <tbody>
+        ${data.performance.length ? data.performance.map(p => `<tr>
+          <td><b>${esc(p.supplier_name)}</b></td><td class="num">${p.received}</td><td class="num">${p.on_time}</td>
+          <td class="num"><span class="late-pill ${p.on_time_pct < 70 ? "late-red" : (p.on_time_pct < 90 ? "late-amber" : "")}">${p.on_time_pct}%</span></td>
+          <td class="num">${p.avg_days_late || "—"}</td></tr>`).join("")
+          : `<tr><td colspan="5"><div class="empty-state">Nothing to show yet — this fills in as goods are booked in against purchase orders that have a Date Required.</div></td></tr>`}
+      </tbody>
+    </table></div>`;
+  wireReportTypeToolbar();
+  const bind = (id, key) => document.getElementById(id).addEventListener("change", e => { overdueDelState[key] = e.target.value; renderOverdueDeliveriesReport(); });
+  bind("od-supplier", "supplier"); bind("od-job", "job"); bind("od-raised", "raised_by");
+  document.getElementById("od-export").addEventListener("click", () => { window.location.href = "/api/reporting/overdue-deliveries/export?" + overdueDelParams().toString(); });
+  root.querySelectorAll("a.od-po").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToPurchaseOrder(a.dataset.po); }));
+}
+
+
+/* ----------------------------------------------------------------------
+   Four more reports: Quote Follow-up, Workload by Owner, Supplier Invoices
+   by Age, Work in Progress. They share one small set of helpers.
+   ---------------------------------------------------------------------- */
+const repKpi = (label, value, cls = "") => `<div class="kpi-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+const repSel = (id, label, options, current) => `<select id="${id}"><option value="">${label}</option>${options.map(o => `<option value="${esc(o)}" ${String(current) === String(o) ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+const repParams = st => { const p = new URLSearchParams(); for (const [k, v] of Object.entries(st)) if (v) p.set(k, v); return p; };
+const repMoney = v => v ? fmtMoney(v) : "—";
+const repPct = v => v === null || v === undefined ? "—" : `${v}%`;
+function repWire(view, st, bindings, exportPath, rerender) {
+  wireReportTypeToolbar();
+  for (const [id, key] of bindings) document.getElementById(id).addEventListener("change", e => { st[key] = e.target.value; rerender(); });
+  document.getElementById("rep-export").addEventListener("click", () => { window.location.href = exportPath + "?" + repParams(st).toString(); });
+  document.querySelectorAll("a.rep-job").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToJob(a.dataset.job); }));
+}
+
+/* Quote Follow-up and win rate */
+let quoteFuState = { customer: "", owner: "", year: "" };
+function goToQuote(num) {
+  quoteState.search = num; quoteState.status = ""; quoteState.customer = ""; quoteState.owner = "";
+  location.hash = "#/quotes";
+}
+async function renderQuoteFollowupReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("quote-followup") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/quote-followup?" + repParams(quoteFuState).toString());
+  const t = d.totals;
+  const winTable = (title, rows, first) => `<h3 style="margin:18px 0 6px;">${title}</h3><div class="table-wrap"><table class="data-table">
+    <thead><tr><th>${first}</th><th class="num">Awaiting answer</th><th class="num">Value awaiting</th><th class="num">Won</th><th class="num">Lost / expired</th><th class="num">Win % (count)</th><th class="num">Win % (value)</th><th class="num">Won value</th></tr></thead>
+    <tbody>${rows.length ? rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="num">${r.open}</td><td class="num">${repMoney(r.open_value)}</td>
+      <td class="num">${r.won}</td><td class="num">${r.lost}</td><td class="num">${repPct(r.win_pct)}</td><td class="num">${repPct(r.win_value_pct)}</td><td class="num">${repMoney(r.won_value)}</td></tr>`).join("")
+      : `<tr><td colspan="8"><div class="empty-state">Nothing to show.</div></td></tr>`}</tbody></table></div>`;
+  root.innerHTML = reportTypeToolbarHtml("quote-followup") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${repKpi("Awaiting an answer", `${t.open.toLocaleString()} · ${fmtMoney(t.open_value)}`)}
+      ${repKpi("To chase (over 30 days)", `${t.chase.toLocaleString()} · ${fmtMoney(t.chase_value)}`, t.chase > 0 ? "red" : "green")}
+      ${repKpi("Win rate (count)", repPct(t.win_pct))}
+      ${repKpi("Win rate (value)", repPct(t.win_value_pct))}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("qf-customer", "All customers", d.customers, quoteFuState.customer)}
+      ${repSel("qf-owner", "All owners", d.owners, quoteFuState.owner)}
+      ${repSel("qf-year", "All years", d.years, quoteFuState.year)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Win rate = Won out of every quote with an outcome (Won, Lost or Expired). Quotes are placed in the year and month of their quote date. The chase list is quotes still marked Sent for over 30 days, longest first.</div>
+    <h3 style="margin:10px 0 6px;">Quotes to chase</h3>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Quote</th><th>Customer</th><th>Description</th><th>Owner</th><th>Quote date</th><th class="num">Days waiting</th><th class="num">Value</th></tr></thead>
+      <tbody>${d.chase.length ? d.chase.map(x => `<tr><td><a href="#" class="qf-quote" data-q="${esc(x.quote_number)}"><b>${esc(x.quote_number)}</b></a></td>
+        <td>${esc(x.customer_name || "—")}</td><td>${esc(x.description || "")}</td><td>${esc(x.owner || "—")}</td><td>${esc(x.quote_date || "—")}</td>
+        <td class="num"><span class="late-pill ${x.days_waiting > 90 ? "late-red" : "late-amber"}">${x.days_waiting}</span></td><td class="num">${fmtMoney(x.value)}</td></tr>`).join("")
+        : `<tr><td colspan="7"><div class="empty-state">No quotes are waiting more than 30 days for an answer.</div></td></tr>`}</tbody></table></div>
+    ${winTable("By owner", d.by_owner, "Owner")}
+    ${winTable("By month", d.by_month.map(m => ({...m, name: m.name})), "Month")}
+    ${winTable("By customer (top 25)", d.by_customer, "Customer")}`;
+  repWire("quote-followup", quoteFuState, [["qf-customer", "customer"], ["qf-owner", "owner"], ["qf-year", "year"]], "/api/reporting/quote-followup/export", renderQuoteFollowupReport);
+  root.querySelectorAll("a.qf-quote").forEach(a => a.addEventListener("click", e => { e.preventDefault(); goToQuote(a.dataset.q); }));
+}
+
+/* Workload by owner */
+let workloadState = { customer: "", location: "" };
+async function renderWorkloadReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("workload") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/workload?" + repParams(workloadState).toString());
+  const t = d.totals;
+  root.innerHTML = reportTypeToolbarHtml("workload") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${repKpi("Live jobs (Open + In Progress)", t.live.toLocaleString())}
+      ${repKpi("Late", t.late.toLocaleString(), t.late > 0 ? "red" : "green")}
+      ${repKpi("On Hold", t.on_hold.toLocaleString())}
+      ${repKpi("Live PO value", fmtMoney(t.active_value))}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("wl-customer", "All sites (customers)", d.customers, workloadState.customer)}
+      ${repSel("wl-location", "All locations", d.locations, workloadState.location)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Jobs per project manager. Late = live and past its End Date. On Hold jobs are counted separately and are never late.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Owner</th><th class="num">Open</th><th class="num">In Progress</th><th class="num">Late</th><th class="num">On Hold</th><th class="num">Live PO value</th><th class="num">Late PO value</th><th class="num">On Hold value</th><th class="num">Longest late (days)</th></tr></thead>
+      <tbody>${d.rows.length ? d.rows.map(o => `<tr><td><b>${esc(o.owner)}</b></td><td class="num">${o.open}</td><td class="num">${o.in_progress}</td>
+        <td class="num">${o.late ? `<span class="late-pill late-red">${o.late}</span>` : "—"}</td><td class="num">${o.on_hold || "—"}</td>
+        <td class="num">${repMoney(o.active_value)}</td><td class="num">${repMoney(o.late_value)}</td><td class="num">${repMoney(o.on_hold_value)}</td><td class="num">${o.max_days_late || "—"}</td></tr>`).join("")
+        + `<tr class="subtotal-row"><td><b>Total</b></td><td class="num"><b>${d.rows.reduce((a, o) => a + o.open, 0)}</b></td><td class="num"><b>${d.rows.reduce((a, o) => a + o.in_progress, 0)}</b></td><td class="num"><b>${t.late}</b></td><td class="num"><b>${t.on_hold}</b></td><td class="num"><b>${fmtMoney(t.active_value)}</b></td><td class="num"><b>${fmtMoney(t.late_value)}</b></td><td class="num"><b>${fmtMoney(t.on_hold_value)}</b></td><td></td></tr>`
+        : `<tr><td colspan="9"><div class="empty-state">No live jobs.</div></td></tr>`}</tbody></table></div>`;
+  repWire("workload", workloadState, [["wl-customer", "customer"], ["wl-location", "location"]], "/api/reporting/workload/export", renderWorkloadReport);
+}
+
+/* Supplier invoices by age */
+let supAgeState = { supplier: "", status: "" };
+async function renderSupplierAgeingReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("supplier-ageing") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/supplier-ageing?" + repParams(supAgeState).toString());
+  const t = d.totals;
+  root.innerHTML = reportTypeToolbarHtml("supplier-ageing") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+      ${repKpi("Total to pay", fmtMoney(t.total))}
+      ${repKpi("Awaiting approval", fmtMoney(t.pending))}
+      ${repKpi("Approved, unpaid", fmtMoney(t.approved))}
+      ${repKpi("Disputed", fmtMoney(t.disputed), t.disputed > 0 ? "red" : "")}
+      ${repKpi("Over 60 days old", fmtMoney(t.over_60), t.over_60 > 0 ? "red" : "green")}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("sa-supplier", "All suppliers", d.supplier_list, supAgeState.supplier)}
+      ${repSel("sa-status", "All statuses", ["Pending", "Approved", "Disputed"], supAgeState.status)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Supplier invoices that are Pending, Approved or Disputed (not yet Paid or Cancelled), aged from the invoice date.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Supplier</th><th class="num">Invoices</th><th class="num">0–30 days</th><th class="num">31–60 days</th><th class="num">Over 60</th><th class="num">No date</th><th class="num">Total</th></tr></thead>
+      <tbody>${d.suppliers.length ? d.suppliers.map(s => `<tr><td><a href="#" class="sa-sup" data-s="${esc(s.supplier_name)}"><b>${esc(s.supplier_name)}</b></a></td><td class="num">${s.invoices}</td>
+        <td class="num">${repMoney(s.b0_30)}</td><td class="num">${repMoney(s.b31_60)}</td><td class="num">${repMoney(s.over_60)}</td><td class="num">${repMoney(s.unknown)}</td><td class="num"><b>${fmtMoney(s.total)}</b></td></tr>`).join("")
+        : `<tr><td colspan="7"><div class="empty-state">No supplier invoices are waiting for approval or payment.</div></td></tr>`}</tbody></table></div>
+    ${d.invoices.length ? `<h3 style="margin:18px 0 6px;">Invoices</h3><div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Invoice</th><th>Supplier</th><th>PO</th><th>Job</th><th>Invoice date</th><th class="num">Age (days)</th><th>Status</th><th class="num">Amount</th></tr></thead>
+      <tbody>${d.invoices.map(x => `<tr><td>${esc(x.invoice_number)}</td><td>${esc(x.supplier_name)}</td><td>${esc(x.po_number || "—")}</td>
+        <td>${x.job_number ? `<a href="#" class="rep-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a>` : "—"}</td>
+        <td>${esc(x.invoice_date || "—")}</td><td class="num">${x.age_days === null ? "—" : `<span class="late-pill ${x.age_days > 60 ? "late-red" : (x.age_days > 30 ? "late-amber" : "")}">${x.age_days}</span>`}</td>
+        <td>${esc(x.status)}</td><td class="num">${fmtMoney(x.amount)}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+  repWire("supplier-ageing", supAgeState, [["sa-supplier", "supplier"], ["sa-status", "status"]], "/api/reporting/supplier-ageing/export", renderSupplierAgeingReport);
+  root.querySelectorAll("a.sa-sup").forEach(a => a.addEventListener("click", e => { e.preventDefault(); supAgeState.supplier = a.dataset.s; renderSupplierAgeingReport(); }));
+}
+
+/* Work in progress */
+let wipState = { customer: "", location: "", owner: "" };
+async function renderWipReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("wip") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/wip?" + repParams(wipState).toString());
+  const t = d.totals;
+  root.innerHTML = reportTypeToolbarHtml("wip") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+      ${repKpi("Live jobs", t.jobs.toLocaleString())}
+      ${repKpi("Cost to date", fmtMoney(t.cost))}
+      ${repKpi("Invoiced", fmtMoney(t.invoiced))}
+      ${repKpi("Cost not yet invoiced", fmtMoney(t.tied_up), t.tied_up > 0 ? "red" : "green")}
+      ${repKpi("Open PO commitments", fmtMoney(t.committed))}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("wp-customer", "All sites (customers)", d.customers, wipState.customer)}
+      ${repSel("wp-location", "All locations", d.locations, wipState.location)}
+      ${repSel("wp-owner", "All owners", d.owners, wipState.owner)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Open, In Progress and On Hold jobs. Cost to date = supplier invoices + hours + stock booked to the job. <b>Cost not yet invoiced</b> = cost to date minus what has really been invoiced to the customer (negative means billed ahead of cost). Hours were cleared and are only booked from now on, so cost is understated until real hours are captured.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Job</th><th>Job Name</th><th>Status</th><th>Site / Customer</th><th>Owner</th><th class="num">PO value</th><th class="num">Purchases</th><th class="num">Hours</th><th class="num">Stock</th><th class="num">Cost to date</th><th class="num">Invoiced</th><th class="num">Not yet invoiced</th><th class="num">Open POs</th></tr></thead>
+      <tbody>${d.rows.length ? d.rows.map(x => `<tr><td><a href="#" class="rep-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a></td>
+        <td>${esc(x.job_name)}</td><td>${esc(x.status)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.project_manager || "—")}</td>
+        <td class="num">${repMoney(x.po_value)}</td><td class="num">${repMoney(x.purchases)}</td><td class="num">${repMoney(x.hours)}</td><td class="num">${repMoney(x.stock)}</td>
+        <td class="num">${repMoney(x.cost)}</td><td class="num">${repMoney(x.invoiced)}</td>
+        <td class="num">${x.tied_up ? `<span class="${x.tied_up > 0 ? "late-pill late-amber" : ""}">${fmtMoney(x.tied_up)}</span>` : "—"}</td><td class="num">${repMoney(x.committed)}</td></tr>`).join("")
+        : `<tr><td colspan="13"><div class="empty-state">No live jobs with these filters.</div></td></tr>`}</tbody></table></div>`;
+  repWire("wip", wipState, [["wp-customer", "customer"], ["wp-location", "location"], ["wp-owner", "owner"]], "/api/reporting/wip/export", renderWipReport);
+}
+
+
+/* On-time delivery to customers */
+let onTimeState = { customer: "", location: "", owner: "", year: "" };
+async function renderOnTimeReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("on-time-delivery") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/on-time-delivery?" + repParams(onTimeState).toString());
+  const t = d.totals;
+  const tbl = (title, rows, first) => `<h3 style="margin:18px 0 6px;">${title}</h3><div class="table-wrap"><table class="data-table">
+    <thead><tr><th>${first}</th><th class="num">Delivered</th><th class="num">On time</th><th class="num">Late</th><th class="num">Overdue, not delivered</th><th class="num">Not due yet</th><th class="num">On time %</th><th class="num">Avg days late</th></tr></thead>
+    <tbody>${rows.length ? rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="num">${r.delivered}</td><td class="num">${r.on_time}</td><td class="num">${r.late || "—"}</td>
+      <td class="num">${r.overdue ? `<span class="late-pill late-red">${r.overdue}</span>` : "—"}</td><td class="num">${r.waiting || "—"}</td>
+      <td class="num">${r.on_time_pct === null ? "—" : `<span class="late-pill ${r.on_time_pct < 70 ? "late-red" : (r.on_time_pct < 90 ? "late-amber" : "")}">${r.on_time_pct}%</span>`}</td><td class="num">${r.avg_days_late || "—"}</td></tr>`).join("")
+      : `<tr><td colspan="8"><div class="empty-state">Nothing to show.</div></td></tr>`}</tbody></table></div>`;
+  root.innerHTML = reportTypeToolbarHtml("on-time-delivery") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${repKpi("On-time delivery", repPct(t.on_time_pct), t.on_time_pct !== null && t.on_time_pct < 90 ? "red" : "green")}
+      ${repKpi("Delivered", `${t.delivered.toLocaleString()} (${t.on_time.toLocaleString()} on time)`)}
+      ${repKpi("Overdue, not delivered", t.overdue.toLocaleString(), t.overdue > 0 ? "red" : "green")}
+      ${repKpi("Average days late", t.avg_days_late || "—")}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("ot-customer", "All sites (customers)", d.customers, onTimeState.customer)}
+      ${repSel("ot-location", "All locations", d.locations, onTimeState.location)}
+      ${repSel("ot-owner", "All owners", d.owners, onTimeState.owner)}
+      ${repSel("ot-year", "All years", d.years, onTimeState.year)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Only jobs with a <b>Required By</b> date are included (set it on the job). Delivered = the latest Despatched despatch note on the job; on time = on or before Required By. A job past its Required By date with nothing despatched counts as late. On time % = on time out of delivered plus overdue. Dates for past jobs come from the Order Book's "Delivery Req" and "Delivered On" columns.${d.suspect_dates ? ` <b>${d.suspect_dates} job(s) were left out because the two dates are more than a year apart</b> (usually a typing slip in the Order Book).` : ""}${d.no_delivery_date ? ` ${d.no_delivery_date} finished job(s) have no delivery date recorded, so they can't be judged either way.` : ""}</div>
+    <h3 style="margin:10px 0 6px;">Late and overdue jobs</h3>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Job</th><th>Job Name</th><th>Site / Customer</th><th>Owner</th><th>Required by</th><th>Delivered</th><th class="num">Days late</th><th class="num">PO value</th></tr></thead>
+      <tbody>${d.listing.length ? d.listing.map(x => `<tr><td><a href="#" class="rep-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a></td>
+        <td>${esc(x.job_name)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.project_manager || "—")}</td><td>${esc(x.required_by)}</td>
+        <td>${x.delivered ? esc(x.delivered) : `<span class="late-pill late-red">Not delivered</span>`}</td>
+        <td class="num"><span class="late-pill ${x.days_late > 14 ? "late-red" : "late-amber"}">${x.days_late}</span></td><td class="num">${fmtMoney(x.po_value)}</td></tr>`).join("")
+        : `<tr><td colspan="8"><div class="empty-state">No late jobs. Jobs only appear once they have a Required By date — enter it on each job.</div></td></tr>`}</tbody></table></div>
+    ${tbl("By site / customer", d.by_customer, "Site / Customer")}
+    ${tbl("By owner", d.by_owner, "Owner")}
+    ${tbl("By month (of Required By)", d.by_month, "Month")}`;
+  repWire("on-time-delivery", onTimeState, [["ot-customer", "customer"], ["ot-location", "location"], ["ot-owner", "owner"], ["ot-year", "year"]],
+          "/api/reporting/on-time-delivery/export", renderOnTimeReport);
+}
+
+/* Deliveries Due: jobs due for delivery over the next few months, with income, cost and profit */
+let dueState = { customer: "", location: "", owner: "", months: "3", month: "" };
+async function renderDeliveriesDueReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("deliveries-due") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/deliveries-due?" + repParams(dueState).toString());
+  if (dueState.month && dueState.month !== "overdue" && !d.months.some(m => m.key === dueState.month)) { dueState.month = ""; return renderDeliveriesDueReport(); }
+  const t = d.window_totals;
+  const pct = v => v === null || v === undefined ? "—" : v.toFixed(1) + "%";
+  const profitCell = v => `<span style="${v < 0 ? "color:#b3261e;" : ""}">${fmtMoney(v)}</span>`;
+  const totalRow = (label, x) => `<tr style="font-weight:600;"><td colspan="6">${esc(label)} (${x.jobs} job${x.jobs === 1 ? "" : "s"})</td>
+    <td class="num">${fmtMoney(x.income)}</td><td class="num">${fmtMoney(x.actual_cost)}</td><td class="num">${fmtMoney(x.forecast_cost)}</td>
+    <td class="num">${profitCell(x.profit)}</td><td class="num">${pct(x.margin_pct)}</td></tr>`;
+  const group = g => `
+    <h4 style="margin:18px 0 6px;">${esc(g.label)}</h4>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Job</th><th>Job Name</th><th>Site / Customer</th><th>Owner</th><th>Status</th><th>Delivery date</th>
+        <th class="num">Income</th><th class="num">Cost so far</th><th class="num">Forecast cost</th><th class="num">Forecast profit</th><th class="num">Margin</th></tr></thead>
+      <tbody>${g.rows.length ? g.rows.map(x => `<tr><td><a href="#" class="rep-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a></td>
+        <td>${esc(x.job_name)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.project_manager || "—")}</td><td>${statusBadge(x.status)}</td>
+        <td title="From the job's ${esc(x.date_source)}">${fmtDate(x.due_date)}${x.days_late ? ` <span class="late-pill ${x.days_late > 14 ? "late-red" : "late-amber"}">${x.days_late}d late</span>` : ""}</td>
+        <td class="num">${fmtMoney(x.income)}</td><td class="num">${fmtMoney(x.actual_cost)}</td><td class="num">${fmtMoney(x.forecast_cost)}</td>
+        <td class="num">${profitCell(x.profit)}</td><td class="num">${pct(x.margin_pct)}</td></tr>`).join("") + totalRow("Total", g.totals)
+        : `<tr><td colspan="11"><div class="empty-state">No jobs due.</div></td></tr>`}</tbody></table></div>`;
+  root.innerHTML = reportTypeToolbarHtml("deliveries-due") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+      ${repKpi("Jobs due", t.jobs.toLocaleString())}
+      ${repKpi("Income", fmtMoney(t.income))}
+      ${repKpi("Forecast cost", fmtMoney(t.forecast_cost))}
+      ${repKpi("Forecast profit", fmtMoney(t.profit), t.profit < 0 ? "red" : "green")}
+      ${repKpi("Margin", pct(t.margin_pct))}
+    </div>
+    <div class="toolbar"><div class="filters">
+      <div class="toggle-group" id="due-month-toggle">
+        <button class="toggle-btn ${dueState.month === "" ? "active" : ""}" data-due-month="" type="button">All months</button>
+        ${d.months.map(m => `<button class="toggle-btn ${dueState.month === m.key ? "active" : ""}" data-due-month="${m.key}" type="button">${esc(m.label)}</button>`).join("")}
+        <button class="toggle-btn ${dueState.month === "overdue" ? "active" : ""}" data-due-month="overdue" type="button">Overdue${d.overdue_totals.jobs ? ` (${d.overdue_totals.jobs})` : ""}</button>
+      </div>
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="toolbar"><div class="filters">
+      <select id="due-months">${[1, 2, 3, 4, 5, 6, 9, 12].map(n => `<option value="${n}" ${String(n) === dueState.months ? "selected" : ""}>Next ${n} month${n === 1 ? "" : "s"}</option>`).join("")}</select>
+      ${repSel("due-customer", "All sites (customers)", d.customers, dueState.customer)}
+      ${repSel("due-location", "All locations", d.locations, dueState.location)}
+      ${repSel("due-owner", "All owners", d.owners, dueState.owner)}
+    </div></div>
+    <div class="hint">Open jobs not yet delivered, by the job's Required By date (or its End Date where no Required By is set), this month to the end of ${esc(fmtDate(d.window_end))}. Income is the job's Purchase Order Value. Forecast cost is cost booked so far plus purchase orders not yet invoiced, so a job that hasn't had its purchasing raised yet will look more profitable than it will turn out to be.${d.no_date ? ` <b>${d.no_date} open job${d.no_date === 1 ? " has" : "s have"} no delivery date</b> and ${d.no_date === 1 ? "isn't" : "aren't"} included.` : ""}</div>
+    ${dueState.month === "" ? `<div class="table-wrap"><table class="data-table"><thead><tr><th>Month</th><th class="num">Jobs</th><th class="num">Income</th><th class="num">Forecast cost</th><th class="num">Forecast profit</th><th class="num">Margin</th></tr></thead><tbody>
+      ${d.months.map(m => `<tr><td><b>${esc(m.label)}</b></td><td class="num">${m.totals.jobs}</td><td class="num">${fmtMoney(m.totals.income)}</td><td class="num">${fmtMoney(m.totals.forecast_cost)}</td><td class="num">${profitCell(m.totals.profit)}</td><td class="num">${pct(m.totals.margin_pct)}</td></tr>`).join("")}
+      ${d.overdue_totals.jobs ? `<tr><td>Already overdue (not in the totals above)</td><td class="num">${d.overdue_totals.jobs}</td><td class="num">${fmtMoney(d.overdue_totals.income)}</td><td class="num">${fmtMoney(d.overdue_totals.forecast_cost)}</td><td class="num">${profitCell(d.overdue_totals.profit)}</td><td class="num">${pct(d.overdue_totals.margin_pct)}</td></tr>` : ""}
+    </tbody></table></div>` : ""}
+    ${d.groups.filter(g => dueState.month !== "" || g.key !== "overdue" || g.rows.length).map(group).join("")}`;
+  repWire("deliveries-due", dueState, [["due-months", "months"], ["due-customer", "customer"], ["due-location", "location"], ["due-owner", "owner"]],
+          "/api/reporting/deliveries-due/export", renderDeliveriesDueReport);
+  document.querySelectorAll("#due-month-toggle [data-due-month]").forEach(b => b.addEventListener("click", () => { dueState.month = b.dataset.dueMonth; renderDeliveriesDueReport(); }));
+}
+
+/* Jobs On Hold, and how long */
+let onHoldState = { customer: "", location: "", owner: "" };
+async function renderOnHoldReport() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = reportTypeToolbarHtml("on-hold") + `<div class="empty-state">Loading report…</div>`;
+  wireReportTypeToolbar();
+  const d = await api("/api/reporting/on-hold?" + repParams(onHoldState).toString());
+  const t = d.totals;
+  root.innerHTML = reportTypeToolbarHtml("on-hold") + `
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      ${repKpi("Jobs On Hold", t.jobs.toLocaleString())}
+      ${repKpi("PO value on hold", fmtMoney(t.value))}
+      ${repKpi("On hold over 30 days", t.over_30.toLocaleString(), t.over_30 > 0 ? "red" : "green")}
+      ${repKpi("Longest (days)", t.longest || "—")}
+    </div>
+    <div class="toolbar"><div class="filters">
+      ${repSel("oh-customer", "All sites (customers)", d.customers, onHoldState.customer)}
+      ${repSel("oh-location", "All locations", d.locations, onHoldState.location)}
+      ${repSel("oh-owner", "All owners", d.owners, onHoldState.owner)}
+    </div><div class="filters"><button class="btn secondary" id="rep-export">Export to CSV</button></div></div>
+    <div class="hint">Days are counted from the date the job's status was last changed to On Hold (recorded in its History).${t.unknown ? ` <b>${t.unknown} job(s) show "Unknown"</b> because they were put On Hold before the app recorded it — open the job and set its status to On Hold again, or use the batch status change, to start the clock.` : ""}</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Job</th><th>Job Name</th><th>Site / Customer</th><th>Location</th><th>Owner</th><th>On hold since</th><th class="num">Days on hold</th><th>Put on hold by</th><th class="num">PO value</th></tr></thead>
+      <tbody>${d.rows.length ? d.rows.map(x => `<tr><td><a href="#" class="rep-job" data-job="${esc(x.job_number)}"><b>${esc(x.job_number)}</b></a></td>
+        <td>${esc(x.job_name)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.location || "—")}</td><td>${esc(x.project_manager || "—")}</td>
+        <td>${esc(x.held_since || "Unknown")}</td>
+        <td class="num">${x.days_on_hold === null ? "—" : `<span class="late-pill ${x.days_on_hold > 60 ? "late-red" : (x.days_on_hold > 30 ? "late-amber" : "")}">${x.days_on_hold}</span>`}</td>
+        <td>${esc(x.held_by || "—")}</td><td class="num">${fmtMoney(x.po_value)}</td></tr>`).join("")
+        : `<tr><td colspan="9"><div class="empty-state">No jobs are On Hold.</div></td></tr>`}</tbody></table></div>`;
+  repWire("on-hold", onHoldState, [["oh-customer", "customer"], ["oh-location", "location"], ["oh-owner", "owner"]], "/api/reporting/on-hold/export", renderOnHoldReport);
 }
 
 /* ----------------------------------------------------------------------
@@ -4928,3 +5818,474 @@ function openTargetForm(existing = null) {
 
 /* ---------------------------------------------------------------------- */
 bootstrap().finally(hideBootSplash);
+
+/* ======================================================================
+   QUALITY (v1.11.0): supplier approval, non-conformances, batch trace, contract review
+   ====================================================================== */
+const SUPPLIER_STATUSES = ["Approved", "Conditional", "Suspended", "Not assessed"];
+const supState = { status: "" };
+function supplierStatusBadge(status) {
+  return lightBadge({ Approved: "green", Conditional: "amber", Suspended: "red" }[status] || "grey", status || "Not assessed");
+}
+function reviewBadge(status, id) {
+  if (!status) return `<span class="hint" title="Job from before contract reviews started">—</span>`;
+  const colour = { "Signed off": "green", "Query open": "amber", "Not reviewed": "grey" }[status] || "grey";
+  return canWrite("quality")
+    ? `<a href="#" data-review="${id}" title="Open the contract review" style="text-decoration:none;">${lightBadge(colour, status)}</a>`
+    : lightBadge(colour, status);
+}
+function wideModal() { document.querySelector("#modal-root .modal")?.classList.add("wide"); }
+
+async function openSupplierQuality(sid) {
+  const d = await api(`/api/suppliers/${sid}/quality`);
+  const s = d.supplier, canEdit = canWrite("quality");
+  const certState = c => c.state === "expired" ? lightBadge("red", "Expired") : (c.state === "due" ? lightBadge("amber", `Due in ${c.days_left} day${c.days_left === 1 ? "" : "s"}`) : lightBadge("green", c.expiry_date ? "In date" : "No expiry"));
+  const body = `
+    <div class="hint" style="margin-bottom:8px;">${supplierStatusBadge(s.approval_status)} ${s.approved_by ? `Last set by ${esc(s.approved_by)} on ${fmtDate(s.approved_date)}` : "Not assessed yet"}</div>
+    <h4 style="margin:10px 0 6px;">Approval</h4>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Status</label><select name="approval_status" ${canEdit ? "" : "disabled"}>${SUPPLIER_STATUSES.map(x => `<option ${s.approval_status === x ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Approved for</label><input name="approved_for" value="${esc(s.approved_for || "")}" placeholder="e.g. machining, surface treatment" ${canEdit ? "" : "disabled"}></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Next review</label><input type="date" name="next_review_date" value="${fmtDateInput(s.next_review_date)}" ${canEdit ? "" : "disabled"}></div>
+      <div class="form-row"><label>Condition (if any)</label><input name="approval_condition" value="${esc(s.approval_condition || "")}" ${canEdit ? "" : "disabled"}></div>
+    </div>
+    ${canEdit ? `<div class="form-row"><label>Notes for the evaluation history</label><input name="notes" placeholder="Why this status? e.g. audit visit, three late deliveries"></div>` : ""}
+    <h4 style="margin:14px 0 6px;">Performance (worked out from your records)</h4>
+    ${summaryPanelHtml([
+      { label: "On-time delivery", value: s.on_time_pct == null ? "—" : s.on_time_pct + "%" },
+      { label: "Deliveries recorded", value: n0(s.deliveries) },
+      { label: "NCRs, last 12 months", value: n0(s.ncrs_12m) },
+      { label: "Score", value: s.score == null ? "—" : s.score + " / 100" },
+    ], 4)}
+    <div class="hint">Score = on-time delivery % less 8 points for each NCR in the last 12 months.</div>
+    <h4 style="margin:14px 0 6px;">Certificates</h4>
+    <table class="data-table"><thead><tr><th>Certificate</th><th>Number</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>
+      ${d.certificates.length ? d.certificates.map(c => `<tr><td>${esc(c.cert_type)}</td><td>${esc(c.cert_number || "")}</td><td>${c.expiry_date ? fmtDate(c.expiry_date) : "—"}</td><td>${certState(c)}</td>
+        <td class="actions-cell">${canEdit ? `<button type="button" class="btn small secondary" data-cert-edit="${c.certificate_id}">Edit</button><button type="button" class="btn small danger" data-cert-del="${c.certificate_id}">Delete</button>` : ""}</td></tr>`).join("")
+        : `<tr><td colspan="5"><div class="hint">No certificates recorded.</div></td></tr>`}
+    </tbody></table>
+    ${canEdit ? `<div style="margin-top:8px;"><button type="button" class="btn small secondary" id="sq-add-cert">+ Add certificate</button></div>` : ""}
+    <h4 style="margin:14px 0 6px;">Evaluation history</h4>
+    <table class="data-table"><thead><tr><th>Date</th><th>Outcome</th><th>Notes</th><th>By</th></tr></thead><tbody>
+      ${d.evaluations.length ? d.evaluations.map(e => `<tr><td>${fmtDate(e.eval_date)}</td><td>${supplierStatusBadge(e.outcome)}</td><td>${esc(e.notes || "")}</td><td>${esc(e.evaluated_by || "")}</td></tr>`).join("")
+        : `<tr><td colspan="4"><div class="hint">No evaluations yet.</div></td></tr>`}
+    </tbody></table>
+    <div style="margin-top:8px;"><button type="button" class="btn small secondary" id="sq-history">Change history</button></div>
+  `;
+  openModal(`${s.supplier_name} — approval and quality`, body, canEdit ? {
+    submitLabel: "Save approval",
+    onSubmit: async (fd) => {
+      await api(`/api/suppliers/${sid}/approval`, { method: "POST", body: Object.fromEntries(fd.entries()) });
+      state.ref = await api("/api/reference");
+      closeModal();
+      renderSuppliers();
+    },
+  } : { showFooter: false });
+  wideModal();
+  document.getElementById("sq-history").addEventListener("click", () => showAuditHistory("suppliers", sid, s.supplier_name));
+  document.getElementById("sq-add-cert")?.addEventListener("click", () => openCertificateForm(sid, null));
+  document.querySelectorAll("[data-cert-edit]").forEach(b => b.addEventListener("click", () => openCertificateForm(sid, d.certificates.find(c => String(c.certificate_id) === b.dataset.certEdit))));
+  document.querySelectorAll("[data-cert-del]").forEach(b => b.addEventListener("click", async () => {
+    if (!confirm("Delete this certificate?")) return;
+    await api("/api/supplier-certificates/" + b.dataset.certDel, { method: "DELETE" });
+    state.ref = await api("/api/reference");
+    openSupplierQuality(sid);
+  }));
+}
+
+function openCertificateForm(sid, c) {
+  openModal(c ? "Edit certificate" : "Add certificate", `
+    <div class="form-row"><label>Certificate</label><input name="cert_type" value="${esc(c?.cert_type || "")}" placeholder="e.g. ISO 9001:2015, AS9100, Nadcap" required></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Number</label><input name="cert_number" value="${esc(c?.cert_number || "")}"></div>
+      <div class="form-row"><label>Expires</label><input type="date" name="expiry_date" value="${fmtDateInput(c?.expiry_date)}"></div>
+    </div>`, {
+    submitLabel: "Save",
+    onSubmit: async (fd) => {
+      const payload = Object.fromEntries(fd.entries());
+      if (c) await api("/api/supplier-certificates/" + c.certificate_id, { method: "PUT", body: payload });
+      else await api(`/api/suppliers/${sid}/certificates`, { method: "POST", body: payload });
+      state.ref = await api("/api/reference");
+      openSupplierQuality(sid);
+    },
+  });
+}
+
+/* ---- Non-conformances ---- */
+const NCR_SOURCES = ["Supplier delivery", "Customer complaint", "Internal", "Late delivery", "Other"];
+const NCR_STATUSES = ["Raised", "Contained", "Root cause", "Action", "Effectiveness check", "Closed"];
+const NCR_DISPOSITIONS = ["", "Use as is", "Rework", "Scrap", "Return to supplier", "Concession"];
+const ncrState = { status: "Open", source: "", owner: "", search: "" };
+
+async function renderNonConformances() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = `<div class="empty-state">Loading non-conformances…</div>`;
+  const all = await api("/api/non-conformances");
+  const yearStart = new Date().getFullYear() + "-01-01";
+  const open = all.filter(n => n.status !== "Closed");
+  const closedYear = all.filter(n => n.status === "Closed" && (n.closed_date || "") >= yearStart);
+  const days = closedYear.map(n => (new Date(n.closed_date) - new Date(n.raised_date)) / 86400000).filter(x => !isNaN(x));
+  const q = ncrState.search.trim().toLowerCase();
+  const rows = all.filter(n =>
+    (ncrState.status === "" || (ncrState.status === "Open" ? n.status !== "Closed" : n.status === ncrState.status)) &&
+    (!ncrState.source || n.source === ncrState.source) && (!ncrState.owner || n.owner === ncrState.owner) &&
+    (!q || [n.ncr_number, n.job_number, n.supplier_name, n.description, n.part_description].some(v => (v || "").toLowerCase().includes(q))));
+  const owners = [...new Set(all.map(n => n.owner).filter(Boolean))].sort();
+  root.innerHTML = summaryPanelHtml([
+    { label: "Open NCRs", value: n0(open.length) },
+    { label: "Actions overdue", value: n0(open.filter(n => n.overdue).length) },
+    { label: "Closed this year", value: n0(closedYear.length) },
+    { label: "Average days to close", value: days.length ? String(Math.round(days.reduce((a, b) => a + b, 0) / days.length)) : "—" },
+  ], 4) + `
+    <div class="toolbar">
+      <div class="filters">
+        <input type="text" id="ncr-search" placeholder="Search NCR, job, supplier, issue…" value="${esc(ncrState.search)}">
+        <select id="ncr-status"><option value="">All statuses</option><option value="Open" ${ncrState.status === "Open" ? "selected" : ""}>Open (not closed)</option>${NCR_STATUSES.map(s => `<option ${ncrState.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <select id="ncr-source"><option value="">All sources</option>${NCR_SOURCES.map(s => `<option ${ncrState.source === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <select id="ncr-owner"><option value="">All owners</option>${owners.map(o => `<option ${ncrState.owner === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>
+      </div>
+      ${canWrite("quality") ? `<button class="btn" id="ncr-new">+ Raise NCR</button>` : ""}
+    </div>
+    <div class="hint">Record anything that wasn't right: a rejected delivery, a customer complaint, rework. Take it through containment, root cause, corrective action and an effectiveness check, then close it. ${rows.length.toLocaleString()} shown.</div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>NCR</th><th>Raised</th><th>Source</th><th>Job</th><th>Supplier</th><th>Issue</th><th>Owner</th><th>Status</th><th>Action due</th><th></th></tr></thead>
+      <tbody>
+        ${rows.length ? rows.map(n => `
+          <tr>
+            <td><b>${esc(n.ncr_number)}</b></td>
+            <td>${fmtDate(n.raised_date)}</td>
+            <td>${esc(n.source)}</td>
+            <td>${esc(n.job_number || "—")}</td>
+            <td>${esc(n.supplier_name || "—")}</td>
+            <td>${esc(n.description.length > 70 ? n.description.slice(0, 70) + "…" : n.description)}</td>
+            <td>${esc(n.owner || "—")}</td>
+            <td>${lightBadge(n.status === "Closed" ? "green" : (n.status === "Raised" ? "red" : "amber"), n.status)}</td>
+            <td>${n.action_due ? `<span ${n.overdue ? 'style="color:#b3261e;"' : ""}>${fmtDate(n.action_due)}${n.overdue ? " (overdue)" : ""}</span>` : "—"}</td>
+            <td class="actions-cell">
+              <button class="btn small secondary" data-open="${n.ncr_id}">${canWrite("quality") ? "Open" : "View"}</button>
+              <button class="btn small secondary" data-history="${n.ncr_id}">History</button>
+              ${isAdmin() ? `<button class="btn small danger" data-del="${n.ncr_id}">Delete</button>` : ""}
+            </td>
+          </tr>`).join("") : `<tr><td colspan="10"><div class="empty-state">No non-conformances match.</div></td></tr>`}
+      </tbody>
+    </table></div>`;
+  document.getElementById("ncr-search").addEventListener("input", debounce(e => { ncrState.search = e.target.value; debouncedSearchRerender(e.target, renderNonConformances); }, 500));
+  document.getElementById("ncr-status").addEventListener("change", e => { ncrState.status = e.target.value; renderNonConformances(); });
+  document.getElementById("ncr-source").addEventListener("change", e => { ncrState.source = e.target.value; renderNonConformances(); });
+  document.getElementById("ncr-owner").addEventListener("change", e => { ncrState.owner = e.target.value; renderNonConformances(); });
+  document.getElementById("ncr-new")?.addEventListener("click", () => openNcrForm(null));
+  root.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openNcrForm(all.find(n => String(n.ncr_id) === b.dataset.open))));
+  root.querySelectorAll("[data-history]").forEach(b => b.addEventListener("click", () => {
+    const n = all.find(x => String(x.ncr_id) === b.dataset.history);
+    showAuditHistory("non_conformances", n.ncr_id, n.ncr_number);
+  }));
+  root.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () =>
+    handleDelete("Delete this non-conformance?", "/api/non-conformances/" + b.dataset.del, renderNonConformances)));
+}
+
+function openNcrForm(n, prefill = {}) {
+  const v = n || prefill;
+  const editable = canWrite("quality");
+  const dis = editable ? "" : "disabled";
+  const jobs = state.ref.works_orders || [], suppliers = state.ref.suppliers || [], pos = state.ref.purchase_orders || [];
+  const staff = (state.ref.staff_names || []);
+  const sel = (name, items, current, blank = "—") => `<select name="${name}" ${dis}><option value="">${blank}</option>${items.map(([val, label]) => `<option value="${esc(val)}" ${String(current ?? "") === String(val) ? "selected" : ""}>${esc(label)}</option>`).join("")}</select>`;
+  const idx = n ? NCR_STATUSES.indexOf(n.status) : 0;
+  const body = `
+    ${n ? `<div class="hint" style="margin-bottom:8px;">${NCR_STATUSES.map((s, i) => i === idx ? `<b>${i + 1} ${s}</b>` : `${i + 1} ${s}`).join(" › ")}</div>` : ""}
+    <div class="form-grid-2">
+      <div class="form-row"><label>Source</label><select name="source" ${dis} required>${NCR_SOURCES.map(s => `<option ${(v.source || "Supplier delivery") === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Date raised</label><input type="date" name="raised_date" value="${fmtDateInput(v.raised_date) || fmtDateInput(new Date().toISOString())}" ${dis}></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Job</label>${sel("works_order_id", jobs.map(w => [w.works_order_id, `${w.job_number} — ${w.job_name}`]), v.works_order_id)}</div>
+      <div class="form-row"><label>Supplier</label>${sel("supplier_id", suppliers.map(s => [s.supplier_id, s.supplier_name]), v.supplier_id)}</div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Purchase order</label>${sel("purchase_order_id", pos.map(p => [p.purchase_order_id, p.po_number]), v.purchase_order_id)}</div>
+      <div class="form-row"><label>Part / drawing</label><input name="part_description" value="${esc(v.part_description || "")}" ${dis}></div>
+    </div>
+    <input type="hidden" name="goods_in_id" value="${esc(v.goods_in_id ?? "")}">
+    <div class="form-row"><label>Quantity affected</label><input name="quantity_affected" value="${esc(v.quantity_affected || "")}" placeholder="e.g. 4 of 20" ${dis}></div>
+    <div class="form-row"><label>What was wrong</label><textarea name="description" rows="2" ${dis} required>${esc(v.description || "")}</textarea></div>
+    <div class="form-row"><label>Containment (what was done straight away)</label><textarea name="containment" rows="2" ${dis}>${esc(v.containment || "")}</textarea></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Disposition</label><select name="disposition" ${dis}>${NCR_DISPOSITIONS.map(d => `<option value="${d}" ${(v.disposition || "") === d ? "selected" : ""}>${d || "—"}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Cost of poor quality £</label><input type="number" step="0.01" name="cost_of_poor_quality" value="${v.cost_of_poor_quality ?? ""}" ${dis}></div>
+    </div>
+    <div class="form-row"><label>Root cause</label><textarea name="root_cause" rows="2" placeholder="Why did it happen?" ${dis}>${esc(v.root_cause || "")}</textarea></div>
+    <div class="form-row"><label>Corrective action</label><textarea name="corrective_action" rows="2" placeholder="What stops it happening again?" ${dis}>${esc(v.corrective_action || "")}</textarea></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Owner</label><input name="owner" list="ncr-owners" value="${esc(v.owner ?? (n ? "" : (state.user?.full_name || "")))}" ${dis}><datalist id="ncr-owners">${staff.map(s => `<option value="${esc(s)}">`).join("")}</datalist></div>
+      <div class="form-row"><label>Action due</label><input type="date" name="action_due" value="${fmtDateInput(v.action_due)}" ${dis}></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Effectiveness check on</label><input type="date" name="effectiveness_check_date" value="${fmtDateInput(v.effectiveness_check_date)}" ${dis}></div>
+      <div class="form-row"><label>Effectiveness result</label><input name="effectiveness_result" value="${esc(v.effectiveness_result || "")}" placeholder="e.g. Next 3 deliveries clean" ${dis}></div>
+    </div>
+    <div class="form-row"><label>Status</label><select name="status" ${dis}>${NCR_STATUSES.map(s => `<option ${(v.status || "Raised") === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+      <div class="hint" style="margin-top:4px;">To close, root cause, corrective action and the effectiveness result must be filled in.</div></div>
+    ${n ? auditHint(n) : ""}`;
+  openModal(n ? `${n.ncr_number}` : "Raise non-conformance", body, editable ? {
+    submitLabel: n ? "Save" : "Raise NCR",
+    onSubmit: async (fd) => {
+      const payload = Object.fromEntries(fd.entries());
+      if (n) await api("/api/non-conformances/" + n.ncr_id, { method: "PUT", body: payload });
+      else await api("/api/non-conformances", { method: "POST", body: payload });
+      closeModal();
+      if (location.hash === "#/non-conformances") renderNonConformances();
+    },
+  } : { showFooter: false });
+  wideModal();
+}
+
+/* ---- Batch trace ---- */
+function showBatchTrace(q, rows) {
+  const body = rows.length ? rows.map(r => `
+    <div class="card" style="margin-bottom:10px;padding:10px 12px;">
+      <div><b>${esc([r.batch_number, r.heat_number].filter(Boolean).join(" / "))}</b> · ${esc(r.supplier_name)} ${supplierStatusBadge(r.approval_status)}</div>
+      <div class="hint">Received ${fmtDate(r.received_date)} on ${esc(r.po_number)} (${r.destination_type === "Stock" ? "to stock" : "job " + esc(r.job_number || "—")}${r.customer_name ? ", " + esc(r.customer_name) : ""}) · ${r.document_count} document${r.document_count === 1 ? "" : "s"} attached</div>
+      <div class="hint">Certificate: ${esc(r.cert_status || "not recorded")} · Inspection: ${esc(r.inspection_result || "not recorded")}${r.ncrs.length ? " · NCR: " + r.ncrs.map(x => esc(x.ncr_number) + " (" + esc(x.status) + ")").join(", ") : ""}</div>
+      <div class="hint">${r.despatches.length ? "Job despatches: " + r.despatches.map(d => `${esc(d.despatch_number)}${d.despatch_date ? " " + fmtDate(d.despatch_date) : ""} (${esc(d.status)})`).join(", ") : (r.destination_type === "Stock" ? "Went into stock, so no job or despatch is linked to this batch." : "No despatch note on this job yet.")}</div>
+    </div>`).join("") : `<div class="hint">Nothing found for "${esc(q)}". Batch and heat numbers come from the Goods In records.</div>`;
+  openModal(`Trace — ${q}`, body + `<div class="hint">A despatch is listed against the job the batch was bought for. Despatch notes don't record which batch was on them.</div>`, { showFooter: false });
+}
+
+/* ---- Contract review ---- */
+async function openContractReview(wid) {
+  const d = await api(`/api/works-orders/${wid}/contract-review`);
+  const editable = canWrite("quality"), dis = editable ? "" : "disabled";
+  const cmp = d.comparison.map(c => `<tr><td>${esc(c.item)}</td><td>${c.quote == null ? "—" : (c.kind === "money" ? fmtMoney(c.quote) : esc(c.quote))}</td>
+      <td>${c.order == null || c.order === "" ? "—" : (c.kind === "money" ? fmtMoney(c.order) : esc(c.order))}</td><td>${lightBadge(c.match ? "green" : "red", c.match ? "Yes" : "No")}</td></tr>`).join("");
+  const body = `
+    <div class="hint">${esc(d.job.customer_name)} · ${esc(d.job.contract_code || "no contract code")} · ${d.quote ? "Quote " + esc(d.quote.quote_number) : "no quote linked to this job"} · ${d.job.review_status ? lightBadge({ "Signed off": "green", "Query open": "amber" }[d.job.review_status] || "grey", d.job.review_status) : "from before reviews started"}</div>
+    <h4 style="margin:10px 0 6px;">Quote against the order</h4>
+    <table class="data-table"><thead><tr><th>Item</th><th>Quote</th><th>Order</th><th>Agrees</th></tr></thead><tbody>${cmp}</tbody></table>
+    <h4 style="margin:14px 0 6px;">Review checklist</h4>
+    <table class="data-table"><thead><tr><th>Check</th><th style="width:90px;">Result</th><th>Comment</th></tr></thead><tbody>
+      ${d.checks.map(c => `<tr><td>${esc(c.label)}</td>
+        <td><select name="chk_${c.key}" ${dis}>${["", "Yes", "No", "N/A"].map(r => `<option value="${r}" ${c.result === r ? "selected" : ""}>${r || "—"}</option>`).join("")}</select></td>
+        <td><input name="cmt_${c.key}" value="${esc(c.comment)}" ${dis}></td></tr>`).join("")}
+    </tbody></table>
+    <div class="form-grid-2" style="margin-top:12px;">
+      <div class="form-row"><label>Outcome</label><select name="outcome" ${dis}><option value="">—</option>${["Accepted as ordered", "Query raised with customer"].map(o => `<option ${d.outcome === o ? "selected" : ""}>${o}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Reviewed by</label><input name="reviewed_by" value="${esc(d.reviewed_by || state.user?.full_name || "")}" ${dis}></div>
+    </div>
+    <div class="form-row"><label>Comment</label><input name="comment" value="${esc(d.comment || "")}" ${dis}></div>
+    ${editable ? `<div class="hint">Save keeps your answers. Sign off needs every check answered and the outcome "Accepted as ordered". This doesn't stop the job from going ahead.</div>` : ""}
+    ${editable ? `<div style="margin-top:8px;"><button type="button" class="btn secondary" id="cr-signoff">Sign off review</button></div>` : ""}`;
+  const send = async (fd, signOff) => {
+    const checks = {};
+    d.checks.forEach(c => { checks[c.key] = { result: fd.get("chk_" + c.key), comment: fd.get("cmt_" + c.key) }; });
+    await api(`/api/works-orders/${wid}/contract-review`, { method: "PUT", body: { checks, outcome: fd.get("outcome"), reviewed_by: fd.get("reviewed_by"), comment: fd.get("comment"), sign_off: signOff } });
+    closeModal();
+    renderWorksOrders();
+  };
+  openModal(`Contract review — ${d.job.job_number}`, body, editable ? { submitLabel: d.signed_off ? "Save (reopens the sign-off)" : "Save", onSubmit: fd => send(fd, false) } : { showFooter: false });
+  wideModal();
+  document.getElementById("cr-signoff")?.addEventListener("click", async () => {
+    const errEl = document.getElementById("modal-error"); errEl.textContent = "";
+    try { await send(new FormData(document.getElementById("modal-form")), true); } catch (err) { errEl.textContent = err.message; }
+  });
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* Enquiries (sales pipeline, v1.13.0)                                     */
+/* ---------------------------------------------------------------------- */
+let enqState = { view: "board", owner: "", search: "", showClosed: false };
+let enqData = null;
+const ENQ_METHODS = ["Phone", "Email", "Site visit", "Meeting", "Other"];
+const ENQ_SOURCES = ["Existing customer", "Phone", "Email", "Website", "Referral", "Tender portal", "Other"];
+
+function enqFollowBadge(e) {
+  if (e.follow_up_state === "overdue") return `<span class="badge red">${e.days_overdue}d overdue</span>`;
+  if (e.follow_up_state === "today") return `<span class="badge amber">Chase today</span>`;
+  if (e.follow_up_state === "upcoming") return `<span class="badge green">${fmtDate(e.next_follow_up)}</span>`;
+  if (e.follow_up_state === "none") return `<span class="badge amber">No date set</span>`;
+  return "";
+}
+
+async function renderEnquiries() {
+  const root = document.getElementById("view-root");
+  root.innerHTML = `<div class="empty-state">Loading enquiries…</div>`;
+  enqData = await api("/api/enquiries?status=" + (enqState.showClosed ? "all" : "open"));
+  const sm = enqData.summary;
+  const q = enqState.search.trim().toLowerCase();
+  const owners = [...new Set(enqData.enquiries.map(e => e.owner).filter(Boolean))].sort();
+  const rows = enqData.enquiries.filter(e => (!enqState.owner || e.owner === enqState.owner) &&
+    (!q || [e.enquiry_number, e.display_name, e.description, e.contact_name].some(v => (v || "").toLowerCase().includes(q))));
+  const editable = canWrite("enquiries");
+  const stages = enqData.stages;
+  const card = e => `
+    <div class="enq-card" ${editable && stages.includes(e.stage) ? 'draggable="true"' : ""} data-id="${e.enquiry_id}">
+      <div><b>${esc(e.enquiry_number)}</b> · ${esc(e.display_name || "")}${e.customer_id ? "" : ' <span class="hint">(prospect)</span>'}</div>
+      <div class="hint" style="margin:2px 0;">${esc((e.description || "").slice(0, 70))}</div>
+      <div class="enq-card-foot"><span>${e.estimated_value ? fmtMoney(e.estimated_value) : "no value"}</span><span>${esc(e.owner || "")}</span></div>
+      <div style="margin-top:4px;">${enqFollowBadge(e)}</div>
+    </div>`;
+  const board = `<div class="enq-board">${stages.map(s => {
+    const col = rows.filter(e => e.stage === s);
+    return `<div class="enq-col" data-stage="${esc(s)}">
+      <div class="enq-col-head"><b>${esc(s)}</b> <span class="hint">${col.length} · ${fmtMoney(col.reduce((a, e) => a + (e.estimated_value || 0), 0))} · ${enqData.weights[s]}%</span></div>
+      ${col.map(card).join("") || '<div class="hint">Nothing here</div>'}
+    </div>`;
+  }).join("")}
+    <div class="enq-col enq-closed"><div class="enq-col-head"><b>Closed</b> <span class="hint">${enqState.showClosed ? "" : "tick “Show closed”"}</span></div>
+      ${rows.filter(e => !stages.includes(e.stage)).map(e => `<div class="enq-card" data-id="${e.enquiry_id}"><div><b>${esc(e.enquiry_number)}</b> · ${esc(e.display_name || "")}</div>
+        <div class="hint">${e.stage === "Quoted" ? "Quoted " + esc(e.quote_number || "") : "Lost: " + esc(e.lost_reason || "")}</div></div>`).join("")}
+    </div></div>`;
+  const list = `<div class="table-wrap"><table class="data-table"><thead><tr><th>Enquiry</th><th>Customer / prospect</th><th>What</th><th>Owner</th><th>Stage</th><th class="num">Value</th><th class="num">Weighted</th><th>Follow-up</th><th>Next action</th></tr></thead><tbody>
+    ${rows.length ? rows.map(e => `<tr class="enq-row" data-id="${e.enquiry_id}" style="cursor:pointer;"><td><b>${esc(e.enquiry_number)}</b></td><td>${esc(e.display_name || "")}</td>
+      <td>${esc((e.description || "").slice(0, 70))}</td><td>${esc(e.owner || "")}</td>
+      <td>${esc(e.stage)}${e.stage === "Quoted" ? " " + esc(e.quote_number || "") : ""}</td>
+      <td class="num">${e.estimated_value ? fmtMoney(e.estimated_value) : ""}</td><td class="num">${stages.includes(e.stage) ? fmtMoney(e.weighted_value) : ""}</td>
+      <td>${enqFollowBadge(e)}</td><td>${esc(e.next_action || "")}</td></tr>`).join("") : `<tr><td colspan="9"><div class="empty-state">No enquiries match.</div></td></tr>`}
+    </tbody></table></div>`;
+  root.innerHTML = summaryPanelHtml([
+    { label: "Open enquiries", value: n0(sm.open_count) },
+    { label: "Follow-ups due or overdue", value: n0(sm.overdue_count + sm.due_today_count), note: sm.no_follow_up_count ? `${sm.no_follow_up_count} with no date set` : "" },
+    { label: "Estimated value", value: fmtMoney(sm.estimated_value) },
+    { label: "Weighted value", value: fmtMoney(sm.weighted_value), note: "Value × chance for each stage" },
+  ], 4) + `
+    <div class="toolbar">
+      <div class="filters">
+        <input type="text" id="enq-search" placeholder="Search enquiry, customer, what…" value="${esc(enqState.search)}">
+        <select id="enq-owner"><option value="">All owners</option>${owners.map(o => `<option ${enqState.owner === o ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>
+        <select id="enq-view"><option value="board" ${enqState.view === "board" ? "selected" : ""}>Board</option><option value="list" ${enqState.view === "list" ? "selected" : ""}>List</option></select>
+        <label style="font-size:13px;"><input type="checkbox" id="enq-closed" ${enqState.showClosed ? "checked" : ""}> Show closed</label>
+      </div>
+      ${isAdmin() ? `<button class="btn secondary" id="enq-weights">Stage chances</button>` : ""}
+      ${editable ? `<button class="btn" id="enq-new">+ New Enquiry</button>` : ""}
+    </div>
+    <div class="hint">Enquiries that are not yet at quote stage. ${editable ? "Drag a card to the next column as it moves on, " : ""}log each contact, and always leave a next follow-up date. Convert to quote when you are ready to price it.</div>
+    ${enqState.view === "board" ? board : list}`;
+  document.getElementById("enq-search").addEventListener("input", debounce(e => { enqState.search = e.target.value; debouncedSearchRerender(e.target, renderEnquiries); }, 500));
+  document.getElementById("enq-owner").addEventListener("change", e => { enqState.owner = e.target.value; renderEnquiries(); });
+  document.getElementById("enq-view").addEventListener("change", e => { enqState.view = e.target.value; renderEnquiries(); });
+  document.getElementById("enq-closed").addEventListener("change", e => { enqState.showClosed = e.target.checked; renderEnquiries(); });
+  document.getElementById("enq-new")?.addEventListener("click", () => openEnquiryForm(null));
+  document.getElementById("enq-weights")?.addEventListener("click", openEnquiryWeights);
+  root.querySelectorAll(".enq-card, .enq-row").forEach(el => el.addEventListener("click", () => openEnquiry(Number(el.dataset.id))));
+  root.querySelectorAll(".enq-card[draggable]").forEach(el => el.addEventListener("dragstart", ev => ev.dataTransfer.setData("text/plain", el.dataset.id)));
+  root.querySelectorAll(".enq-col[data-stage]").forEach(col => {
+    col.addEventListener("dragover", ev => { ev.preventDefault(); col.classList.add("enq-over"); });
+    col.addEventListener("dragleave", () => col.classList.remove("enq-over"));
+    col.addEventListener("drop", async ev => {
+      ev.preventDefault();
+      col.classList.remove("enq-over");
+      const id = Number(ev.dataTransfer.getData("text/plain"));
+      const e = enqData.enquiries.find(x => x.enquiry_id === id);
+      if (!e || e.stage === col.dataset.stage) return;
+      try { await api("/api/enquiries/" + id, { method: "PUT", body: { stage: col.dataset.stage } }); } catch (err) { alert(err.message); }
+      renderEnquiries();
+    });
+  });
+}
+
+function openEnquiryWeights() {
+  const w = enqData.weights;
+  openModal("Stage chances", `
+    <div class="hint">The chance (%) that an enquiry at each stage turns into a quote. Used only for the weighted value total.</div>
+    ${enqData.stages.map(s => `<div class="form-row"><label>${esc(s)}</label><input type="number" min="0" max="100" step="1" name="w_${esc(s)}" value="${w[s]}"></div>`).join("")}`, {
+    onSubmit: async fd => {
+      const weights = {};
+      enqData.stages.forEach(s => { weights[s] = fd.get("w_" + s); });
+      await api("/api/settings/enquiry-weights", { method: "PUT", body: { weights } });
+      closeModal(); renderEnquiries();
+    },
+  });
+}
+
+async function openEnquiry(id) {
+  const e = await api("/api/enquiries/" + id);
+  openEnquiryForm(e);
+}
+
+function openEnquiryForm(e) {
+  const open = !e || enqData?.stages?.includes(e.stage) || ["New", "Contacted", "Info / visit needed", "Ready to quote"].includes(e.stage);
+  const editable = canWrite("enquiries") && open;
+  const dis = editable ? "" : "disabled";
+  const custs = state.ref.customers || [];
+  const staff = state.ref.staff_names || [];
+  const stages = ["New", "Contacted", "Info / visit needed", "Ready to quote"];
+  const v = e || {};
+  const body = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Existing customer</label><select name="customer_id" id="enq-cust" ${dis}><option value="">— new prospect —</option>
+        ${custs.slice().sort((a, b) => a.customer_name.localeCompare(b.customer_name)).map(c => `<option value="${c.customer_id}" ${String(v.customer_id || "") === String(c.customer_id) ? "selected" : ""}>${esc(c.customer_name)}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Or prospect name</label><input name="prospect_name" id="enq-prospect" value="${esc(v.prospect_name || "")}" ${dis}></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Contact</label><input name="contact_name" value="${esc(v.contact_name || "")}" ${dis}></div>
+      <div class="form-row"><label>Owner</label><input name="owner" list="enq-owners" value="${esc(v.owner ?? (state.user?.full_name || ""))}" ${dis}><datalist id="enq-owners">${staff.map(s => `<option value="${esc(s)}">`).join("")}</datalist></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Source</label><select name="source" ${dis}>${ENQ_SOURCES.map(s => `<option ${(v.source || "") === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+      <div class="form-row"><label>Received</label><input type="date" name="received_date" value="${fmtDateInput(v.received_date) || fmtDateInput(new Date().toISOString())}" ${dis}></div>
+    </div>
+    <div class="form-row"><label>What do they want?</label><textarea name="description" rows="2" required ${dis}>${esc(v.description || "")}</textarea></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Estimated value £</label><input type="number" step="0.01" name="estimated_value" value="${v.estimated_value ?? ""}" ${dis}></div>
+      <div class="form-row"><label>Stage</label><select name="stage" ${dis}>${stages.map(s => `<option ${(v.stage || "New") === s ? "selected" : ""}>${s}</option>`).join("")}${open ? "" : `<option selected>${esc(v.stage)}</option>`}</select></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Next follow-up</label><input type="date" name="next_follow_up" value="${fmtDateInput(v.next_follow_up)}" ${dis}></div>
+      <div class="form-row"><label>Next action</label><input name="next_action" value="${esc(v.next_action || "")}" placeholder="e.g. Chase for drawings" ${dis}></div>
+    </div>
+    ${e && !open ? `<div class="hint">${e.stage === "Quoted" ? "Converted to quote " + esc(e.quote_number || "") : "Closed as lost: " + esc(e.lost_reason || "")}. Closed enquiries can't be edited.</div>` : ""}
+    ${e ? `<h4 style="margin:14px 0 6px;">Activity</h4>
+      ${editable ? `<div class="form-grid-2"><div class="form-row"><label>Method</label><select id="enq-act-method">${ENQ_METHODS.map(m => `<option>${m}</option>`).join("")}</select></div>
+        <div class="form-row"><label>Next follow-up (optional)</label><input type="date" id="enq-act-next"></div></div>
+        <div class="form-row"><textarea id="enq-act-note" rows="2" placeholder="What was said or done?"></textarea></div>
+        <div style="margin-bottom:8px;"><button type="button" class="btn small secondary" id="enq-act-log">Log</button>
+        <span class="hint">Fill in the follow-up date above to log and re-date in one go.</span></div>` : ""}
+      <div id="enq-activity">${(e.activity || []).map(a => `<div class="hint" style="margin:2px 0;"><b>${fmtDate(a.activity_date)}</b> · ${esc(a.method || "")} · ${esc(a.logged_by || "")} — ${esc(a.note)}</div>`).join("") || '<div class="hint">No contact logged yet.</div>'}</div>
+      ${auditHint(e)}
+      ${editable ? `<div class="modal-actions" style="justify-content:flex-start;gap:8px;margin-top:12px;">
+        <button type="button" class="btn secondary" id="enq-convert">Convert to quote</button>
+        <button type="button" class="btn secondary" id="enq-lose">Close as lost / no bid</button>
+        ${isAdmin() ? `<button type="button" class="btn secondary" id="enq-del">Delete</button>` : ""}</div>` : ""}` : ""}`;
+  openModal(e ? e.enquiry_number : "New enquiry", body, editable ? {
+    submitLabel: e ? "Save" : "Create enquiry",
+    onSubmit: async fd => {
+      const payload = Object.fromEntries(fd.entries());
+      if (e) await api("/api/enquiries/" + e.enquiry_id, { method: "PUT", body: payload });
+      else await api("/api/enquiries", { method: "POST", body: payload });
+      closeModal();
+      if (location.hash === "#/enquiries") renderEnquiries();
+    },
+  } : { showFooter: false });
+  wideModal();
+  if (!e) return;
+  const done = () => { closeModal(); if (location.hash === "#/enquiries") renderEnquiries(); };
+  document.getElementById("enq-act-log")?.addEventListener("click", async () => {
+    const note = document.getElementById("enq-act-note").value.trim();
+    const next = document.getElementById("enq-act-next").value;
+    if (!note) { document.getElementById("modal-error").textContent = "Please write a short note first."; return; }
+    const body = { note, method: document.getElementById("enq-act-method").value };
+    if (next) body.next_follow_up = next;
+    try { await api(`/api/enquiries/${e.enquiry_id}/activity`, { method: "POST", body }); } catch (err) { document.getElementById("modal-error").textContent = err.message; return; }
+    openEnquiry(e.enquiry_id);
+    if (location.hash === "#/enquiries") renderEnquiries();
+  });
+  document.getElementById("enq-convert")?.addEventListener("click", async () => {
+    if (!confirm("Create a Draft quote from this enquiry? A prospect will be added to Customers.")) return;
+    try {
+      const r = await api(`/api/enquiries/${e.enquiry_id}/convert`, { method: "POST", body: {} });
+      closeModal();
+      quoteState.search = r.quote_number;
+      location.hash = "#/quotes";
+      if (location.hash === "#/quotes") route();
+    } catch (err) { document.getElementById("modal-error").textContent = err.message; }
+  });
+  document.getElementById("enq-lose")?.addEventListener("click", async () => {
+    const reason = prompt("Why is this being closed? (lost to a competitor, no bid, went quiet...)");
+    if (!reason || !reason.trim()) return;
+    try { await api(`/api/enquiries/${e.enquiry_id}/lose`, { method: "POST", body: { reason } }); done(); } catch (err) { document.getElementById("modal-error").textContent = err.message; }
+  });
+  document.getElementById("enq-del")?.addEventListener("click", () =>
+    handleDelete("Delete this enquiry and its activity log?", "/api/enquiries/" + e.enquiry_id, done));
+}

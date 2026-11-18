@@ -7,8 +7,8 @@ when a new release is built - nothing else needs editing. Format MAJOR.MINOR.PAT
 """
 import re
 
-APP_VERSION = "1.2.0"
-APP_BUILD_DATE = "2026-10-22"
+APP_VERSION = "1.13.2"
+APP_BUILD_DATE = "2026-11-04"
 
 # Shown on the opening splash screen and the sign-in screen.
 APP_OWNER = "Simon Lee"

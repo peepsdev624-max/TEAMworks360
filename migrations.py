@@ -27,14 +27,22 @@ def ensure_schema_current(db):
     expected_columns = {
         "customers": [
             ("created_by", "TEXT"), ("created_date", "TEXT"), ("updated_by", "TEXT"), ("updated_date", "TEXT"),
+            ("payment_terms_days", "INTEGER"), ("payment_terms_eow", "INTEGER NOT NULL DEFAULT 0"),
         ],
         "suppliers": [
             ("supply_of", "TEXT"), ("reason_for_use", "TEXT"), ("authorised_by", "TEXT"),
             ("created_by", "TEXT"), ("created_date", "TEXT"), ("updated_by", "TEXT"), ("updated_date", "TEXT"),
+            ("approval_status", "TEXT NOT NULL DEFAULT 'Not assessed'"), ("approved_for", "TEXT"), ("approved_date", "TEXT"),
+            ("approved_by", "TEXT"), ("approval_condition", "TEXT"), ("next_review_date", "TEXT"),
+        ],
+        "goods_in": [
+            ("batch_number", "TEXT"), ("heat_number", "TEXT"), ("cert_status", "TEXT"), ("inspection_result", "TEXT"),
         ],
         "works_orders": [
+            ("review_status", "TEXT"),
             ("created_by", "TEXT"), ("updated_by", "TEXT"), ("updated_date", "TEXT"),
-            ("location", "TEXT"),
+            ("location", "TEXT"), ("required_by", "TEXT"), ("delivered_date", "TEXT"),
+            ("customer_po", "TEXT"), ("customer_po_line", "TEXT"),
         ],
         "purchase_orders": [
             ("date_required", "TEXT"), ("account_number", "TEXT"), ("raised_by", "TEXT"),
@@ -50,6 +58,7 @@ def ensure_schema_current(db):
         ],
         "customer_invoices": [
             ("created_by", "TEXT"), ("created_date", "TEXT"), ("updated_by", "TEXT"), ("updated_date", "TEXT"),
+            ("due_date", "TEXT"),
         ],
         "quotes": [
             ("works_order_id", "INTEGER REFERENCES works_orders(works_order_id)"),
@@ -71,6 +80,8 @@ def ensure_schema_current(db):
     changed = False
     for table, columns in expected_columns.items():
         existing = {r[1] for r in db.execute(f"PRAGMA table_info({table})")}
+        if not existing:
+            continue        # table doesn't exist yet - created further down with its full definition
         for col, col_type in columns:
             if col not in existing:
                 db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}")
@@ -79,6 +90,149 @@ def ensure_schema_current(db):
 
     # whole new tables that might not exist yet on an older database
     existing_tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if "fixed_customer_pos" not in existing_tables:
+        db.execute("""
+            CREATE TABLE fixed_customer_pos (
+                fixed_po_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id    INTEGER NOT NULL REFERENCES customers(customer_id),
+                contract_code  TEXT NOT NULL,
+                year           INTEGER NOT NULL,
+                po_number      TEXT NOT NULL,
+                line_number    TEXT,
+                created_by     TEXT,
+                created_date   TEXT DEFAULT (datetime('now')),
+                updated_by     TEXT,
+                updated_date   TEXT,
+                UNIQUE (customer_id, contract_code, year)
+            )
+        """)
+        print("Schema update: created table fixed_customer_pos")
+        changed = True
+
+    if "supplier_certificates" not in existing_tables:
+        db.execute("""
+            CREATE TABLE supplier_certificates (
+                certificate_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier_id     INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+                cert_type       TEXT NOT NULL,
+                cert_number     TEXT,
+                expiry_date     TEXT,
+                created_by      TEXT,
+                created_date    TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        print("Schema update: created table supplier_certificates")
+        changed = True
+    if "supplier_evaluations" not in existing_tables:
+        db.execute("""
+            CREATE TABLE supplier_evaluations (
+                evaluation_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier_id     INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+                eval_date       TEXT NOT NULL,
+                outcome         TEXT NOT NULL,
+                notes           TEXT,
+                evaluated_by    TEXT,
+                created_date    TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        print("Schema update: created table supplier_evaluations")
+        changed = True
+    if "non_conformances" not in existing_tables:
+        db.execute("""
+            CREATE TABLE non_conformances (
+                ncr_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                ncr_number        TEXT UNIQUE NOT NULL,
+                raised_date       TEXT NOT NULL,
+                source            TEXT NOT NULL,
+                works_order_id    INTEGER REFERENCES works_orders(works_order_id),
+                supplier_id       INTEGER REFERENCES suppliers(supplier_id),
+                goods_in_id       INTEGER REFERENCES goods_in(goods_in_id),
+                purchase_order_id INTEGER REFERENCES purchase_orders(purchase_order_id),
+                part_description  TEXT,
+                quantity_affected TEXT,
+                description       TEXT NOT NULL,
+                containment       TEXT,
+                disposition       TEXT,
+                cost_of_poor_quality REAL,
+                owner             TEXT,
+                action_due        TEXT,
+                root_cause        TEXT,
+                corrective_action TEXT,
+                effectiveness_check_date TEXT,
+                effectiveness_result     TEXT,
+                status            TEXT NOT NULL DEFAULT 'Raised',
+                closed_date       TEXT,
+                created_by        TEXT,
+                created_date      TEXT DEFAULT (datetime('now')),
+                updated_by        TEXT,
+                updated_date      TEXT
+            )
+        """)
+        print("Schema update: created table non_conformances")
+        changed = True
+    if "contract_reviews" not in existing_tables:
+        db.execute("""
+            CREATE TABLE contract_reviews (
+                review_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                works_order_id  INTEGER NOT NULL UNIQUE REFERENCES works_orders(works_order_id) ON DELETE CASCADE,
+                quote_id        INTEGER REFERENCES quotes(quote_id),
+                checks_json     TEXT,
+                outcome         TEXT,
+                comment         TEXT,
+                reviewed_by     TEXT,
+                review_date     TEXT,
+                signed_off      INTEGER NOT NULL DEFAULT 0,
+                created_by      TEXT,
+                created_date    TEXT DEFAULT (datetime('now')),
+                updated_by      TEXT,
+                updated_date    TEXT
+            )
+        """)
+        print("Schema update: created table contract_reviews")
+        changed = True
+
+    if "enquiries" not in existing_tables:
+        db.execute("""
+            CREATE TABLE enquiries (
+                enquiry_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                enquiry_number  TEXT UNIQUE NOT NULL,
+                customer_id     INTEGER REFERENCES customers(customer_id),
+                prospect_name   TEXT,
+                contact_name    TEXT,
+                owner           TEXT,
+                source          TEXT,
+                received_date   TEXT NOT NULL,
+                estimated_value REAL,
+                description     TEXT NOT NULL,
+                stage           TEXT NOT NULL DEFAULT 'New',
+                next_follow_up  TEXT,
+                next_action     TEXT,
+                lost_reason     TEXT,
+                quote_id        INTEGER REFERENCES quotes(quote_id) ON DELETE SET NULL,
+                closed_date     TEXT,
+                created_by      TEXT,
+                created_date    TEXT DEFAULT (datetime('now')),
+                updated_by      TEXT,
+                updated_date    TEXT
+            )
+        """)
+        print("Schema update: created table enquiries")
+        changed = True
+    if "enquiry_activity" not in existing_tables:
+        db.execute("""
+            CREATE TABLE enquiry_activity (
+                activity_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                enquiry_id     INTEGER NOT NULL REFERENCES enquiries(enquiry_id) ON DELETE CASCADE,
+                activity_date  TEXT NOT NULL,
+                method         TEXT,
+                note           TEXT NOT NULL,
+                logged_by      TEXT,
+                created_date   TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        print("Schema update: created table enquiry_activity")
+        changed = True
+
     if "purchase_order_lines" not in existing_tables:
         db.execute("""
             CREATE TABLE purchase_order_lines (
@@ -493,6 +647,91 @@ def allow_service_engineer_role(db):
     print("Schema update: users can now have the 'Service Engineer' role")
 
 
+def widen_works_order_statuses(db):
+    """Works Orders gain a status, 'On Hold' (the Order Book's own "H" code).
+    The status list is a CHECK rule on the works_orders table, which SQLite
+    can't change in place, so the table is rebuilt (create-copy-drop-rename) -
+    once, only if it lacks the status. Every job and everything linked to it
+    is kept, and the table's indexes are put back. Jobs that the old import
+    filed as 'Open' are moved to 'On Hold' by the next Order Book refresh."""
+    row = db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='works_orders'").fetchone()
+    if not row or "On Hold" in row[0]:
+        return
+    new_sql = re.sub(r"CHECK\s*\(\s*status\s+IN\s*\([^)]*\)\s*\)",
+                     "CHECK (status IN ('Draft','Open','In Progress','On Hold','Completed','Closed','Cancelled'))",
+                     row[0], count=1)
+    if new_sql == row[0]:
+        raise RuntimeError("could not find the status rule on the works_orders table")
+    new_sql = re.sub(r"CREATE TABLE\s+\"?works_orders\"?", "CREATE TABLE works_orders__new", new_sql, count=1)
+    cols = ", ".join(r[1] for r in db.execute("PRAGMA table_info(works_orders)"))
+    extras = [r[0] for r in db.execute(
+        "SELECT sql FROM sqlite_master WHERE tbl_name='works_orders' AND type IN ('index','trigger') AND sql IS NOT NULL")]
+    db.commit()
+    broken_before = len(db.execute("PRAGMA foreign_key_check").fetchall())
+    db.execute("PRAGMA foreign_keys = OFF")
+    try:
+        db.execute("BEGIN")
+        db.execute(new_sql)
+        db.execute(f"INSERT INTO works_orders__new ({cols}) SELECT {cols} FROM works_orders")
+        db.execute("DROP TABLE works_orders")
+        db.execute("ALTER TABLE works_orders__new RENAME TO works_orders")
+        for sql in extras:
+            db.execute(sql)
+        broken_after = len(db.execute("PRAGMA foreign_key_check").fetchall())
+        if broken_after > broken_before:
+            raise RuntimeError("some links to jobs would be broken - nothing was changed")
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.execute("PRAGMA foreign_keys = ON")
+    print("Schema update: works orders can now be 'On Hold'")
+
+
+def seed_rolls_royce_payment_terms(db):
+    """Once: every Rolls Royce site pays 75 days, end of week (Simon, 26 Oct 2026). Only customers that have no
+    terms set yet are filled in, so anything entered by hand is never overwritten."""
+    key = "migration_rr_payment_terms_v1"
+    if _migration_applied(db, key):
+        return
+    cols = [r[1] for r in db.execute("PRAGMA table_info(customers)")]
+    if "payment_terms_days" not in cols:
+        return
+    db.execute("UPDATE customers SET payment_terms_days=75, payment_terms_eow=1 "
+               "WHERE customer_name LIKE 'Rolls Royce%' AND payment_terms_days IS NULL")
+    _mark_migration_applied(db, key)
+
+
+# The sites that get a fixed purchase order + line each year, per contract code (Simon, 27 Oct 2026).
+FIXED_PO_SITES = [
+    "Rolls Royce - DCDD", "Rolls Royce - DSFT", "Rolls Royce - CRF", "Rolls Royce - FSF", "Rolls Royce - WMF",
+    "Rolls Royce - Bristol", "Rolls Royce - 3BSM", "Rolls Royce - Bristol - Lift Works",
+    "Rolls Royce - Bristol - Repair Works", "Rolls Royce - Bristol - Turbines Facility - BTFM",
+    "Rolls Royce - Bristol Lift Fan",
+]
+FIXED_PO_CODES = ["FS - L", "FS - M", "FS - H", "FR/TL"]
+
+
+def seed_fixed_po_customers(db):
+    """Once: make sure every site on the Fixed Yearly Customer PO's screen exists as a customer. Only the ones that
+    are missing are created (matched ignoring capitals/spaces); existing customers are never touched."""
+    key = "migration_fixed_po_customers_v1"
+    if _migration_applied(db, key):
+        return
+    have = {" ".join((r[0] or "").lower().split()) for r in db.execute("SELECT customer_name FROM customers")}
+    cols = [r[1] for r in db.execute("PRAGMA table_info(customers)")]
+    for name in FIXED_PO_SITES:
+        if " ".join(name.lower().split()) in have:
+            continue
+        if "payment_terms_days" in cols:
+            db.execute("INSERT INTO customers (customer_name, payment_terms_days, payment_terms_eow, created_by) VALUES (?,75,1,'System')", (name,))
+        else:
+            db.execute("INSERT INTO customers (customer_name, created_by) VALUES (?, 'System')", (name,))
+        print(f"Added customer {name}")
+    _mark_migration_applied(db, key)
+
+
 def relax_po_job_link(db):
     """Historic purchase orders imported from the old register don't belong to
     a job in the app, so purchase_orders.works_order_id must be allowed to be
@@ -593,6 +832,18 @@ def run_migrations(db, base_dir):
         allow_service_engineer_role(db)
     except Exception as e:
         print(f"Skipped the Service Engineer role update: {e}. Everything else is starting normally.")
+    try:
+        seed_fixed_po_customers(db)
+    except Exception as e:
+        print(f"Skipped adding the Fixed Yearly Customer PO sites: {e}. Everything else is starting normally.")
+    try:
+        seed_rolls_royce_payment_terms(db)
+    except Exception as e:
+        print(f"Skipped the payment terms update: {e}. Everything else is starting normally.")
+    try:
+        widen_works_order_statuses(db)
+    except Exception as e:
+        print(f"Skipped the works order status update: {e}. Everything else is starting normally.")
     try:
         relax_po_job_link(db)
     except Exception as e:

@@ -14,6 +14,13 @@ DROP TABLE IF EXISTS stock_allocations;
 DROP TABLE IF EXISTS stock_items;
 DROP TABLE IF EXISTS works_orders;
 DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS enquiry_activity;
+DROP TABLE IF EXISTS enquiries;
+DROP TABLE IF EXISTS contract_reviews;
+DROP TABLE IF EXISTS non_conformances;
+DROP TABLE IF EXISTS supplier_evaluations;
+DROP TABLE IF EXISTS supplier_certificates;
+DROP TABLE IF EXISTS fixed_customer_pos;
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS quote_labour_lines;
@@ -69,7 +76,9 @@ CREATE TABLE customers (
     created_by     TEXT,
     created_date   TEXT DEFAULT (datetime('now')),
     updated_by     TEXT,
-    updated_date   TEXT
+    updated_date   TEXT,
+    payment_terms_days  INTEGER,
+    payment_terms_eow   INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE suppliers (
@@ -85,7 +94,34 @@ CREATE TABLE suppliers (
     created_by     TEXT,
     created_date   TEXT DEFAULT (datetime('now')),
     updated_by     TEXT,
-    updated_date   TEXT
+    updated_date   TEXT,
+    -- ISO 9001 supplier approval (v1.11.0). Every existing supplier starts "Not assessed" and is assessed when next ordered from.
+    approval_status     TEXT NOT NULL DEFAULT 'Not assessed',
+    approved_for        TEXT,
+    approved_date       TEXT,
+    approved_by         TEXT,
+    approval_condition  TEXT,
+    next_review_date    TEXT
+);
+
+CREATE TABLE supplier_certificates (
+    certificate_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    supplier_id     INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+    cert_type       TEXT NOT NULL,
+    cert_number     TEXT,
+    expiry_date     TEXT,
+    created_by      TEXT,
+    created_date    TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE supplier_evaluations (
+    evaluation_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    supplier_id     INTEGER NOT NULL REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+    eval_date       TEXT NOT NULL,
+    outcome         TEXT NOT NULL,
+    notes           TEXT,
+    evaluated_by    TEXT,
+    created_date    TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE works_orders (
@@ -106,7 +142,31 @@ CREATE TABLE works_orders (
     created_by       TEXT,
     created_date     TEXT DEFAULT (datetime('now')),
     updated_by       TEXT,
-    updated_date     TEXT
+    updated_date     TEXT,
+    required_by      TEXT,
+    delivered_date   TEXT,
+    customer_po      TEXT,
+    customer_po_line TEXT,
+    -- Contract review (v1.11.0): NULL = a job from before the review process (no badge); new jobs start Not reviewed.
+    review_status    TEXT
+);
+
+-- Fixed Yearly Customer POs: some customers (the Rolls Royce sites) issue one fixed purchase order and line number
+-- per contract code each year. One row per site + contract code + year. A new year gets new rows, so earlier years
+-- are kept. The number is also copied onto each works order (works_orders.customer_po / customer_po_line) so the
+-- order keeps what it was raised under whatever happens to this table later.
+CREATE TABLE fixed_customer_pos (
+    fixed_po_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id    INTEGER NOT NULL REFERENCES customers(customer_id),
+    contract_code  TEXT NOT NULL,
+    year           INTEGER NOT NULL,
+    po_number      TEXT NOT NULL,
+    line_number    TEXT,
+    created_by     TEXT,
+    created_date   TEXT DEFAULT (datetime('now')),
+    updated_by     TEXT,
+    updated_date   TEXT,
+    UNIQUE (customer_id, contract_code, year)
 );
 
 -- "Deliver to" addresses used on Purchase Orders, taken from the business's
@@ -182,7 +242,12 @@ CREATE TABLE goods_in (
     quantity_received                REAL,
     received_by                         TEXT NOT NULL,
     comment                                TEXT,
-    created_date                            TEXT DEFAULT (datetime('now'))
+    created_date                            TEXT DEFAULT (datetime('now')),
+    -- Traceability (v1.11.0): all optional. cert_status: Received / Not received / Not required. inspection_result: Accepted / Rejected.
+    batch_number                              TEXT,
+    heat_number                                TEXT,
+    cert_status                                 TEXT,
+    inspection_result                            TEXT
 );
 
 CREATE INDEX idx_goods_in_po ON goods_in(purchase_order_id);
@@ -207,6 +272,54 @@ CREATE TABLE goods_in_documents (
 );
 
 CREATE INDEX idx_goods_in_documents_gi ON goods_in_documents(goods_in_id);
+
+-- Non-conformance reports (ISO 9001 8.7 / 10.2): raised from a rejected delivery, a customer complaint or an internal
+-- problem, then taken through containment, root cause, corrective action and an effectiveness check.
+CREATE TABLE non_conformances (
+    ncr_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    ncr_number        TEXT UNIQUE NOT NULL,
+    raised_date       TEXT NOT NULL,
+    source            TEXT NOT NULL,
+    works_order_id    INTEGER REFERENCES works_orders(works_order_id),
+    supplier_id       INTEGER REFERENCES suppliers(supplier_id),
+    goods_in_id       INTEGER REFERENCES goods_in(goods_in_id),
+    purchase_order_id INTEGER REFERENCES purchase_orders(purchase_order_id),
+    part_description  TEXT,
+    quantity_affected TEXT,
+    description       TEXT NOT NULL,
+    containment       TEXT,
+    disposition       TEXT,
+    cost_of_poor_quality REAL,
+    owner             TEXT,
+    action_due        TEXT,
+    root_cause        TEXT,
+    corrective_action TEXT,
+    effectiveness_check_date TEXT,
+    effectiveness_result     TEXT,
+    status            TEXT NOT NULL DEFAULT 'Raised',
+    closed_date       TEXT,
+    created_by        TEXT,
+    created_date      TEXT DEFAULT (datetime('now')),
+    updated_by        TEXT,
+    updated_date      TEXT
+);
+
+-- Contract review (ISO 9001 8.2.3): one signed-off record per job comparing the quote with the customer's order.
+CREATE TABLE contract_reviews (
+    review_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    works_order_id  INTEGER NOT NULL UNIQUE REFERENCES works_orders(works_order_id) ON DELETE CASCADE,
+    quote_id        INTEGER REFERENCES quotes(quote_id),
+    checks_json     TEXT,
+    outcome         TEXT,
+    comment         TEXT,
+    reviewed_by     TEXT,
+    review_date     TEXT,
+    signed_off      INTEGER NOT NULL DEFAULT 0,
+    created_by      TEXT,
+    created_date    TEXT DEFAULT (datetime('now')),
+    updated_by      TEXT,
+    updated_date    TEXT
+);
 
 -- Despatch Notes: the outbound counterpart to Goods In - records goods
 -- physically shipped to the customer against a Works Order, with its own
@@ -294,7 +407,8 @@ CREATE TABLE customer_invoices (
     created_by                TEXT,
     created_date               TEXT DEFAULT (datetime('now')),
     updated_by                  TEXT,
-    updated_date                 TEXT
+    updated_date                 TEXT,
+    due_date                      TEXT
 );
 
 -- Quotes: pre-Works-Order stage. quote_number is auto-assigned sequentially
@@ -583,4 +697,39 @@ CREATE TABLE alert_acceptances (
     reason         TEXT NOT NULL,
     accepted_by    TEXT,
     accepted_date  TEXT DEFAULT (datetime('now'))
+);
+
+-- Sales pipeline (v1.13.0): enquiries that are not yet at quote stage but need following up. An enquiry is for an
+-- existing customer (customer_id) or a prospect (prospect_name); converting it to a quote creates the customer if needed.
+CREATE TABLE enquiries (
+    enquiry_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    enquiry_number  TEXT UNIQUE NOT NULL,
+    customer_id     INTEGER REFERENCES customers(customer_id),
+    prospect_name   TEXT,
+    contact_name    TEXT,
+    owner           TEXT,
+    source          TEXT,
+    received_date   TEXT NOT NULL,
+    estimated_value REAL,
+    description     TEXT NOT NULL,
+    stage           TEXT NOT NULL DEFAULT 'New',
+    next_follow_up  TEXT,
+    next_action     TEXT,
+    lost_reason     TEXT,
+    quote_id        INTEGER REFERENCES quotes(quote_id) ON DELETE SET NULL,
+    closed_date     TEXT,
+    created_by      TEXT,
+    created_date    TEXT DEFAULT (datetime('now')),
+    updated_by      TEXT,
+    updated_date    TEXT
+);
+
+CREATE TABLE enquiry_activity (
+    activity_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    enquiry_id     INTEGER NOT NULL REFERENCES enquiries(enquiry_id) ON DELETE CASCADE,
+    activity_date  TEXT NOT NULL,
+    method         TEXT,
+    note           TEXT NOT NULL,
+    logged_by      TEXT,
+    created_date   TEXT DEFAULT (datetime('now'))
 );

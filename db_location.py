@@ -14,29 +14,6 @@ import shutil
 import sys
 import datetime
 
-#NEXT.js
-# import { createClient } from '@libsql/client';
-#import { NextResponse } from 'next/server';
-
-#const client = createClient({
-#  url: process.env.TURSO_DATABASE_URL,
-#  authToken: process.env.TURSO_AUTH_TOKEN
-#});
-
-#export const POST = async () => {
-#  // Fetch data from SQLite
-#  const result = await client.execute("CREATE TABLE todos (description);");
-#};
-
-#ASTRO
-#To start using the Turso libSQL client in your project, create a libSQL client somewhere in your project (e.g. src/turso.ts:
-# #import { createClient } from "@libsql/client/web";
-
-#export const turso = createClient({
-#  url: import.meta.env.TURSO_DATABASE_URL,
-#  authToken: import.meta.env.TURSO_AUTH_TOKEN,
-#});
-
 # This app was originally named "Job Profitability Manager" - OLD_DATA_DIR
 # is where every existing install's data already lives, and
 # migrate_from_old_product_name() below moves it into the new folder the
@@ -50,7 +27,6 @@ OLD_DATA_DIR = os.path.join(os.path.expanduser("~"), "JobProfitabilityManager")
 # shared-host install, this is exactly the one ~/TEAMworks360 folder it
 # always was - nothing about the default install changes because this
 # override exists.
-# DATA_DIR = os.environ.get("TEAMWORKS360_DATA_DIR") or os.path.join(os.path.expanduser("~"), "TEAMworks360")
 DATA_DIR = "/tmp"
 DB_PATH = os.path.join(DATA_DIR, "jpm.db")
 SECRET_KEY_PATH = os.path.join(DATA_DIR, ".secret_key")

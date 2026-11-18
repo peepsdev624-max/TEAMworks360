@@ -391,3 +391,17 @@ table.data-table thead th { position: sticky; top: 0; z-index: 1; }
 .late-pill { display: inline-block; min-width: 28px; text-align: center; padding: 1px 8px; border-radius: 10px; font-size: 12px; }
 .late-amber { background: #faeeda; color: #633806; }
 .late-red { background: #fcebeb; color: #791f1f; }
+
+/* Works Orders: tick-and-change-status bar */
+.bulk-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px; margin: 8px 0; background: var(--grey-100, #f3f4f6); border-radius: var(--radius, 8px); font-size: 13px; }
+.bulk-bar .bulk-spacer { flex: 1; }
+
+/* Enquiries board */
+.enq-board { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding-bottom: 8px; }
+.enq-col { flex: 1 1 0; min-width: 210px; background: var(--grey-100, #f3f4f6); border-radius: 8px; padding: 8px; min-height: 120px; }
+.enq-col.enq-over { outline: 2px dashed var(--blue); }
+.enq-col-head { margin-bottom: 6px; font-size: 13px; }
+.enq-card { background: #fff; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; box-shadow: 0 1px 2px rgba(15,41,66,0.12); cursor: pointer; font-size: 13px; }
+.enq-card[draggable="true"] { cursor: grab; }
+.enq-card-foot { display: flex; justify-content: space-between; font-size: 12px; color: #555; }
+.enq-closed { opacity: 0.85; }

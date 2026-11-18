@@ -32,7 +32,6 @@ def main():
     conn = sqlite3.connect(db_location.DB_PATH)
     try:
         if globals.query_db(conn,"SELECT 1 FROM users WHERE username=?", (USERNAME,), one=True):
-        # if conn.execute("SELECT 1 FROM users WHERE username=?", (USERNAME,)).fetchone():
             print(f"Account '{USERNAME}' already exists - left as it was.")
             return
         conn.execute(

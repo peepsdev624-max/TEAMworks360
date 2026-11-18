@@ -44,7 +44,7 @@ Documented assumptions (spreadsheet does not give us better data):
     subcontracted rows, so transport looks like an informational
     side-metric rather than a component of Cost.
   - Status codes: D/d -> Completed, A -> In Progress, C -> Cancelled,
-    H -> Open, blank/unrecognised -> Draft.
+    H -> On Hold, blank/unrecognised -> Draft.
 """
 import re
 import sqlite3
@@ -98,7 +98,7 @@ def extract_team_ref(*values):
             return f"TEAM{m.group(1)}"
     return None
 
-STATUS_MAP = {'d': 'Completed', 'a': 'In Progress', 'c': 'Cancelled', 'h': 'Open'}
+STATUS_MAP = {'d': 'Completed', 'a': 'In Progress', 'c': 'Cancelled', 'h': 'On Hold'}
 
 SUPPLIER_NORMALISE = {
     'fife': 'Fife Engineering',
@@ -323,11 +323,13 @@ def main():
         cur.execute(
             """INSERT INTO works_orders
                (job_number, job_name, customer_id, project_manager, status,
-                start_date, end_date, contract_value, budget_cost, budget_is_estimated, contract_code, location)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                start_date, end_date, contract_value, budget_cost, budget_is_estimated, contract_code, location,
+                required_by, delivered_date)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (job_number, job_name, customer_id, project_manager, status,
              start_date, end_date, round(invoice_value, 2), round(budget_cost, 2), int(budget_is_estimated),
-             normalise_contract_code(clean_text(r['contract_code'])), clean_text(r['location'])),
+             normalise_contract_code(clean_text(r['contract_code'])), clean_text(r['location']),
+             to_date(r['delivery_req']), to_date(r['delivered_on'])),
         )
         wo_id = cur.lastrowid
         wo_count += 1

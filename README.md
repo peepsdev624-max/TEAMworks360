@@ -442,7 +442,7 @@ three Dashboard charts show.
 
 ## Version number and update check
 
-The version of the app is shown at the foot of the sidebar ("Version 1.2.0"; hover for the build date). It lives in one place, `version.py` — change `APP_VERSION` and the date there when you build a new release.
+The version of the app is shown at the foot of the sidebar ("Version 1.13.2"; hover for the build date). It lives in one place, `version.py` — change `APP_VERSION` and the date there when you build a new release.
 
 - **Protects your data from an old copy.** The database remembers the newest version that has opened it. If an older copy of the app is started against it (for example someone restores an old app folder), the app stops with a plain message and changes nothing, instead of risking damage. Install the newer version and start again. (Only for a deliberate exception: set `TEAMWORKS360_ALLOW_OLDER=1`.)
 - **Version changes are logged.** Each time the version changes, the audit log records the old and new version.
@@ -1721,3 +1721,141 @@ Service Engineers see the counts but never the £ values.
 
 **Reporting - Hours Booked:** a new report type that totals the hours from Hours Quoted & Booked by month for a chosen year. Group it by employee, job, customer or contract code, filter by employee, customer or contract code, and export to CSV.
 
+
+## On Hold status and clearing the booked hours (version 1.3.0)
+
+**On Hold.** Works Orders (the order book) can now be set to **On Hold**, in the status box on the job and in the status filter on the Works Orders page. It matches the Order Book spreadsheet's own "H" code, which used to be imported as Open. An On Hold job is not counted as Active, Open, Late or Due, so it drops out of those dashboard figures and panels, and it stays in the list so nothing is lost. The first time version 1.3.0 starts, it adds the new status to your existing database automatically (nothing is removed). Jobs that were imported as Open because of the "H" code are moved to On Hold the next time you run `update_order_book` with the latest Order Book.
+
+**Clearing the hours booked.** The hours in the app were not booked by people: the Order Book import turned the non-material part of each job's Cost into one in-house labour line per job (cost divided by the labour rate, in the project manager's name). To start capturing real hours, close the app and double-click `clear_hours.bat` (Windows) or `clear_hours.command` (Mac). It shows a preview, including the labour cost that will come off the jobs, and only clears when you type YES; it takes a backup first. It also switches off the automatic labour lines so a later Order Book update does not put them back. Jobs, purchase orders, invoices, goods in, despatch notes, stock and quotes are not touched. Quotes' own labour lines (the "hours quoted") are left alone unless you run the tool with `--include-quoted`. Note that clearing the hours lowers the cost, and raises the profit, of every job that had a calculated labour line, until real hours are booked.
+
+## On Hold on the dashboard, and changing a batch of jobs at once (version 1.4.0)
+
+**On Hold numbers.** The Dashboard's Works Orders and Stock row has a new **On Hold** card, and the Works Orders panel has an **On hold** card (count and value). Click either to see just those jobs.
+
+**Changing a batch of jobs.** On the Works Orders page, tick the jobs you want (the box in the heading ticks the whole page; "Select all ... matching these filters" ticks every job the current filters show), pick a status in the bar above the table, and press **Apply to selected**. You are asked to confirm first. Each change is recorded in the job's History, just like changing one job by hand, and nothing else about the jobs is touched. Changing the filters or search clears the ticks, so a job you can't see can never be changed by accident. Because the jobs are changed in the app, a later Order Book update treats them as edited in the app and leaves them alone, exactly as it already does for a job you edit one at a time. Anyone who can edit Works Orders can do this (Administrator, Project Manager, Service Engineer).
+
+## If the two-factor QR code does not appear (version 1.4.1)
+
+The QR code is drawn by the app itself, so it needs the app's Python packages (reportlab and Pillow, in `requirements.txt`). If it does not appear on a computer, the sign-in screen now says so and points to the setup key underneath, which works in any authenticator app (choose "Enter a setup key" or "Enter code manually", account name TEAMworks360, type Time based). The window the app was started from also prints the reason. To fix the cause, close the app and run `pip install -r requirements.txt` (on Windows, `py -m pip install -r requirements.txt`) from the app folder, then start it again.
+
+## New accounts: "Two-factor authentication setup required" (fixed in version 1.4.2)
+
+A brand-new account has to change its temporary password first and set up two-factor authentication second. In versions before 1.4.2 the password screen was wrongly refused with the message "Two-factor authentication setup required", so a new person could not get past it. Fixed: the password change now works, and the two-factor setup screen (QR code and setup key) follows it. Nothing needs doing to existing accounts.
+
+## Awaiting Invoicing report (version 1.5.0)
+
+**Reporting - Awaiting Invoicing** lists every Completed job with a Purchase Order Value that has not been invoiced yet, longest waiting first (days are counted from the job's End Date; amber after 14 days, red after 30). The cards show how many jobs are waiting, their total Purchase Order Value, how many have waited over 30 days and the oldest. Filter by **site** (the customer, e.g. "Rolls Royce - Derby"), by **location** (Midlands, North, Bristol), by owner and by contract code, and export the result to CSV. Click a job number to open it on the Works Orders page.
+
+"Invoiced" means the job has an invoice that really went out: Paid or Overdue, or Sent/raised in the app. Draft and Cancelled invoices don't count. An invoice that arrived from the Order Book marked Sent is the Order Book's "delivered, Date Invoiced blank", so it counts as not yet invoiced. The "Completed, Not Yet Invoiced" button on the Job Profitability report now uses the same rule (before, it wrongly treated those jobs as invoiced).
+
+
+## Version 1.6.0: payment terms, Unpaid Invoices and Overdue Deliveries
+
+**Payment terms.** Each customer now has *Payment terms (days)* and *Paid at end of week (Friday)* on the Customers screen (and a Payment terms column in the list). **All Rolls Royce sites are 75 days, end of week**: the due date is the Friday on or after invoice date + 75 days (an invoice dated Tue 3 Mar 2026 falls due Fri 22 May 2026). On first start the app fills this in for every customer whose name begins "Rolls Royce" and has no terms yet; anything you've set by hand is never overwritten. Other customers are split between 30 and 60 days — set each one on the Customers screen. Until a customer's terms are set its invoices are still aged but are never marked overdue. A customer invoice also has an optional *Due Date*, which overrides the terms for that one invoice.
+
+**Reporting - Unpaid Invoices.** Invoices that are Overdue, or Sent and raised in the app (a "Sent" invoice that came in from the Order Book is only a placeholder, so it's left out), aged from the invoice date into 0–30, 31–60 and over 60 days, by site/customer, with an invoice-by-invoice list below. Cards: total unpaid, not yet due, overdue (past the due date) and over 60 days old. Filter by site, location and owner; click a customer to filter to it; export to CSV. The Order Book import marks every invoiced job Paid, so this report fills up as invoices are raised in the app and stay unpaid.
+
+**Reporting - Overdue Deliveries.** Issued or Approved live purchase orders whose *Date Required* has passed and that haven't been received in full on Goods In (a partial delivery still counts as outstanding), most days late first, with filters for supplier, job and who raised it; click a PO number to open it. Underneath, *Supplier delivery performance*: for POs with a Date Required that were received in full, how many arrived on time, the on-time percentage and the average days late when late. **Date Required is now a required box on the Purchase Order form** so this has something to measure. Older POs without one are ignored by both tables.
+
+Both reports are for Administrators and Managers; Service Engineers can't open them.
+
+## Version 1.7.0: four more reports
+
+All four sit in the Reporting report-type bar, filter and export to CSV like the others, and are closed to Service Engineers.
+
+- **Quote Follow-up.** "Quotes to chase" lists quotes still marked Sent for over 30 days, longest first (click a quote number to open it on the Quotes page). Win rate = Won out of every quote with an outcome (Won, Lost, Expired), shown by count and by value, by owner, by month of quote date and by customer (top 25). Filter by customer, owner and year. Cards show quotes awaiting an answer (and their value), how many need chasing and the win rates.
+- **Workload by Owner.** Per project manager: Open, In Progress, Late (live and past End Date), On Hold, and the PO value of each. Filter by site (customer) and location.
+- **Supplier Invoices by Age.** Supplier invoices that are Pending, Approved or Disputed, aged 0–30 / 31–60 / over 60 days from the invoice date, by supplier, with an invoice list. Cards split the total into awaiting approval, approved but unpaid, disputed and over 60 days. Filter by supplier and status.
+- **Work in Progress.** Open, In Progress and On Hold jobs showing PO value, purchases, hours, stock, total cost to date, what has really been invoiced (same rule as Awaiting Invoicing, so Order Book placeholder invoices don't count) and "cost not yet invoiced" (negative = billed ahead), plus open PO commitments. Hours were cleared, so cost is understated until real hours are booked.
+
+## Version 1.8.0: Required By date, On-time Delivery and Jobs On Hold
+
+- **Required By** is a new date on every job (Works Order form): the date the customer needs the work delivered. Changes to it are recorded in the job's History.
+- **Order Book history.** The Order Book already has "Delivery Req" and "Delivered On" columns. Running the Order Book update (`update_order_book`) now copies them onto each job as Required By and Delivered On, including jobs edited in the app (only where those two dates are still blank - nothing already entered is touched). On first run it also adds the new columns itself, so you can run it straight after unzipping.
+- **Reporting - On-time Delivery.** For jobs with a Required By date: delivered = the latest Despatched despatch note, otherwise the Order Book's Delivered On date. On time = on or before Required By. A live job past its Required By date with nothing delivered counts as overdue (late). Finished jobs with no delivery date can't be judged and are left out (the count is shown), as are jobs whose two dates are more than a year apart (a typing slip). Shows on-time % and average days late, a list of late and overdue jobs, and breakdowns by site, owner and month; filter by site, location, owner and year.
+- **Reporting - Jobs On Hold.** Every On Hold job with the date it was put On Hold (from its History), days on hold, who did it and its PO value; amber after 30 days, red after 60. Jobs that were put On Hold before the app recorded it (for example arriving from the Order Book) show "Unknown" until their status is set to On Hold again in the app or with the batch status change.
+
+## Version 1.8.1: share customers and suppliers with another laptop
+
+`share_customers_suppliers.bat` (Windows) / `.command` (Mac) copies the customer and supplier lists from one TEAMworks360 to another, for example to a colleague who has his own copy. Close TEAMworks360 first.
+
+1. On the laptop that has the lists, double-click it and choose **1 (Export)**. It writes one file, `TEAMworks360-customers-suppliers.json`, to your Desktop (the OneDrive Desktop if you have one), prints its full location and opens the folder with the file selected. It contains names, addresses, contacts, e-mail, phone, VAT number and payment terms only - no jobs, prices, invoices or users.
+2. Copy that file to the other laptop (USB stick, e-mail, shared folder). The colleague must have started TEAMworks360 at least once so he has a database.
+3. On the other laptop, double-click it and choose **2 (Import)**. It shows a preview first. Anything whose name he already has (capitals and extra spaces ignored) is left exactly as it is; only the missing ones are added. Type YES to apply; a backup is taken first. It is safe to run again - the second time it finds nothing to add.
+
+(1.8.2: the export now finds the real Desktop, including OneDrive's, and opens the folder so the file is easy to find.)
+
+## Version 1.9.0: Fixed Yearly Customer PO's
+
+Some customers (the Rolls Royce sites) issue one fixed purchase order and line number per contract code each year. The new **Fixed Yearly Customer PO's** screen (sidebar, under Customers) holds them as a grid: one row per site, one column per contract code (FS - L, FS - M, FS - H, FR/TL), one tab per year. Click a cell to set its PO number and line number. FS - HQ is deliberately not in the grid because it gets a new PO and line every time.
+
+- **Sites:** Rolls Royce - DCDD, DSFT, CRF, FSF, WMF, Bristol, 3BSM, Bristol - Lift Works, Bristol - Repair Works, Bristol - Turbines Facility - BTFM and Bristol Lift Fan. On first start the app creates any of these customers that don't exist yet (3BSM, Bristol and Bristol Lift Fan); existing customers are untouched.
+- **Pull-through:** on a new works order, picking the site and contract code fills in **Customer PO** and **Line number** from the grid for the year of the job's start date (this year if there is no start date). You can type over them for one job. The fields are also on the Works Orders list, searchable, and shown in the Awaiting Invoicing report and its CSV.
+- **Existing jobs:** when a cell for FS - L, FS - M or FS - H is saved, existing jobs for that site and code that started in that year and have no customer PO yet are given it. FR/TL and plain "FS" jobs are not touched, and a job that already carries a number is never changed.
+- **Kept for audit:** each order keeps the number it was raised under, whatever happens to the grid afterwards. A new year simply starts blank and earlier years stay on their own tabs. Every change to a cell (including clearing it) is recorded with who and when, under **History of changes**, and changes to a job's Customer PO are recorded in the job's History.
+- **Who can change it:** Administrators, Project Managers, Procurement and Finance. Executives can view; Service Engineers can't open the screen (but the Customer PO fills in when they raise a job).
+
+## Version 1.10.0: Change contract codes in bulk (FS → FS - L / M / H)
+
+Plain "FS" jobs can now be sorted into the new FS - L, FS - M and FS - H codes in a few batches rather than one by one, across all sites.
+
+- **Filters on Works Orders:** new **Purchase Order Value £ from / to** and **Cost £ from / to** boxes (only for roles that can see job money; hidden from Service Engineers), plus **quick-pick links** for the FS - L, FS - M and FS - H prices that set the Code filter to FS and a £1 band around the price. Combine them with the Customer, Code and other filters; "clear" removes the ranges.
+- **Change contract code to:** in the bulk bar, choose the new code, tick jobs (or "Select all N matching these filters") and press **Apply to selected**. You are told the count and old → new code before anything changes.
+- **Safety:** a backup of the database is taken first. Each change is written to the job's History (who, when, old and new code). Jobs on the old Order Book history (HIST-PO) are skipped. Service Engineers can't use it.
+- **Customer PO:** jobs moved to FS - L/M/H (or FR/TL) at a Rolls Royce site with no customer PO yet get the fixed yearly one for their site and year, if it is set. The result message says how many were filled and how many had nothing set (enter it on the Fixed Yearly Customer PO's screen and save the cell — existing jobs are then filled in).
+- **Order Book refresh:** `update_order_book.py` no longer puts a job back to plain "FS" once you have moved it to FS - L/M/H.
+- **Suggested order:** enter the yearly POs on the grid first, then do one batch each for L, M and H. Jobs that don't fit any price stay as FS.
+
+## Version 1.10.1: Preview PDFs
+
+Quotes, Purchase Orders and Despatch Notes now have a **Preview** button beside **PDF**. Preview opens the PDF in a new browser tab so you can check it before saving or printing; **PDF** still downloads it as before. The Quote cost breakdown window has both too. Previews are recorded in the Document Access log as "… PDF (preview)".
+
+## Version 1.10.2: Margin alerts compare the margin as it is shown
+
+A job whose margin was a hair under its target (for example 19.996%) displayed as "20.0%" yet raised a "Margin Risk: forecast margin 20.0% is below the 20% target" alert and an amber light. Margin is now compared to the target at the one decimal place you see, so a job showing 20.0% against a 20% target is green and raises no alert; one showing 19.9% still does. Applies to the Margin Risk alert, the traffic lights, the job's margin cards and the margin badges in reports. Costs and profit figures are unchanged. Note that the Margin Risk alert uses the **forecast** margin (actual cost plus outstanding purchase order commitments), so a job can show 20% margin so far yet alert on its forecast.
+
+## Version 1.11.0: Quality (ISO 9001 groundwork)
+
+Four additions, all optional and none of them stops work.
+
+**1. Non-conformances (new sidebar item).** Raise an NCR for a rejected delivery, a customer complaint, a late delivery or an internal problem. Each is numbered NCR-0001, NCR-0002… and taken through Raised → Contained → Root cause → Action → Effectiveness check → Closed. It records the job, supplier, PO, part, quantity, containment, disposition (use as is / rework / scrap / return to supplier / concession), cost of poor quality, owner and due date. To close one, the root cause, corrective action and effectiveness result must be filled in. Every change goes into the NCR's History. Administrators, Project Managers and Procurement can raise and edit; Executives can view; Service Engineers can't open the screen; only Administrators can delete.
+
+**2. Supplier approval (Suppliers screen).** New columns: Approval (Approved / Conditional / Suspended / Not assessed), Approved for, Cert expiry, On time %, NCRs in the last 12 months, Next review. The **Approval** button opens the supplier's approval details, certificates (type, number, expiry; flagged amber within 60 days and red once expired), performance and evaluation history. On-time % comes from the existing delivery records; the score is on-time % less 8 points per NCR in the last 12 months. Every change is recorded in History. Existing suppliers start as **Not assessed**: the Purchase Order form reminds you when you order from one, so they get assessed the next time you order. A Conditional or certificate-expiring supplier shows a warning. A **Suspended** supplier can't be ordered from, except by an Administrator who gives a reason (recorded in the PO's History).
+
+**3. Goods In traceability.** Each Goods In record can now carry a batch/serial number, a heat number, a certificate-of-conformity status (Received / Not received / Not required) and an inspection result (Accepted / Rejected). Certificates are not compulsory: if none is recorded, saving asks "Save anyway?". Marking a delivery **Rejected** offers to raise an NCR straight away, filled in from the delivery. A **Trace** box on the Goods In screen finds a batch, serial or heat number and shows the supplier, delivery, PO, job, certificate and inspection, any NCR, and the job's despatch notes (despatch notes don't record which batch was on them, so it lists the job's despatches).
+
+**4. Contract review (Works Orders, new Review column).** Each new job starts as **Not reviewed**; click the badge to open the review: quote against order (price, customer PO recorded, required-by date), an eight-point checklist (Yes / No / N/A with comments), an outcome (Accepted as ordered / Query raised with customer), who reviewed it and when. **Sign off** needs every check answered and the outcome "Accepted as ordered". The badge shows Not reviewed, Query open or Signed off. It is a badge only: it does not stop a job going ahead. Jobs created before this version show a dash (no review needed). Project Managers, Procurement and Administrators can review; Executives can view; Service Engineers can't see it.
+
+Not in this version: certificate file attachments on suppliers (attach them with the Goods In documents for now), dashboard alerts for expiring certificates or overdue NCR actions, and Goods In records with several batches (one batch per Goods In record).
+
+## Version 1.12.0: Reporting > Deliveries Due
+
+A new report for the jobs due for delivery over the next few months, with income, cost and profit, each month as its own section.
+
+- **Which jobs:** open jobs (Draft, Open, In Progress, On Hold) that haven't been delivered, by their **Required By** date, or their **End Date** when no Required By has been entered. Completed, Closed and Cancelled jobs are left out. Open jobs with no date at all can't be placed, so the report says how many there are.
+- **Window:** this month and the next two by default (the "Next N months" box goes from 1 to 12). Jobs already past their date but still open are shown in their own **Already overdue** section and are not added into the totals.
+- **Separate months:** a summary table (jobs, income, forecast cost, forecast profit, margin per month), then a table for each month with a total line. The buttons above switch between All months, a single month, or Overdue. Filter by site (customer), location and owner.
+- **Money:** Income is the job's Purchase Order Value. Cost so far is hours, supplier invoices and stock booked to the job. Forecast cost adds purchase orders not yet invoiced. Forecast profit is Income less forecast cost. A job that hasn't had its purchasing raised yet will look more profitable than it will turn out to be.
+- **Export to CSV** includes every row and the total for each month. Open to everyone who can see Reporting; closed to Service Engineers like the other reports.
+
+## Version 1.13.0: Enquiries (sales pipeline)
+
+A new **Enquiries** screen, between Dashboard and Quotes, for work that has come in but is not yet at quote stage and needs following up.
+
+- **Board and list:** the board has columns New, Contacted, Info / visit needed and Ready to quote. Drag a card to the next column as it moves on. The List view shows the same enquiries in a table. Filter by owner or search, and tick "Show closed" to see enquiries that were quoted or lost.
+- **Summary cards:** open enquiries, follow-ups due or overdue, estimated value, and weighted value (value x the chance for each stage).
+- **An enquiry:** customer (pick an existing one) or a prospect typed in as free text, contact, owner, source, received date, estimated value, what they want, next follow-up date and next action. Each contact is logged in an activity list (method and note). Logging a contact can also set the next follow-up date.
+- **Convert to quote:** creates a Draft quote with the description, value, contact and owner filled in, and adds a prospect to Customers at that point. The enquiry is marked Quoted and shows the quote number.
+- **Close as lost / no bid:** needs a reason. Closed enquiries can no longer be edited.
+- **Chasing:** an overdue follow-up date raises an "Enquiry Follow-up" alert (top bar and dashboard), and the dashboard has an **Enquiries to chase** panel. Cards show red (overdue), amber (chase today or no date set) or green.
+- **Stage chances:** Administrators set the % chance for each stage with the "Stage chances" button (defaults 10 / 25 / 40 / 70). It only affects the weighted value.
+- **Who can do what:** Administrators, Project Managers and Procurement can create and edit. Finance can view. Executives see the dashboard panel only. Service Engineers have no access. Only Administrators can delete. Changes to stage, value, owner and follow-up date are recorded in the change history.
+- Existing quotes are not back-filled into enquiries.
+
+## Version 1.13.1: Preview PDF blank in Firefox
+
+The **Preview** button on Quotes, Purchase Orders and Despatch Notes showed a blank tab in Firefox. The app's security policy header was also being applied to PDFs, which stops Firefox's built-in PDF viewer drawing the page. PDFs are now sent without that header (they contain no page script), so Preview works in Firefox as well as Chrome and Edge. Downloads were never affected.
+
+## Version 1.13.2: Charts blank until the mouse moves over them
+
+In Firefox the dashboard and report charts could stay blank until the mouse was moved over them. The chart's box was being sized after the chart had been drawn, so Firefox didn't repaint. The box is now sized first, the draw-in animation is switched off, and each chart is nudged to repaint on the next frame.
