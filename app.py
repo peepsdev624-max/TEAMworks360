@@ -3031,12 +3031,8 @@ def get_purchase_order_pdf(pid):
         return jsonify({"error": "Purchase Order not found"}), 404
     lines = purchase_order_lines(db, pid)
     pdf_bytes = build_po_pdf(po, lines)
-    log_document_access(db, "Purchase Order PDF", po["po_number"])
-    return Response(
-        pdf_bytes,
-        mimetype="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={po['po_number']}.pdf"},
-    )
+    log_document_access(db, "Purchase Order PDF" + (" (preview)" if request.args.get("preview") == "1" else ""), po["po_number"])
+    return pdf_response(pdf_bytes, po["po_number"])
 
 
 @app.route("/api/purchase-orders/<int:pid>/approve", methods=["POST"])
@@ -3459,14 +3455,9 @@ def get_despatch_note_pdf(did):
             signature_path = BytesIO(blob_data.body)
         except Exception:
             signature_path = None
-            
     pdf_bytes = build_despatch_pdf(dn, lines, signature_path=signature_path)
-    log_document_access(db, "Despatch Note PDF", dn["despatch_number"])
-    return Response(
-        pdf_bytes,
-        mimetype="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={dn['despatch_number']}.pdf"},
-    )
+    log_document_access(db, "Despatch Note PDF" + (" (preview)" if request.args.get("preview") == "1" else ""), dn["despatch_number"])
+    return pdf_response(pdf_bytes, dn["despatch_number"])
 
 
 @app.route("/api/despatch-notes/<int:did>/signature", methods=["POST"])
@@ -4562,8 +4553,19 @@ def build_awaiting_invoicing(db, args):
     location = args.get("location", "").strip()
     owner = args.get("owner", "").strip()
     code = args.get("contract_code", "").strip()
-    base = f"""SELECT wo.*, c.customer_name FROM works_orders wo JOIN customers c ON c.customer_id = wo.customer_id
-               WHERE {PLACEHOLDER_JOB_SQL} AND wo.status = 'Completed' AND wo.contract_value > 0 AND NOT {INVOICED_SQL}"""
+    base = f"""SELECT wo.*, c.customer_name
+               FROM works_orders wo
+               JOIN customers c ON c.customer_id = wo.customer_id
+               LEFT JOIN (
+                   SELECT DISTINCT works_order_id
+                   FROM customer_invoices
+                   WHERE status != 'Cancelled' AND status != 'Draft'
+                     AND (status IN ('Paid','Overdue') OR COALESCE(created_by,'') != '')
+               ) inv ON inv.works_order_id = wo.works_order_id
+               WHERE {PLACEHOLDER_JOB_SQL}
+                 AND wo.status = 'Completed'
+                 AND wo.contract_value > 0
+                 AND inv.works_order_id IS NULL"""
     all_rows = globals.query_db(db, base, one=False)
     today = date.today()
     rows = []
